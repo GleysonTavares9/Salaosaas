@@ -3,9 +3,10 @@ import React, { useState } from 'react';
 interface CalendarProps {
     selectedDate: string;
     onDateSelect: (date: string) => void;
+    bookedDates?: Record<string, number>;
 }
 
-const Calendar: React.FC<CalendarProps> = ({ selectedDate, onDateSelect }) => {
+const Calendar: React.FC<CalendarProps> = ({ selectedDate, onDateSelect, bookedDates = {} }) => {
     const [currentMonth, setCurrentMonth] = useState(new Date());
 
     const daysInMonth = (year: number, month: number) => new Date(year, month + 1, 0).getDate();
@@ -36,16 +37,22 @@ const Calendar: React.FC<CalendarProps> = ({ selectedDate, onDateSelect }) => {
         const dateStr = `${year}-${(month + 1).toString().padStart(2, '0')}-${d.toString().padStart(2, '0')}`;
         const isSelected = dateStr === selectedDate;
         const isToday = dateStr === new Date().toISOString().split('T')[0];
+        const bookingCount = bookedDates[dateStr] || 0;
+        const hasBooking = bookingCount > 0;
 
         days.push(
             <button
                 key={d}
                 onClick={() => onDateSelect(dateStr)}
-                className={`size-10 rounded-xl flex items-center justify-center text-[10px] font-black uppercase transition-all
+                title={hasBooking ? `${bookingCount} atendimento${bookingCount > 1 ? 's' : ''}` : undefined}
+                className={`size-10 rounded-xl flex flex-col items-center justify-center text-[10px] font-black uppercase transition-all relative
           ${isSelected ? 'bg-primary text-background-dark shadow-lg scale-110' :
                         isToday ? 'border border-primary text-primary' : 'text-white/60 hover:bg-white/5'}`}
             >
                 {d}
+                {hasBooking && !isSelected && (
+                    <div className="absolute bottom-1 size-1 bg-primary rounded-full"></div>
+                )}
             </button>
         );
     }
@@ -55,7 +62,7 @@ const Calendar: React.FC<CalendarProps> = ({ selectedDate, onDateSelect }) => {
     return (
         <div className="bg-surface-dark/80 backdrop-blur-xl border border-white/5 rounded-[32px] p-6 shadow-2xl">
             <div className="flex items-center justify-between mb-6">
-                <h3 className="font-display text-sm font-black text-white italic uppercase tracking-tighter">
+                <h3 className="font-display text-sm font-black text-white italic uppercase tracking-tighter text-capitalize">
                     {monthName} <span className="text-primary text-[10px] ml-1">{year}</span>
                 </h3>
                 <div className="flex gap-2">
@@ -69,8 +76,8 @@ const Calendar: React.FC<CalendarProps> = ({ selectedDate, onDateSelect }) => {
             </div>
 
             <div className="grid grid-cols-7 gap-1 mb-2">
-                {weekDays.map(wd => (
-                    <div key={wd} className="size-10 flex items-center justify-center text-[8px] font-black text-slate-600 uppercase">
+                {weekDays.map((wd, idx) => (
+                    <div key={`${wd}-${idx}`} className="size-10 flex items-center justify-center text-[8px] font-black text-slate-600 uppercase">
                         {wd}
                     </div>
                 ))}

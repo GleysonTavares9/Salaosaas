@@ -157,6 +157,10 @@ export const api = {
         },
         async updateStatus(id: string, status: Appointment['status']) {
             return this.update(id, { status });
+        },
+        async delete(id: string) {
+            const { error } = await supabase.from('appointments').delete().eq('id', id);
+            if (error) throw error;
         }
     },
 
