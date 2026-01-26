@@ -1,0 +1,113 @@
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --sab: env(safe-area-inset-bottom);
+    --sat: env(safe-area-inset-top);
+  }
+
+  body {
+    @apply bg-background-dark text-slate-200 overflow-hidden;
+    height: 100vh;
+    height: 100dvh;
+    width: 100vw;
+    position: fixed;
+    overscroll-behavior-y: none;
+  }
+
+  #root {
+    height: 100%;
+    width: 100%;
+    max-width: 450px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    background: #08090a;
+  }
+}
+
+@layer components {
+  .gold-gradient {
+    @apply bg-gradient-to-br from-[#c1a571] via-[#ecd3a5] to-[#c1a571];
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .scroll-container {
+    @apply flex-1 overflow-y-auto no-scrollbar;
+    padding-bottom: 180px; /* Espaço extra para não cobrir conteúdo com footer flutuante */
+    overscroll-behavior-y: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Rodapé Flutuante com Margens Laterais Premium */
+  .fixed-floating-footer {
+    @apply absolute bottom-0 left-0 right-0 z-[100] pointer-events-none;
+    padding: 1.5rem 2rem; 
+    padding-bottom: calc(1.5rem + var(--sab));
+    background: linear-gradient(to top, #08090a 0%, #08090a 60%, transparent 100%);
+  }
+
+  .fixed-floating-footer > button, 
+  .fixed-floating-footer > div {
+    @apply pointer-events-auto;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+/* Utilitário para imagens clicáveis */
+.direct-image-link {
+  @apply cursor-zoom-in active:scale-[0.98] transition-transform;
+}
+/* Leaflet Overrides */
+.leaflet-container {
+  font-family: inherit !important;
+}
+
+.leaflet-popup-content-wrapper {
+  background: #1a1c22 !important;
+  color: white !important;
+  border-radius: 20px !important;
+  border: 1px solid rgba(193, 165, 113, 0.3) !important;
+  padding: 0 !important;
+  overflow: hidden;
+}
+
+.leaflet-popup-content {
+  margin: 0 !important;
+  width: auto !important;
+}
+
+.leaflet-popup-tip {
+  background: #1a1c22 !important;
+}
+
+.leaflet-bar {
+  border: none !important;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5) !important;
+}
+
+.leaflet-bar a {
+  background-color: #1a1c22 !important;
+  color: #c1a571 !important;
+  border-bottom: 1px solid rgba(255,255,255,0.1) !important;
+}

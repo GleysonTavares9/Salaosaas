@@ -1,0 +1,8 @@
+{
+  "name": "Luxe Aura - Premium Beauty Management",
+  "description": "A high-end management platform for beauty salons and independent professionals.",
+  "requestFramePermissions": [
+    "geolocation",
+    "camera"
+  ]
+}
