@@ -7,41 +7,35 @@ import L from 'leaflet';
 import { supabase } from '../../lib/supabase';
 import { api } from '../../lib/api';
 
-// Leaflet assets from standard paths
-const iconUrl = 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png';
-const shadowUrl = 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png';
-
-const DefaultIcon = L.icon({
-  iconUrl,
-  shadowUrl,
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-});
-
-// Custom salon marker with gold theme
+// Custom salon marker with Luxe Aura branding (Gold Teardrop)
 const SalonIcon = L.divIcon({
   className: 'custom-salon-marker',
-  html: `<div class="w-8 h-8 rounded-full border-2 border-[#c1a571] bg-[#1a1c22] flex items-center justify-center shadow-2xl">
-           <span class="material-symbols-outlined text-[#c1a571] text-lg">home_hair</span>
+  html: `<div class="relative flex flex-col items-center">
+           <!-- Pin Body -->
+           <div class="w-10 h-10 bg-[#c1a571] rounded-full rounded-bl-none rotate-[-45deg] flex items-center justify-center shadow-[0_10px_20px_rgba(0,0,0,0.5)] border border-white/10">
+             <!-- Inner Circle for Icon -->
+             <div class="w-7 h-7 bg-[#0c0d10] rounded-full rotate-[45deg] flex items-center justify-center">
+               <span class="material-symbols-outlined text-[#c1a571] text-base">home_hair</span>
+             </div>
+           </div>
+           <!-- Dynamic Glow Pulse -->
+           <div class="absolute -bottom-1 w-2 h-1 bg-[#c1a571]/40 rounded-full blur-[2px] animate-pulse"></div>
          </div>`,
-  iconSize: [32, 32],
-  iconAnchor: [16, 32],
-  popupAnchor: [0, -32],
+  iconSize: [40, 44],
+  iconAnchor: [20, 44],
+  popupAnchor: [0, -44],
 });
 
-// User location marker with pulse effect
+// Refined User location marker with branding-consistent pulse
 const UserIcon = L.divIcon({
   className: 'custom-user-marker',
-  html: `<div class="relative">
-           <div class="absolute -inset-2 bg-blue-500/30 rounded-full animate-ping"></div>
-           <div class="size-4 bg-blue-500 rounded-full border-2 border-white shadow-lg relative z-10"></div>
+  html: `<div class="relative flex items-center justify-center">
+           <div class="absolute inset-0 bg-primary/30 rounded-full animate-ping scale-150"></div>
+           <div class="size-4 bg-primary rounded-full border-2 border-white shadow-[0_0_15px_rgba(193,165,113,0.5)] relative z-10"></div>
          </div>`,
-  iconSize: [16, 16],
-  iconAnchor: [8, 8],
+  iconSize: [20, 20],
+  iconAnchor: [10, 10],
 });
-
-L.Marker.prototype.options.icon = DefaultIcon;
 
 const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
   const R = 6371; // Radius in km
@@ -127,8 +121,8 @@ const Discovery: React.FC<DiscoveryProps> = ({ salons, role }) => {
     const list = salons
       .map(s => {
         const dist = calculateDistance(coords.lat, coords.lng, s.location.lat, s.location.lng);
-        return { 
-          ...s, 
+        return {
+          ...s,
           distanceKm: dist,
           distancia: dist < 1 ? `${Math.round(dist * 1000)}m` : `${dist.toFixed(1)}km`
         };
@@ -138,7 +132,7 @@ const Discovery: React.FC<DiscoveryProps> = ({ salons, role }) => {
         (s.nome.toLowerCase().includes(search.toLowerCase()) ||
           s.segmento.toLowerCase().includes(search.toLowerCase()))
       );
-    
+
     // Sort by proximity
     return list.sort((a, b) => a.distanceKm - b.distanceKm);
   }, [salons, activeSegment, search, coords]);
@@ -243,7 +237,7 @@ const Discovery: React.FC<DiscoveryProps> = ({ salons, role }) => {
                   attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
                   className="map-tiles grayscale contrast-[1.2] brightness-[0.8]"
                 />
-                
+
                 <RecenterMap lat={coords.lat} lng={coords.lng} />
 
                 {/* User pulsing marker */}
@@ -283,9 +277,26 @@ const Discovery: React.FC<DiscoveryProps> = ({ salons, role }) => {
               </MapContainer>
             </div>
 
+            {!selectedSalon && (
+              <div className="absolute bottom-10 left-6 right-6 z-[1000] animate-fade-in">
+                <div
+                  onClick={() => setViewMode('list')}
+                  className="bg-[#0c0d10]/95 backdrop-blur-2xl border border-white/5 rounded-[32px] p-6 shadow-2xl flex items-center justify-between cursor-pointer active:scale-95 transition-all"
+                >
+                  <div className="flex-1">
+                    <p className="text-[8px] font-black text-[#c1a571] uppercase tracking-[0.3em] mb-1">Catálogo Elite</p>
+                    <h3 className="text-white font-display font-black text-lg italic leading-tight">Explorar Lista Completa</h3>
+                  </div>
+                  <div className="size-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-[#c1a571] shadow-xl">
+                    <span className="material-symbols-outlined text-2xl">format_list_bulleted</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {selectedSalon && (
-              <div className="absolute bottom-6 left-6 right-6 z-[1000] animate-fade-in">
-                <div onClick={() => navigate(`/salon/${selectedSalon.slug_publico}`)} className="bg-surface-dark/95 backdrop-blur-xl border border-primary/30 rounded-[28px] p-4 shadow-2xl flex gap-4 items-center cursor-pointer active:scale-95 transition-all">
+              <div className="absolute bottom-10 left-6 right-6 z-[1000] animate-fade-in">
+                <div onClick={() => navigate(`/salon/${selectedSalon.slug_publico}`)} className="bg-surface-dark/95 backdrop-blur-xl border border-primary/30 rounded-[32px] p-4 shadow-2xl flex gap-4 items-center cursor-pointer active:scale-95 transition-all">
                   <img src={selectedSalon.logo_url} className="size-14 rounded-xl object-cover border border-white/10 shadow-lg" alt="Salon" />
                   <div className="flex-1 min-w-0">
                     <h3 className="text-white font-display font-black text-sm italic truncate">{selectedSalon.nome}</h3>
@@ -295,6 +306,12 @@ const Discovery: React.FC<DiscoveryProps> = ({ salons, role }) => {
                     <span className="material-symbols-outlined text-lg font-black">arrow_forward</span>
                   </div>
                 </div>
+                <button
+                  onClick={() => setSelectedSalonId(null)}
+                  className="absolute -top-3 -right-1 size-8 bg-background-dark border border-white/10 rounded-full flex items-center justify-center text-slate-500 shadow-xl"
+                >
+                  <span className="material-symbols-outlined text-sm">close</span>
+                </button>
               </div>
             )}
           </main>
