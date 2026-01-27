@@ -3,14 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import { HashRouter as Router, Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { ViewRole, Appointment, Service, Salon, Product, Professional, GalleryItem } from './types.ts';
-import {
-  SALONS as INITIAL_SALONS,
-  SERVICES as INITIAL_SERVICES,
-  PRODUCTS as INITIAL_PRODUCTS,
-  PROFESSIONALS as INITIAL_PROFESSIONALS,
-  GALLERY_ITEMS as INITIAL_GALLERY,
-  INITIAL_APPOINTMENTS
-} from './constants.tsx';
 import BottomNav from './components/BottomNav.tsx';
 import AIConcierge from './components/AIConcierge.tsx';
 import { api } from './lib/api.ts';
