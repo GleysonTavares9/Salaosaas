@@ -9,6 +9,10 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@capacitor/android": "^8.0.1",
+    "@capacitor/cli": "^7.4.5",
+    "@capacitor/core": "^8.0.1",
+    "@capacitor/splash-screen": "^8.0.0",
     "@google/genai": "0.2.0",
     "@mercadopago/sdk-react": "^1.0.7",
     "@supabase/supabase-js": "^2.91.1",
@@ -26,6 +30,7 @@
     "tailwind-merge": "2.2.2"
   },
   "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
     "@types/node": "^22.14.0",
     "@vitejs/plugin-react": "^5.0.0",
     "autoprefixer": "^10.4.23",

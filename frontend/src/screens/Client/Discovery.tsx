@@ -176,7 +176,7 @@ const Discovery: React.FC<DiscoveryProps> = ({ salons, role }) => {
         <div className="flex items-center justify-between mb-4">
           <div onClick={() => navigate('/')} className="cursor-pointer">
             <h1 className="text-xl font-display font-black text-white italic tracking-tighter leading-none">Luxe Aura</h1>
-            <p className="text-[7px] text-slate-500 font-black uppercase tracking-[0.2em] mt-1">{userLocationLabel || "Buscando localização..."}</p>
+            <p className="text-[7px] text-[#c1a571] font-black uppercase tracking-[0.2em] mt-1">{userLocationLabel || "Buscando localização..."}</p>
           </div>
           <div className="flex gap-2">
             <button
@@ -215,7 +215,7 @@ const Discovery: React.FC<DiscoveryProps> = ({ salons, role }) => {
 
         <div className="flex gap-2 overflow-x-auto no-scrollbar">
           {segments.map(seg => (
-            <button key={seg} onClick={() => setActiveSegment(seg)} className={`px-4 py-2 rounded-lg text-[7px] font-black uppercase tracking-widest whitespace-nowrap transition-all border ${activeSegment === seg ? 'gold-gradient text-background-dark border-primary' : 'bg-surface-dark text-slate-500 border-white/5'}`}>
+            <button key={seg} onClick={() => setActiveSegment(seg)} className={`px-4 py-2 rounded-lg text-[7px] font-black uppercase tracking-widest whitespace-nowrap transition-all border ${activeSegment === seg ? 'gold-gradient text-background-dark border-primary' : 'bg-surface-dark text-slate-300 border-white/10'}`}>
               {seg}
             </button>
           ))}
@@ -337,7 +337,7 @@ const Discovery: React.FC<DiscoveryProps> = ({ salons, role }) => {
                   <img src={selectedSalon.logo_url} className="size-14 rounded-xl object-cover border border-white/10 shadow-lg" alt="Salon" />
                   <div className="flex-1 min-w-0">
                     <h3 className="text-white font-display font-black text-sm italic truncate">{selectedSalon.nome}</h3>
-                    <p className="text-slate-500 text-[8px] font-black uppercase tracking-widest mt-0.5">{selectedSalon.segmento} • <span className="text-primary">{selectedSalon.distancia}</span></p>
+                    <p className="text-slate-300 text-[8px] font-black uppercase tracking-widest mt-0.5">{selectedSalon.segmento} • <span className="text-primary">{selectedSalon.distancia}</span></p>
                   </div>
                   <div className="size-10 rounded-full gold-gradient flex items-center justify-center text-background-dark shadow-xl">
                     <span className="material-symbols-outlined text-lg font-black">arrow_forward</span>

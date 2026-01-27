@@ -36,6 +36,11 @@ const PartnerRegister: React.FC<PartnerRegisterProps> = ({ onRegister }) => {
 
       if (!authRes.user) throw new Error("Erro ao criar usuário.");
 
+      console.log("✅ Usuário criado:", authRes.user.id);
+
+      // Aguardar um momento para garantir que o usuário foi persistido
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
       // 2. Criar o Salão no Banco
       const slug = formData.salonName.toLowerCase().trim().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
       const newSalon: Omit<Salon, 'id'> = {
@@ -56,6 +61,7 @@ const PartnerRegister: React.FC<PartnerRegisterProps> = ({ onRegister }) => {
       };
 
       const salonRecord = await api.salons.create(newSalon);
+      console.log("✅ Salão criado:", salonRecord.id);
 
       // 3. Criar o registro de Profissional (Dono)
       await api.professionals.create({
@@ -70,12 +76,16 @@ const PartnerRegister: React.FC<PartnerRegisterProps> = ({ onRegister }) => {
         comissao: 100
       });
 
+      console.log("✅ Profissional criado");
+
       onRegister('admin', authRes.user.id);
       navigate('/pro/business-setup'); // Leva direto para configurar a unidade
 
     } catch (error: any) {
       console.error(error);
-      if (error.message?.includes('User already registered') || error.message?.includes('Database error saving new user')) {
+      if (error.message?.includes('rate limit exceeded') || error.message?.includes('Too Many Requests')) {
+        alert("⏰ Limite de cadastros atingido!\n\nVocê tentou criar muitas contas em pouco tempo. Por favor, aguarde 1 hora e tente novamente.\n\nSe já possui uma conta, faça login em vez de criar uma nova.");
+      } else if (error.message?.includes('User already registered') || error.message?.includes('Database error saving new user')) {
         alert("Este e-mail já está cadastrado. Não é possível usar o mesmo e-mail para contas diferentes (Cliente/Parceiro).");
       } else {
         alert("Erro no cadastro: " + (error.message || error));

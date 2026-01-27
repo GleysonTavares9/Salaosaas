@@ -84,6 +84,11 @@ export const api = {
 
     // --- Produtos ---
     products: {
+        async getAll() {
+            const { data, error } = await supabase.from('products').select('*');
+            if (error) throw error;
+            return data as Product[];
+        },
         async getBySalon(salonId: string) {
             const { data, error } = await supabase.from('products').select('*').eq('salon_id', salonId);
             if (error) throw error;
@@ -241,6 +246,61 @@ export const api = {
                 .getPublicUrl(filePath);
 
             return data.publicUrl;
+        }
+    },
+
+    // --- Avaliações (Reviews) ---
+    reviews: {
+        async create(review: { appointment_id: string; salon_id: string; professional_id?: string; client_id: string; rating: number; comment?: string }) {
+            const { data, error } = await supabase.from('reviews').insert(review).select().single();
+            if (error) throw error;
+
+            // Atualizar rating médio do salão
+            await this.updateSalonRating(review.salon_id);
+
+            return data;
+        },
+        async getBySalon(salonId: string) {
+            const { data, error } = await supabase
+                .from('reviews')
+                .select(`
+                    *,
+                    client:client_id (
+                        id,
+                        email,
+                        full_name,
+                        avatar_url
+                    )
+                `)
+                .eq('salon_id', salonId)
+                .order('created_at', { ascending: false });
+            if (error) throw error;
+            return data;
+        },
+        async updateSalonRating(salonId: string) {
+            // Buscar todas as avaliações do salão
+            const { data: reviews, error: reviewsError } = await supabase
+                .from('reviews')
+                .select('rating')
+                .eq('salon_id', salonId);
+
+            if (reviewsError) throw reviewsError;
+
+            if (reviews && reviews.length > 0) {
+                const avgRating = reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length;
+                const roundedRating = Math.round(avgRating * 10) / 10; // Arredondar para 1 casa decimal
+
+                // Atualizar salão
+                const { error: updateError } = await supabase
+                    .from('salons')
+                    .update({
+                        rating: roundedRating,
+                        reviews: reviews.length
+                    })
+                    .eq('id', salonId);
+
+                if (updateError) throw updateError;
+            }
         }
     },
 

@@ -103,22 +103,35 @@ const SalonPage: React.FC<SalonPageProps> = ({ salons, role, setBookingDraft }) 
           ))}
         </nav>
 
-        <main className="px-6 py-6">
+        <main className="px-6 py-6 pb-32">
           {activeTab === 'services' && (
             <div className="space-y-4">
-              {salonServices.map(service => (
-                <div key={service.id} className="bg-surface-dark/40 border border-white/5 rounded-3xl p-4 flex gap-4">
-                  <img src={service.image} className="size-16 rounded-xl object-cover direct-image-link" alt={service.name} onClick={() => openImageLink(service.image)} />
-                  <div className="flex-1 flex flex-col justify-center min-w-0">
-                    <h4 className="text-white font-bold text-xs italic font-display truncate">{service.name}</h4>
-                    <p className="text-[7px] text-slate-500 uppercase font-black mt-1">{service.duration_min} MIN</p>
-                    <div className="flex items-center justify-between mt-2">
-                      <span className="text-white font-display font-black text-sm">R$ {service.price.toFixed(2)}</span>
-                      <button onClick={startBooking} className="text-[7px] font-black uppercase tracking-widest bg-primary/10 px-3 py-1.5 rounded-lg border border-primary/20 text-primary">RESERVAR</button>
+              {isLoading ? (
+                <div className="flex flex-col items-center justify-center py-20 opacity-40">
+                  <div className="size-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin mb-4"></div>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Carregando rituais...</p>
+                </div>
+              ) : salonServices.length === 0 ? (
+                <div className="py-20 text-center opacity-30 flex flex-col items-center">
+                  <span className="material-symbols-outlined text-6xl mb-4">spa</span>
+                  <p className="text-[10px] font-black uppercase tracking-widest">Nenhum ritual disponível</p>
+                  <p className="text-[8px] text-slate-500 mt-2">Este salão ainda não cadastrou serviços</p>
+                </div>
+              ) : (
+                salonServices.map(service => (
+                  <div key={service.id} className="bg-surface-dark/40 border border-white/5 rounded-3xl p-4 flex gap-4">
+                    <img src={service.image} className="size-16 rounded-xl object-cover direct-image-link" alt={service.name} onClick={() => openImageLink(service.image)} />
+                    <div className="flex-1 flex flex-col justify-center min-w-0">
+                      <h4 className="text-white font-bold text-xs italic font-display truncate">{service.name}</h4>
+                      <p className="text-[7px] text-slate-500 uppercase font-black mt-1">{service.duration_min} MIN</p>
+                      <div className="flex items-center justify-between mt-2">
+                        <span className="text-white font-display font-black text-sm">R$ {service.price.toFixed(2)}</span>
+                        <button onClick={startBooking} className="text-[7px] font-black uppercase tracking-widest bg-primary/10 px-3 py-1.5 rounded-lg border border-primary/20 text-primary">RESERVAR</button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           )}
           {activeTab === 'portfolio' && (

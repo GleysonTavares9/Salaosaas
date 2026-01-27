@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Luxe Aura</string>
+    <string name="title_activity_main">Luxe Aura</string>
+    <string name="package_name">com.luxeaura.app</string>
+    <string name="custom_url_scheme">com.luxeaura.app</string>
+</resources>

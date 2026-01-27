@@ -185,8 +185,11 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- POLÍTICAS DE RLS (SEGURANÇA EXTREMA)
+-- ============================================
+-- POLÍTICAS DE RLS (SEGURANÇA COMPLETA)
+-- ============================================
 
+-- 1. SALÕES
 ALTER TABLE salons ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Public salons are viewable by everyone" ON salons FOR SELECT USING (true);
 CREATE POLICY "Enable insert for authenticated users only" ON salons FOR INSERT TO authenticated WITH CHECK (true);
@@ -198,9 +201,32 @@ CREATE POLICY "Enable update for owners" ON salons FOR UPDATE USING (
     )
 );
 
+-- 2. PERFIS
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Profiles are viewable by everyone" ON profiles FOR SELECT USING (true);
 CREATE POLICY "Users can manage their own profile" ON profiles FOR ALL USING (auth.uid() = id);
 
+
+-- 3. SERVIÇOS
+ALTER TABLE services ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Services are viewable by everyone" ON services FOR SELECT USING (true);
+CREATE POLICY "Salon owners can manage services" ON services FOR ALL TO authenticated USING (
+    EXISTS (
+        SELECT 1 FROM professionals 
+        WHERE professionals.salon_id = services.salon_id 
+        AND professionals.user_id = auth.uid()
+    )
+);
+
+-- 4. PROFISSIONAIS (SEM RECURSÃO)
+ALTER TABLE professionals ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Professionals are viewable by everyone" ON professionals FOR SELECT USING (true);
+CREATE POLICY "Users can create their professional profile" ON professionals FOR INSERT TO authenticated WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can update their own professional profile" ON professionals FOR UPDATE TO authenticated USING (auth.uid() = user_id);
+CREATE POLICY "Users can delete their own professional profile" ON professionals FOR DELETE TO authenticated USING (auth.uid() = user_id);
+
+
+-- 5. AGENDAMENTOS
 ALTER TABLE appointments ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Users can view their own appointments" ON appointments FOR SELECT USING (auth.uid() = client_id);
 CREATE POLICY "Professionals can view salon appointments" ON appointments FOR SELECT USING (
@@ -210,6 +236,71 @@ CREATE POLICY "Professionals can view salon appointments" ON appointments FOR SE
         AND professionals.user_id = auth.uid()
     )
 );
+CREATE POLICY "Authenticated users can create appointments" ON appointments FOR INSERT TO authenticated WITH CHECK (auth.uid() = client_id);
+CREATE POLICY "Professionals can update salon appointments" ON appointments FOR UPDATE TO authenticated USING (
+    EXISTS (
+        SELECT 1 FROM professionals 
+        WHERE professionals.salon_id = appointments.salon_id 
+        AND professionals.user_id = auth.uid()
+    )
+);
+
+-- 6. CONVERSAS
+ALTER TABLE conversations ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users can view their conversations" ON conversations FOR SELECT USING (
+    auth.uid() = user1_id OR auth.uid() = user2_id
+);
+CREATE POLICY "Authenticated users can create conversations" ON conversations FOR INSERT TO authenticated WITH CHECK (
+    auth.uid() = user1_id OR auth.uid() = user2_id
+);
+CREATE POLICY "Users can update their conversations" ON conversations FOR UPDATE USING (
+    auth.uid() = user1_id OR auth.uid() = user2_id
+);
+
+-- 7. MENSAGENS
+ALTER TABLE messages ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users can view messages from their conversations" ON messages FOR SELECT USING (
+    EXISTS (
+        SELECT 1 FROM conversations 
+        WHERE conversations.id = messages.conversation_id 
+        AND (conversations.user1_id = auth.uid() OR conversations.user2_id = auth.uid())
+    )
+);
+CREATE POLICY "Users can send messages in their conversations" ON messages FOR INSERT TO authenticated WITH CHECK (
+    auth.uid() = sender_id AND
+    EXISTS (
+        SELECT 1 FROM conversations 
+        WHERE conversations.id = messages.conversation_id 
+        AND (conversations.user1_id = auth.uid() OR conversations.user2_id = auth.uid())
+    )
+);
+
+-- 8. GALERIA
+ALTER TABLE gallery_items ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Gallery items are viewable by everyone" ON gallery_items FOR SELECT USING (true);
+CREATE POLICY "Salon owners can manage gallery" ON gallery_items FOR ALL TO authenticated USING (
+    EXISTS (
+        SELECT 1 FROM professionals 
+        WHERE professionals.salon_id = gallery_items.salon_id 
+        AND professionals.user_id = auth.uid()
+    )
+);
+
+-- 9. PRODUTOS
+ALTER TABLE products ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Products are viewable by everyone" ON products FOR SELECT USING (true);
+CREATE POLICY "Salon owners can manage products" ON products FOR ALL TO authenticated USING (
+    EXISTS (
+        SELECT 1 FROM professionals 
+        WHERE professionals.salon_id = products.salon_id 
+        AND professionals.user_id = auth.uid()
+    )
+);
+
+-- 10. AVALIAÇÕES
+ALTER TABLE reviews ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Reviews are viewable by everyone" ON reviews FOR SELECT USING (true);
+CREATE POLICY "Users can create reviews for their appointments" ON reviews FOR INSERT TO authenticated WITH CHECK (auth.uid() = client_id);
 
 -- STORAGE SETUP (AURA-PUBLIC)
 -- INSERT INTO storage.buckets (id, name, public) VALUES ('aura-public', 'aura-public', true) ON CONFLICT (id) DO NOTHING;

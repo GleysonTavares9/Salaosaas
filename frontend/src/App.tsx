@@ -7,6 +7,7 @@ import BottomNav from './components/BottomNav.tsx';
 import AIConcierge from './components/AIConcierge.tsx';
 import { api } from './lib/api.ts';
 import { supabase } from './lib/supabase.ts';
+import { SplashScreen } from '@capacitor/splash-screen';
 
 // Screens
 import Landing from './screens/Public/Landing.tsx';
@@ -61,6 +62,7 @@ const AppContent: React.FC = () => {
   const location = useLocation();
   const [role, setRole] = useState<ViewRole | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   const [salons, setSalons] = useState<Salon[]>([]);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
@@ -105,6 +107,10 @@ const AppContent: React.FC = () => {
         if (allSalons && allSalons.length > 0) setSalons(allSalons);
       } catch (err) {
         console.error("Erro ao buscar salões:", err);
+      } finally {
+        setIsLoading(false);
+        // Esconder splash screen nativo quando terminar de carregar
+        SplashScreen.hide();
       }
     };
 
@@ -252,6 +258,18 @@ const AppContent: React.FC = () => {
   const isBookingFlow = ['/select-service', '/choose-time', '/checkout'].includes(location.pathname);
 
   const shouldShowNav = !isFullView && !isChat && !isSalon && !isGallery && !isBookingFlow;
+
+  // Loading Screen
+  if (isLoading) {
+    return (
+      <div className="flex-1 bg-background-dark min-h-screen flex flex-col items-center justify-center">
+        <div className="size-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin mb-6"></div>
+        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-primary animate-pulse">
+          Carregando experiência premium...
+        </p>
+      </div>
+    );
+  }
 
   const resendEmail = async () => {
     if (userEmail) {

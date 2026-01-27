@@ -32,7 +32,9 @@ const UserRegister: React.FC<UserRegisterProps> = ({ onRegister }) => {
       }
 
     } catch (error: any) {
-      if (error.message?.includes('User already registered') || error.message?.includes('Database error saving new user')) {
+      if (error.message?.includes('rate limit exceeded') || error.message?.includes('Too Many Requests')) {
+        alert("⏰ Limite de cadastros atingido!\n\nVocê tentou criar muitas contas em pouco tempo. Por favor, aguarde 1 hora e tente novamente.\n\nSe já possui uma conta, faça login em vez de criar uma nova.");
+      } else if (error.message?.includes('User already registered') || error.message?.includes('Database error saving new user')) {
         alert("Este e-mail já está cadastrado em nossa plataforma. Não é possível criar contas diferentes com o mesmo e-mail.");
       } else {
         alert("Erro no cadastro: " + (error.message || "Tente novamente mais tarde."));
