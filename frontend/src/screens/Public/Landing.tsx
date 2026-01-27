@@ -3,7 +3,10 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Salon, BusinessSegment } from '../../types.ts';
 import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
+import MarkerClusterGroup from 'react-leaflet-cluster';
 import L from 'leaflet';
+import 'leaflet.markercluster/dist/MarkerCluster.css';
+import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 
 interface LandingProps {
   salons: Salon[];
@@ -18,19 +21,34 @@ const RecenterMap: React.FC<{ lat: number; lng: number }> = ({ lat, lng }) => {
   return null;
 };
 
-// Custom salon marker with Luxe Aura branding (Gold Teardrop)
-const SalonIcon = L.divIcon({
+// Custom salon marker factory with Luxe Aura branding
+const createSalonIcon = (logoUrl: string) => L.divIcon({
   className: 'custom-salon-marker',
-  html: `<div class="relative flex flex-col items-center">
-           <div class="w-8 h-8 bg-[#c1a571] rounded-full rounded-bl-none rotate-[-45deg] flex items-center justify-center shadow-lg border border-white/10">
-             <div class="w-5 h-5 bg-[#0c0d10] rounded-full rotate-[45deg] flex items-center justify-center">
-               <span class="material-symbols-outlined text-[#c1a571] text-[12px]">home_hair</span>
+  html: `<div class="relative flex flex-col items-center group">
+           <!-- Pin Body (Teardrop Shape) -->
+           <div class="w-8 h-8 bg-[#c1a571] rounded-full rounded-bl-none rotate-[-45deg] flex items-center justify-center shadow-lg border border-white/20 transition-transform group-hover:scale-110 duration-300">
+             <!-- Inner Circle for Logo -->
+             <div class="w-6 h-6 bg-white rounded-full rotate-[45deg] overflow-hidden flex items-center justify-center border border-black/5">
+               <img src="${logoUrl}" class="w-full h-full object-cover" alt="logo" />
              </div>
            </div>
+           <!-- Small Glow -->
+           <div class="absolute -bottom-0.5 w-1.5 h-0.5 bg-[#c1a571]/40 rounded-full blur-[1px]"></div>
          </div>`,
   iconSize: [32, 32],
   iconAnchor: [16, 32],
 });
+
+// Custom Cluster Icon Factory
+const createClusterCustomIcon = (cluster: any) => {
+  return L.divIcon({
+    html: `<div class="size-8 rounded-full gold-gradient border border-background-dark shadow-xl flex items-center justify-center text-background-dark font-black text-[10px]">
+             ${cluster.getChildCount()}
+           </div>`,
+    className: 'custom-marker-cluster',
+    iconSize: L.point(32, 32, true),
+  });
+};
 
 const Landing: React.FC<LandingProps> = ({ salons }) => {
   const navigate = useNavigate();
@@ -79,23 +97,31 @@ const Landing: React.FC<LandingProps> = ({ salons }) => {
             />
             <RecenterMap lat={coords.lat} lng={coords.lng} />
 
-            {filteredSalons.map((salon) => {
-              const lat = salon.location?.lat || -19.91;
-              const lng = salon.location?.lng || -43.93;
+            <MarkerClusterGroup
+              chunkedLoading
+              iconCreateFunction={createClusterCustomIcon}
+              maxClusterRadius={40}
+              spiderfyOnMaxZoom={true}
+              showCoverageOnHover={false}
+            >
+              {filteredSalons.map((salon) => {
+                const lat = salon.location?.lat || -19.91;
+                const lng = salon.location?.lng || -43.93;
 
-              if (!lat && !lng) return null;
+                if (!lat && !lng) return null;
 
-              return (
-                <Marker
-                  key={salon.id}
-                  position={[lat, lng]}
-                  icon={SalonIcon}
-                  eventHandlers={{
-                    click: () => setSelectedSalonId(salon.id),
-                  }}
-                />
-              );
-            })}
+                return (
+                  <Marker
+                    key={salon.id}
+                    position={[lat, lng]}
+                    icon={createSalonIcon(salon.logo_url)}
+                    eventHandlers={{
+                      click: () => setSelectedSalonId(salon.id),
+                    }}
+                  />
+                );
+              })}
+            </MarkerClusterGroup>
           </MapContainer>
         </div>
       </div>
