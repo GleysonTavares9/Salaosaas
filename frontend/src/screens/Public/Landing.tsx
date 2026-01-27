@@ -3,6 +3,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Salon, BusinessSegment } from '../../types.ts';
 import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
+import L from 'leaflet';
 
 interface LandingProps {
   salons: Salon[];
@@ -16,6 +17,20 @@ const RecenterMap: React.FC<{ lat: number; lng: number }> = ({ lat, lng }) => {
   }, [lat, lng, map]);
   return null;
 };
+
+// Custom salon marker with Luxe Aura branding (Gold Teardrop)
+const SalonIcon = L.divIcon({
+  className: 'custom-salon-marker',
+  html: `<div class="relative flex flex-col items-center">
+           <div class="w-8 h-8 bg-[#c1a571] rounded-full rounded-bl-none rotate-[-45deg] flex items-center justify-center shadow-lg border border-white/10">
+             <div class="w-5 h-5 bg-[#0c0d10] rounded-full rotate-[45deg] flex items-center justify-center">
+               <span class="material-symbols-outlined text-[#c1a571] text-[12px]">home_hair</span>
+             </div>
+           </div>
+         </div>`,
+  iconSize: [32, 32],
+  iconAnchor: [16, 32],
+});
 
 const Landing: React.FC<LandingProps> = ({ salons }) => {
   const navigate = useNavigate();
@@ -50,9 +65,7 @@ const Landing: React.FC<LandingProps> = ({ salons }) => {
 
       {/* MAPA REAL (Leaflet) DE FUNDO */}
       <div className="absolute inset-0 z-0 bg-[#0c0d10]">
-        {/* Force container height */}
         <div className="h-full w-full">
-          {/* Import Leaflet CSS is handled in index.html usually, check if icons serve well */}
           <MapContainer
             center={[coords.lat, coords.lng]}
             zoom={13}
@@ -67,18 +80,16 @@ const Landing: React.FC<LandingProps> = ({ salons }) => {
             <RecenterMap lat={coords.lat} lng={coords.lng} />
 
             {filteredSalons.map((salon) => {
-              // Use real location if available
-              // Fallback ONLY if lat/lng are 0 or missing
               const lat = salon.location?.lat || -19.91;
               const lng = salon.location?.lng || -43.93;
 
-              // Skip invalid coordinates (0,0 is default init)
               if (!lat && !lng) return null;
 
               return (
                 <Marker
                   key={salon.id}
                   position={[lat, lng]}
+                  icon={SalonIcon}
                   eventHandlers={{
                     click: () => setSelectedSalonId(salon.id),
                   }}
