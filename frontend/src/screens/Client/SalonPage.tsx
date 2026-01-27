@@ -11,6 +11,12 @@ interface SalonPageProps {
 
 type TabType = 'services' | 'portfolio' | 'info';
 
+const WhatsAppIcon = ({ className }: { className?: string }) => (
+  <svg className={`${className} flex-shrink-0`} viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+    <path d="M12.01 3.01c-5.53 0-10.01 4.47-10.01 10 0 1.74.45 3.39 1.23 4.84l-1.31 4.79 4.89-1.28c1.39.75 2.97 1.18 4.65 1.18 5.53 0 10.01-4.47 10.01-10s-4.48-10-10.01-10zm0 18.33c-1.57 0-3.04-.42-4.32-1.15l-.31-.18-3.21.84.85-3.13-.2-.31a8.31 8.31 0 0 1-1.29-4.39c0-4.61 3.74-8.35 8.35-8.35 2.24 0 4.34.87 5.92 2.45s2.45 3.68 2.45 5.92c-.01 4.62-3.76 8.36-8.36 8.36zm4.56-6.22c-.25-.13-1.47-.72-1.7-.8-.23-.08-.39-.13-.56.13-.17.25-.64.81-.78.97-.14.17-.29.19-.54.06-.25-.13-1.06-.39-2.01-1.24-.74-.66-1.24-1.48-1.38-1.73-.14-.25-.02-.39.11-.51.11-.11.25-.29.37-.44.12-.14.17-.25.25-.41.08-.17.04-.31-.02-.44-.06-.13-.56-1.35-.77-1.85-.2-.5-.4-.43-.56-.44-.14 0-.31-.01-.47-.01-.17 0-.44.06-.67.31-.23.25-.87.85-.87 2.07s.89 2.4 1.01 2.56c.12.17 1.75 2.67 4.23 3.74.59.26 1.05.41 1.41.52.6.19 1.14.16 1.57.1.48-.07 1.47-.6 1.68-1.18.21-.58.21-1.07.15-1.18-.07-.1-.25-.23-.5-.36z" />
+  </svg>
+);
+
 const SalonPage: React.FC<SalonPageProps> = ({ salons, role, setBookingDraft }) => {
   const { slug } = useParams();
   const navigate = useNavigate();
@@ -153,8 +159,8 @@ const SalonPage: React.FC<SalonPageProps> = ({ salons, role, setBookingDraft }) 
                 <div className="bg-surface-dark p-5 rounded-3xl border border-white/5">
                   <h4 className="text-[8px] font-black text-primary uppercase tracking-[0.3em] mb-3">Contato WhatsApp</h4>
                   <div className="flex items-center gap-3 mb-4">
-                    <div className="size-12 rounded-full bg-[#25D366]/20 flex items-center justify-center shrink-0">
-                      <span className="material-symbols-outlined text-[#25D366] text-xl">chat</span>
+                    <div className="size-12 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
+                      <WhatsAppIcon className="size-6 text-primary opacity-80" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-[9px] text-slate-500 font-black uppercase tracking-widest mb-1">Número</p>
@@ -162,13 +168,13 @@ const SalonPage: React.FC<SalonPageProps> = ({ salons, role, setBookingDraft }) 
                     </div>
                   </div>
                   <a
-                    href={`https://wa.me/${salon.telefone.replace(/\D/g, '')}`}
+                    href={`https://wa.me/${salon.telefone.replace(/\D/g, '')}?text=${encodeURIComponent(`Olá, tudo bem? Encontrei o *${salon.nome}* através do App *Luxe Aura* e gostaria de tirar algumas dúvidas.`)}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center justify-center gap-2 bg-[#25D366] text-white px-4 py-3 rounded-xl text-[9px] font-black uppercase tracking-widest active:scale-95 transition-all shadow-lg w-full"
+                    className="flex items-center justify-center gap-2 gold-gradient text-background-dark px-4 py-4 rounded-xl text-[9px] font-black uppercase tracking-[0.2em] active:scale-95 transition-all shadow-lg w-full shadow-primary/10"
                   >
-                    <span className="material-symbols-outlined text-sm">chat</span>
-                    Chamar no WhatsApp
+                    <WhatsAppIcon className="size-4" />
+                    CHAMAR NO WHATSAPP
                   </a>
                 </div>
               )}
@@ -234,16 +240,17 @@ const SalonPage: React.FC<SalonPageProps> = ({ salons, role, setBookingDraft }) 
         </button>
       </footer>
 
-      {/* Floating WhatsApp Button */}
+      {/* Floating WhatsApp Button - Integrated with Theme */}
       {salon.telefone && (
         <a
-          href={`https://wa.me/${salon.telefone.replace(/\D/g, '')}`}
+          href={`https://wa.me/${salon.telefone.replace(/\D/g, '')}?text=${encodeURIComponent(`Olá, tudo bem? Encontrei o *${salon.nome}* através do App *Luxe Aura* e gostaria de tirar algumas dúvidas.`)}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="fixed bottom-32 right-6 z-50 size-14 rounded-full bg-[#25D366] shadow-[0_8px_30px_rgba(37,211,102,0.4)] flex items-center justify-center active:scale-90 transition-all animate-bounce-slow"
-          style={{ animationDuration: '3s' }}
+          className="absolute bottom-32 right-4 z-50 size-14 rounded-full bg-surface-dark border-2 border-primary/20 shadow-[0_15px_30px_rgba(0,0,0,0.5),0_0_20px_rgba(193,165,113,0.15)] flex items-center justify-center active:scale-90 transition-all animate-bounce-slow"
+          style={{ animationDuration: '4s' }}
         >
-          <span className="material-symbols-outlined text-white text-2xl">chat</span>
+          <div className="absolute inset-0 bg-primary/5 rounded-full animate-pulse"></div>
+          <WhatsAppIcon className="size-7 text-primary relative z-10" />
         </a>
       )}
     </div>

@@ -49,15 +49,20 @@ export const api = {
         }
     },
 
-    // --- Perfis de Usuário (Profiles) ---
+    // --- Perfis de Usuário ---
     profiles: {
-        async get(userId: string) {
-            const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).maybeSingle();
+        async getById(id: string) {
+            const { data, error } = await supabase.from('profiles').select('*').eq('id', id).maybeSingle();
             if (error) throw error;
-            return data;
+            return data as any;
         },
-        async update(userId: string, updates: { full_name?: string; avatar_url?: string; phone?: string }) {
-            const { data, error } = await supabase.from('profiles').update(updates).eq('id', userId).select().single();
+        async update(id: string, updates: any) {
+            // Usamos upsert para evitar erro caso o perfil ainda não exista na tabela public.profiles
+            const { data, error } = await supabase
+                .from('profiles')
+                .upsert({ id, ...updates })
+                .select()
+                .single();
             if (error) throw error;
             return data;
         }

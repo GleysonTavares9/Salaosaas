@@ -65,7 +65,7 @@ const BusinessSetup: React.FC<BusinessSetupProps> = ({ salon, userId, onSave }) 
       setFormData(prev => prev ? ({
         ...prev,
         cidade: `${data.localidade} - ${data.uf}`,
-        location: { lat: -23.55052, lng: -46.633308 }
+        location: prev.location
       }) : null);
 
     } catch (error) {
@@ -155,13 +155,15 @@ const BusinessSetup: React.FC<BusinessSetupProps> = ({ salon, userId, onSave }) 
 
   const fetchCoordinates = async (fullAddress: string) => {
     try {
-      const query = encodeURIComponent(fullAddress);
-      // Usando Photon (baseado em OSM) que é mais amigável com CORS
+      // Limpa o endereço para o geocoder (remove excesso de espaços e hifens soltos)
+      const cleanAddress = fullAddress.replace(/\s+/g, ' ').replace(/-\s*,/g, ',').trim();
+      const query = encodeURIComponent(cleanAddress);
+
       const response = await fetch(`https://photon.komoot.io/api/?q=${query}&limit=1`);
       const data = await response.json();
 
       if (data && data.features && data.features.length > 0) {
-        // GeoJSON retorna [lng, lat]
+        // Photon retorna [lng, lat]
         const [lng, lat] = data.features[0].geometry.coordinates;
         return { lat, lng };
       }
@@ -187,8 +189,11 @@ const BusinessSetup: React.FC<BusinessSetupProps> = ({ salon, userId, onSave }) 
       finalData.mp_access_token = mpConfig.accessToken;
     }
 
-    // Tenta obter coordenadas apenas se estiverem zeradas (primeiro cadastro), senão respeita o manual
-    if (finalData.location.lat === 0 && finalData.location.lng === 0) {
+    // Tenta obter coordenadas apenas se estiverem zeradas ou se forem o fallback de SP
+    const isDefaultLocation = (finalData.location.lat === 0 && finalData.location.lng === 0) ||
+      (finalData.location.lat === -23.55052 && finalData.location.lng === -46.633308);
+
+    if (isDefaultLocation) {
       const coords = await fetchCoordinates(fullAddress);
       if (coords) {
         finalData.location = coords;
@@ -271,9 +276,13 @@ const BusinessSetup: React.FC<BusinessSetupProps> = ({ salon, userId, onSave }) 
 
   const updateLocation = (field: string, value: any) => {
     if (!formData) return;
+    // Converte vírgula para ponto se for string e tenta transformar em número
+    let cleanValue = typeof value === 'string' ? value.replace(',', '.') : value;
+    const numValue = parseFloat(cleanValue);
+
     setFormData({
       ...formData,
-      location: { ...formData.location, [field]: value }
+      location: { ...formData.location, [field]: isNaN(numValue) ? 0 : numValue }
     });
   };
 
@@ -435,42 +444,45 @@ const BusinessSetup: React.FC<BusinessSetupProps> = ({ salon, userId, onSave }) 
               <div className="bg-primary/5 border border-primary/20 p-4 rounded-xl flex flex-col gap-3">
                 <div className="flex items-center gap-2">
                   <span className="material-symbols-outlined text-primary">map</span>
-                  <p className="text-[9px] font-black text-primary uppercase tracking-widest">Importar do Google Maps</p>
+                  <p className="text-[9px] font-black text-primary uppercase tracking-widest">Precisão Google Maps</p>
                 </div>
-                <p className="text-[8px] text-slate-400">Encontre sua empresa no Google Maps, copie o link do navegador e cole aqui para precisão máxima.</p>
+                <p className="text-[8px] text-slate-400">Cole o link do Google Maps para o pino ficar exatamente sobre seu salão.</p>
                 <div className="flex gap-2">
                   <input
                     type="text"
                     id="gmaps-input"
-                    placeholder="Cole o link aqui (https://www.google.com/maps/...)"
-                    className="flex-1 bg-background-dark border border-white/10 rounded-lg p-3 text-[10px] text-white outline-none focus:border-primary shadow-inner transition-colors"
+                    placeholder="Cole o link aqui..."
+                    className="flex-1 bg-background-dark border border-white/10 rounded-lg p-3 text-[10px] text-white outline-none focus:border-primary shadow-inner"
                     onChange={(e) => {
                       const url = e.target.value;
                       const regex = /@(-?\d+\.\d+),(-?\d+\.\d+)/;
                       const match = url.match(regex);
                       if (match) {
-                        updateLocation('lat', parseFloat(match[1]));
-                        updateLocation('lng', parseFloat(match[2]));
-                        e.target.style.borderColor = '#10B981';
+                        updateLocation('lat', match[1]);
+                        updateLocation('lng', match[2]);
+                        alert("📍 Localização importada com sucesso!");
                       }
                     }}
                   />
-                  <button
-                    onClick={() => {
-                      const input = document.getElementById('gmaps-input') as HTMLInputElement;
-                      if (input && input.value) {
-                        const regex = /@(-?\d+\.\d+),(-?\d+\.\d+)/;
-                        const match = input.value.match(regex);
-                        if (match) alert("Coordenadas extraídas com sucesso!");
-                        else alert("Link inválido. Copie o link completo do Google Maps.");
-                      }
-                    }}
-                    className="bg-surface-dark border border-white/10 text-slate-400 hover:text-white hover:border-primary/50 rounded-lg px-4 text-[9px] font-black uppercase tracking-widest transition-all"
-                  >
-                    Processar
-                  </button>
                 </div>
               </div>
+
+              <button
+                onClick={async () => {
+                  const fullAddress = `${street}, ${number} - ${district}, ${formData.cidade}`;
+                  const coords = await fetchCoordinates(fullAddress);
+                  if (coords) {
+                    updateLocation('lat', coords.lat);
+                    updateLocation('lng', coords.lng);
+                    alert("📍 Coordenadas detectadas via endereço!");
+                  } else {
+                    alert("❌ Não foi possível geolocalizar este endereço.");
+                  }
+                }}
+                className="w-full mt-2 py-3 rounded-xl bg-surface-dark border border-white/5 text-slate-400 text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all"
+              >
+                Sincronizar via Endereço
+              </button>
             </div>
 
             <div className="grid grid-cols-2 gap-4 pt-4">

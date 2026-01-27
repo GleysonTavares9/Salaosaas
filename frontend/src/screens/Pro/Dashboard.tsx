@@ -37,8 +37,7 @@ const Dashboard: React.FC<DashboardProps> = ({ role, salon, appointments, userId
     }
 
     if (userId) {
-      // Fetch generic user profile (for Admin avatar)
-      api.profiles.get(userId).then(profile => {
+      api.profiles.getById(userId).then(profile => {
         if (profile) setUserProfile(profile);
       });
     }

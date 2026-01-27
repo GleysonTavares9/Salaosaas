@@ -3,147 +3,161 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- LIMPEZA INICIAL (Cuidado: Apaga dados existentes!)
-DROP TABLE IF EXISTS messages CASCADE;
-DROP TABLE IF EXISTS conversations CASCADE;
-DROP TABLE IF EXISTS gallery_items CASCADE;
-DROP TABLE IF EXISTS reviews CASCADE;
-DROP TABLE IF EXISTS appointments CASCADE;
-DROP TABLE IF EXISTS professionals CASCADE;
-DROP TABLE IF EXISTS products CASCADE;
-DROP TABLE IF EXISTS services CASCADE;
-DROP TABLE IF EXISTS profiles CASCADE;
-DROP TABLE IF EXISTS salons CASCADE;
+DROP TABLE IF EXISTS public.reviews CASCADE;
+DROP TABLE IF EXISTS public.messages CASCADE;
+DROP TABLE IF EXISTS public.conversations CASCADE;
+DROP TABLE IF EXISTS public.appointments CASCADE;
+DROP TABLE IF EXISTS public.products CASCADE;
+DROP TABLE IF EXISTS public.gallery_items CASCADE;
+DROP TABLE IF EXISTS public.professionals CASCADE;
+DROP TABLE IF EXISTS public.services CASCADE;
+DROP TABLE IF EXISTS public.profiles CASCADE;
+DROP TABLE IF EXISTS public.salons CASCADE;
 
--- Tabela de Salões (Tenants)
-CREATE TABLE salons (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    nome TEXT NOT NULL,
-    slug_publico TEXT UNIQUE NOT NULL,
-    segmento TEXT NOT NULL,
-    descricao TEXT,
-    logo_url TEXT,
-    banner_url TEXT,
-    endereco TEXT,
-    cidade TEXT,
-    rating DECIMAL(2,1) DEFAULT 0,
-    reviews INTEGER DEFAULT 0,
-    telefone TEXT,
-    amenities TEXT[],
-    gallery_urls TEXT[],
-    location JSONB, -- { lat: number, lng: number }
-    horario_funcionamento JSONB, -- { "Segunda": { "open": "09:00", "close": "18:00", "closed": false }, ... }
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+-- 1. TABELA DE SALÕES (TENANTS)
+CREATE TABLE public.salons (
+    id uuid NOT NULL DEFAULT uuid_generate_v4(),
+    nome text NOT NULL,
+    slug_publico text NOT NULL UNIQUE,
+    segmento text NOT NULL,
+    descricao text,
+    logo_url text,
+    banner_url text,
+    endereco text,
+    cidade text,
+    rating numeric DEFAULT 0,
+    reviews integer DEFAULT 0,
+    telefone text,
+    amenities text[], 
+    gallery_urls text[], 
+    location jsonb,
+    horario_funcionamento jsonb,
+    mp_public_key text,
+    mp_access_token text,
+    created_at timestamp with time zone DEFAULT now(),
+    CONSTRAINT salons_pkey PRIMARY KEY (id)
 );
 
--- Tabela de Perfis de Usuários (Public Data)
-CREATE TABLE profiles (
-    id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-    email TEXT,
-    full_name TEXT,
-    phone TEXT,
-    avatar_url TEXT,
-    role TEXT CHECK (role IN ('client', 'pro', 'admin')) DEFAULT 'client',
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE
+-- 2. TABELA DE PERFIS DE USUÁRIOS (PUBLIC DATA)
+CREATE TABLE public.profiles (
+    id uuid NOT NULL PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+    email text,
+    full_name text,
+    phone text,
+    avatar_url text,
+    role text DEFAULT 'client' CHECK (role = ANY (ARRAY['client', 'pro', 'admin'])),
+    created_at timestamp with time zone DEFAULT now(),
+    updated_at timestamp with time zone
 );
 
--- Tabela de Serviços
-CREATE TABLE services (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    salon_id UUID REFERENCES salons(id) ON DELETE CASCADE,
-    name TEXT NOT NULL,
-    duration_min INTEGER NOT NULL,
-    price DECIMAL(10,2) NOT NULL,
-    category TEXT,
-    description TEXT,
-    image TEXT,
-    premium BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+-- 3. TABELA DE SERVIÇOS (RITUAIS)
+CREATE TABLE public.services (
+    id uuid NOT NULL DEFAULT uuid_generate_v4(),
+    salon_id uuid REFERENCES public.salons(id) ON DELETE CASCADE,
+    name text NOT NULL,
+    duration_min integer NOT NULL DEFAULT 30,
+    price numeric NOT NULL,
+    category text,
+    description text,
+    image text,
+    premium boolean DEFAULT false,
+    created_at timestamp with time zone DEFAULT now(),
+    CONSTRAINT services_pkey PRIMARY KEY (id)
 );
 
--- Tabela de Produtos
-CREATE TABLE products (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    salon_id UUID REFERENCES salons(id) ON DELETE CASCADE,
-    name TEXT NOT NULL,
-    description TEXT,
-    price DECIMAL(10,2) NOT NULL,
-    image TEXT,
-    category TEXT,
-    stock INTEGER NOT NULL DEFAULT 0,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+-- 4. TABELA DE PROFISSIONAIS (TIME)
+CREATE TABLE public.professionals (
+    id uuid NOT NULL DEFAULT uuid_generate_v4(),
+    salon_id uuid REFERENCES public.salons(id) ON DELETE CASCADE,
+    user_id uuid REFERENCES auth.users(id) ON DELETE SET NULL,
+    name text NOT NULL,
+    role text,
+    image text,
+    productivity integer DEFAULT 0,
+    rating numeric DEFAULT 0,
+    status text DEFAULT 'active' CHECK (status = ANY (ARRAY['active', 'away'])),
+    comissao numeric DEFAULT 0,
+    email text,
+    created_at timestamp with time zone DEFAULT now(),
+    CONSTRAINT professionals_pkey PRIMARY KEY (id)
 );
 
--- Tabela de Profissionais
-CREATE TABLE professionals (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    salon_id UUID REFERENCES salons(id) ON DELETE CASCADE,
-    user_id UUID REFERENCES auth.users(id),
-    name TEXT NOT NULL,
-    email TEXT,
-    role TEXT,
-    image TEXT,
-    productivity INTEGER DEFAULT 0,
-    rating DECIMAL(2,1) DEFAULT 0,
-    status TEXT CHECK (status IN ('active', 'away')) DEFAULT 'active',
-    comissao DECIMAL(5,2) DEFAULT 0,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+-- 5. TABELA DE AGENDAMENTOS ( AGENDA)
+CREATE TABLE public.appointments (
+    id uuid NOT NULL DEFAULT uuid_generate_v4(),
+    salon_id uuid REFERENCES public.salons(id) ON DELETE CASCADE,
+    client_id uuid REFERENCES auth.users(id) ON DELETE CASCADE,
+    professional_id uuid REFERENCES public.professionals(id) ON DELETE SET NULL,
+    service_names text,
+    valor numeric NOT NULL,
+    date date NOT NULL,
+    time text NOT NULL, 
+    status text DEFAULT 'pending' CHECK (status = ANY (ARRAY['confirmed', 'pending', 'completed', 'canceled'])),
+    duration_min integer DEFAULT 30,
+    created_at timestamp with time zone DEFAULT now(),
+    CONSTRAINT appointments_pkey PRIMARY KEY (id)
 );
 
--- Tabela de Agendamentos
-CREATE TABLE appointments (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    salon_id UUID REFERENCES salons(id) ON DELETE CASCADE,
-    client_id UUID REFERENCES auth.users(id),
-    professional_id UUID REFERENCES professionals(id),
-    service_names TEXT,
-    valor DECIMAL(10,2) NOT NULL,
-    date DATE NOT NULL,
-    time TIME NOT NULL,
-    status TEXT CHECK (status IN ('confirmed', 'pending', 'completed', 'canceled')) DEFAULT 'pending',
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+-- 6. TABELA DE CONVERSAS (CHAT)
+CREATE TABLE public.conversations (
+    id uuid NOT NULL DEFAULT uuid_generate_v4(),
+    user1_id uuid REFERENCES auth.users(id) ON DELETE CASCADE,
+    user2_id uuid REFERENCES auth.users(id) ON DELETE CASCADE,
+    last_message text,
+    unread_count integer DEFAULT 0,
+    updated_at timestamp with time zone DEFAULT now(),
+    CONSTRAINT conversations_pkey PRIMARY KEY (id)
 );
 
--- Tabela de Avaliações (Reviews)
-CREATE TABLE reviews (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    appointment_id UUID REFERENCES appointments(id),
-    salon_id UUID REFERENCES salons(id) ON DELETE CASCADE,
-    professional_id UUID REFERENCES professionals(id),
-    client_id UUID REFERENCES auth.users(id),
-    rating INTEGER CHECK (rating >= 1 AND rating <= 5),
-    comment TEXT,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+-- 7. TABELA DE MENSAGENS (CHAT)
+CREATE TABLE public.messages (
+    id uuid NOT NULL DEFAULT uuid_generate_v4(),
+    conversation_id uuid REFERENCES public.conversations(id) ON DELETE CASCADE,
+    sender_id uuid REFERENCES auth.users(id) ON DELETE CASCADE,
+    text text NOT NULL,
+    timestamp timestamp with time zone DEFAULT now(),
+    CONSTRAINT messages_pkey PRIMARY KEY (id)
 );
 
--- Tabela de Galeria (Gallery Items)
-CREATE TABLE gallery_items (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    salon_id UUID REFERENCES salons(id) ON DELETE CASCADE,
-    url TEXT NOT NULL,
-    category TEXT,
-    title TEXT,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+-- 8. TABELA DE GALERIA (GALLERY ITEMS)
+CREATE TABLE public.gallery_items (
+    id uuid NOT NULL DEFAULT uuid_generate_v4(),
+    salon_id uuid REFERENCES public.salons(id) ON DELETE CASCADE,
+    url text NOT NULL,
+    category text,
+    title text,
+    created_at timestamp with time zone DEFAULT now(),
+    CONSTRAINT gallery_items_pkey PRIMARY KEY (id)
 );
 
--- Tabela de Conversas (Chat)
-CREATE TABLE conversations (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user1_id UUID REFERENCES auth.users(id),
-    user2_id UUID REFERENCES auth.users(id),
-    last_message TEXT,
-    unread_count INTEGER DEFAULT 0,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+-- 9. TABELA DE PRODUTOS (BOUTIQUE)
+CREATE TABLE public.products (
+    id uuid NOT NULL DEFAULT uuid_generate_v4(),
+    salon_id uuid REFERENCES public.salons(id) ON DELETE CASCADE,
+    name text NOT NULL,
+    description text,
+    price numeric NOT NULL,
+    image text,
+    category text,
+    stock integer NOT NULL DEFAULT 0,
+    created_at timestamp with time zone DEFAULT now(),
+    CONSTRAINT products_pkey PRIMARY KEY (id)
 );
 
--- Tabela de Mensagens
-CREATE TABLE messages (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    conversation_id UUID REFERENCES conversations(id) ON DELETE CASCADE,
-    sender_id UUID REFERENCES auth.users(id),
-    text TEXT NOT NULL,
-    timestamp TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+-- 10. TABELA DE AVALIAÇÕES (REVIEWS)
+CREATE TABLE public.reviews (
+    id uuid NOT NULL DEFAULT uuid_generate_v4(),
+    appointment_id uuid REFERENCES public.appointments(id) ON DELETE CASCADE,
+    salon_id uuid REFERENCES public.salons(id) ON DELETE CASCADE,
+    professional_id uuid REFERENCES public.professionals(id) ON DELETE SET NULL,
+    client_id uuid REFERENCES auth.users(id) ON DELETE CASCADE,
+    rating integer CHECK (rating >= 1 AND rating <= 5),
+    comment text,
+    created_at timestamp with time zone DEFAULT now(),
+    CONSTRAINT reviews_pkey PRIMARY KEY (id)
 );
+
+-- FUNÇÕES E TRIGGERS
 
 -- Função para decrementar estoque
 CREATE OR REPLACE FUNCTION decrement_stock(p_id UUID, p_qty INTEGER)
@@ -171,21 +185,11 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- OBS: Para ativar o trigger no Supabase, descomente as linhas abaixo se tiver permissão de superuser/admin
--- DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
--- CREATE TRIGGER on_auth_user_created
---   AFTER INSERT ON auth.users
---   FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();
+-- POLÍTICAS DE RLS (SEGURANÇA EXTREMA)
 
--- Políticas de RLS
 ALTER TABLE salons ENABLE ROW LEVEL SECURITY;
-DROP POLICY IF EXISTS "Public salons are viewable by everyone" ON salons;
 CREATE POLICY "Public salons are viewable by everyone" ON salons FOR SELECT USING (true);
-
--- Allow Authenticated Users to INSERT new salons (Business Setup)
 CREATE POLICY "Enable insert for authenticated users only" ON salons FOR INSERT TO authenticated WITH CHECK (true);
-
--- Allow Owners to UPDATE their salons
 CREATE POLICY "Enable update for owners" ON salons FOR UPDATE USING (
     EXISTS (
         SELECT 1 FROM professionals 
@@ -194,10 +198,18 @@ CREATE POLICY "Enable update for owners" ON salons FOR UPDATE USING (
     )
 );
 
--- STORAGE SETUP (aura-public)
-INSERT INTO storage.buckets (id, name, public) VALUES ('aura-public', 'aura-public', true) ON CONFLICT (id) DO NOTHING;
+ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users can manage their own profile" ON profiles FOR ALL USING (auth.uid() = id);
 
--- Storage Policies
-CREATE POLICY "Public Access" ON storage.objects FOR SELECT USING ( bucket_id = 'aura-public' );
-CREATE POLICY "Public Insert" ON storage.objects FOR INSERT TO authenticated WITH CHECK ( bucket_id = 'aura-public' );
-CREATE POLICY "Public Update" ON storage.objects FOR UPDATE TO authenticated USING ( bucket_id = 'aura-public' );
+ALTER TABLE appointments ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users can view their own appointments" ON appointments FOR SELECT USING (auth.uid() = client_id);
+CREATE POLICY "Professionals can view salon appointments" ON appointments FOR SELECT USING (
+    EXISTS (
+        SELECT 1 FROM professionals 
+        WHERE professionals.salon_id = appointments.salon_id 
+        AND professionals.user_id = auth.uid()
+    )
+);
+
+-- STORAGE SETUP (AURA-PUBLIC)
+-- INSERT INTO storage.buckets (id, name, public) VALUES ('aura-public', 'aura-public', true) ON CONFLICT (id) DO NOTHING;

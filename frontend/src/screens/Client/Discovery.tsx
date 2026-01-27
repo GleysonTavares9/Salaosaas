@@ -116,7 +116,7 @@ const Discovery: React.FC<DiscoveryProps> = ({ salons, role }) => {
         if (metaName) setUserName(metaName);
 
         try {
-          const profile = await api.profiles.get(user.id);
+          const profile = await api.profiles.getById(user.id);
           const avatar = profile?.avatar_url || user.user_metadata.avatar_url;
           const name = profile?.full_name || metaName;
 
@@ -134,9 +134,24 @@ const Discovery: React.FC<DiscoveryProps> = ({ salons, role }) => {
   const filteredSalons = useMemo(() => {
     const list = salons
       .map(s => {
-        const dist = calculateDistance(coords.lat, coords.lng, s.location.lat, s.location.lng);
+        const parseCoord = (val: any) => {
+          if (typeof val === 'number') return val;
+          if (typeof val === 'string') return parseFloat(val.replace(',', '.'));
+          return 0;
+        };
+
+        const sLat = parseCoord(s.location?.lat);
+        const sLng = parseCoord(s.location?.lng);
+
+        // Se a coordenada for 0,0 (nula), colocamos uma distância infinita
+        if (sLat === 0 && sLng === 0) {
+          return { ...s, distanceKm: 999999, distancia: 'N/A' };
+        }
+
+        const dist = calculateDistance(coords.lat, coords.lng, sLat, sLng);
         return {
           ...s,
+          location: { lat: sLat, lng: sLng },
           distanceKm: dist,
           distancia: dist < 1 ? `${Math.round(dist * 1000)}m` : `${dist.toFixed(1)}km`
         };

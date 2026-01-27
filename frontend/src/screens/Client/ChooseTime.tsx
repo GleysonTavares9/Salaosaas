@@ -37,7 +37,7 @@ const ChooseTime: React.FC<ChooseTimeProps> = ({ bookingDraft, setBookingDraft }
     {
       label: 'Próximo',
       date: dayAfter.toISOString().split('T')[0],
-      display: today.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }) // Fix label logic
+      display: dayAfter.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })
     },
   ];
 
@@ -57,8 +57,14 @@ const ChooseTime: React.FC<ChooseTimeProps> = ({ bookingDraft, setBookingDraft }
         if (!isMounted) return;
         setSalonData(salon);
         setProfessionals(pros || []);
-        // Filtrar agendamentos apenas do dia selecionado
-        const filteredAppts = Array.isArray(appts) ? appts.filter((a: any) => a.date === selectedDay && a.status !== 'canceled') : [];
+
+        // Comparação robusta de datas (YYYY-MM-DD)
+        const filteredAppts = Array.isArray(appts)
+          ? appts.filter((a: any) => {
+            const apptDate = a.date?.split('T')[0];
+            return apptDate === selectedDay && a.status !== 'canceled';
+          })
+          : [];
         setExistingAppointments(filteredAppts);
         setIsLoading(false);
       }).catch(err => {
@@ -79,7 +85,7 @@ const ChooseTime: React.FC<ChooseTimeProps> = ({ bookingDraft, setBookingDraft }
     const generateSlots = () => {
       const slots = [];
 
-      // Mapeamento de dia JS (0-6) para chaves do sistema (sunday-saturday)
+      // Mapeamento de dia JS (0-6)
       const dateParts = selectedDay.split('-').map(Number);
       const dateObj = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
       const dayKeys = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
@@ -93,27 +99,36 @@ const ChooseTime: React.FC<ChooseTimeProps> = ({ bookingDraft, setBookingDraft }
 
       const [startHour, startMin] = daySchedule.open.split(':').map(Number);
       const [endHour, endMin] = daySchedule.close.split(':').map(Number);
-
       const startLimit = startHour * 60 + startMin;
       const endLimit = endHour * 60 + endMin;
+
+      // Horário atual em minutos para o caso de ser "Hoje"
+      const now = new Date();
+      const isToday = selectedDay === now.toISOString().split('T')[0];
+      const nowInMinutes = now.getHours() * 60 + now.getMinutes() + 15; // +15min de tolerância
 
       // Converter horários existentes em minutos
       const busyIntervals = existingAppointments.map(a => {
         const [h, m] = a.time.split(':').map(Number);
         const start = h * 60 + m;
-        // Se não temos a duração do agendamento antigo, assumimos 30min ou duracao real se houver
-        return { start, end: start + (a.duration_min || 30) };
+        const duration = a.duration_min || 30;
+        return { start, end: start + duration };
       });
 
+      // Gerar slots de 30 em 30 minutos
       for (let timeMin = startLimit; timeMin < endLimit; timeMin += 30) {
+        // Ignorar horários passados se for hoje
+        if (isToday && timeMin < nowInMinutes) continue;
+
         const currentTimeMin = timeMin;
         const endTimeMin = currentTimeMin + totalDuration;
 
-        // Se o serviço terminar após o horário de fechamento, esse slot é inválido
+        // Validar limite de fechamento
         if (endTimeMin > endLimit) continue;
 
-        // Verificar conflitos
+        // Verificar conflitos com agendamentos existentes
         const isConflict = busyIntervals.some(busy => {
+          // Sobreposição: (Início1 < Fim2) && (Fim1 > Início2)
           return (currentTimeMin < busy.end && endTimeMin > busy.start);
         });
 

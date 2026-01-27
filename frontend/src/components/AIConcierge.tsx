@@ -36,11 +36,12 @@ const AIConcierge: React.FC = () => {
       <div className="fixed bottom-0 left-0 right-0 max-w-[450px] mx-auto z-[9999] pointer-events-none h-0 overflow-visible">
         <button
           onClick={() => setIsOpen(true)}
-          className={`absolute right-4 size-12 gold-gradient rounded-full shadow-[0_8px_30px_rgba(193,165,113,0.4)] flex items-center justify-center text-background-dark active:scale-90 transition-all border border-white/20 pointer-events-auto ${isSalonPage ? 'bottom-32' : isChatPage ? 'bottom-28' : 'bottom-24'
+          className={`absolute left-4 size-14 gold-gradient rounded-full shadow-[0_15px_40px_rgba(193,165,113,0.4)] flex flex-col items-center justify-center text-background-dark active:scale-90 transition-all border-2 border-white/20 pointer-events-auto ${isSalonPage ? 'bottom-32' : isChatPage ? 'bottom-28' : 'bottom-24'
             }`}
           aria-label="Aura IA"
         >
-          <span className="material-symbols-outlined text-lg font-black">auto_awesome</span>
+          <span className="material-symbols-outlined text-[20px] font-black leading-none">auto_awesome</span>
+          <span className="text-[6px] font-black uppercase tracking-widest mt-0.5 leading-none">Aura AI</span>
         </button>
       </div>
 
@@ -49,17 +50,21 @@ const AIConcierge: React.FC = () => {
           <div className="w-full max-w-[420px] bg-background-dark border border-white/10 rounded-[40px] shadow-[0_0_100px_rgba(193,165,113,0.1)] p-6 md:p-8 space-y-6 animate-fade-in-up">
             <div className="flex justify-between items-center">
               <div className="flex items-center gap-3">
-                <div className="size-9 rounded-xl gold-gradient flex items-center justify-center text-background-dark shadow-lg">
+                <div className="size-11 rounded-2xl gold-gradient flex items-center justify-center text-background-dark shadow-[0_10px_20px_rgba(193,165,113,0.3)] relative">
                   <span className="material-symbols-outlined text-xl font-black">psychology_alt</span>
+                  <div className="absolute -top-1 -right-1 size-3 bg-emerald-500 border-2 border-background-dark rounded-full"></div>
                 </div>
                 <div>
-                  <h3 className="text-white font-display font-black italic text-base tracking-tight leading-none">Aura Concierge</h3>
-                  <p className="text-[7px] text-primary uppercase font-black tracking-[0.3em] mt-1">Intelligence</p>
+                  <h3 className="text-white font-display font-black italic text-lg tracking-tight leading-none uppercase">Aura Concierge</h3>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-[7px] text-primary uppercase font-black tracking-[0.3em] leading-none">Active Intelligence</span>
+                    <span className="text-[7px] text-emerald-500 font-black uppercase leading-none opacity-80 animate-pulse">• Online</span>
+                  </div>
                 </div>
               </div>
               <button
                 onClick={() => { setIsOpen(false); setResponse(null); setInput(''); }}
-                className="size-8 rounded-full bg-white/5 text-slate-500 flex items-center justify-center hover:text-white transition-colors"
+                className="size-10 rounded-xl bg-white/5 text-slate-500 flex items-center justify-center hover:text-white transition-all active:scale-90 border border-white/5"
               >
                 <span className="material-symbols-outlined text-xl">close</span>
               </button>

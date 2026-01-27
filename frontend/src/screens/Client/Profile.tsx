@@ -42,7 +42,7 @@ const Profile: React.FC<ProfileProps> = ({ onLogout }) => {
 
         // Tenta buscar perfil completo do banco
         try {
-          const profile = await api.profiles.get(user.id);
+          const profile = await api.profiles.getById(user.id);
           const name = profile?.full_name || user.user_metadata.nome || user.user_metadata.owner_name || 'Membro Aura';
           const avatar = profile?.avatar_url || user.user_metadata.avatar_url;
           const phone = profile?.phone || user.user_metadata.phone || '';
@@ -72,20 +72,33 @@ const Profile: React.FC<ProfileProps> = ({ onLogout }) => {
     getUser();
   }, []);
 
-  const handleUpdate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!userData) return;
+  const handleSave = async () => {
+    if (!userData || !editName.trim()) return;
     setIsSaving(true);
     try {
-      await api.profiles.update(userData.id, { full_name: editName, phone: editPhone });
-      await supabase.auth.updateUser({
-        data: { nome: editName, phone: editPhone }
+      // 1. Atualiza a tabela pública (profiles)
+      await api.profiles.update(userData.id, {
+        full_name: editName,
+        phone: editPhone
       });
-      setUserData(prev => prev ? { ...prev, name: editName, phone: editPhone } : null);
+
+      // 2. Sincroniza com os metadados do Auth (para sessões futuras)
+      const { error: authError } = await supabase.auth.updateUser({
+        data: {
+          full_name: editName,
+          phone: editPhone
+        }
+      });
+
+      if (authError) throw authError;
+
+      // 3. Atualiza o estado local para refletir a mudança instantaneamente
+      setUserData(prev => prev ? { ...prev, full_name: editName, phone: editPhone, name: editName } : null);
       setIsEditing(false);
-      alert("Perfil atualizado!");
+      alert("✨ Sua Aura foi atualizada com sucesso!");
     } catch (error: any) {
-      alert("Erro ao atualizar: " + error.message);
+      console.error("Erro ao salvar perfil:", error);
+      alert("Erro ao atualizar: " + (error.message || 'Erro desconhecido'));
     } finally {
       setIsSaving(false);
     }
@@ -254,7 +267,13 @@ const Profile: React.FC<ProfileProps> = ({ onLogout }) => {
             <div className="text-center">
               <h2 className="text-4xl font-display font-black text-white italic tracking-tighter mb-2">Editar <span className="text-primary italic">Perfil.</span></h2>
             </div>
-            <form onSubmit={handleUpdate} className="space-y-6">
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleSave();
+              }}
+              className="space-y-6"
+            >
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Nome de Exibição</label>
                 <input type="text" value={editName} onChange={e => setEditName(e.target.value)} className="w-full bg-surface-dark border border-white/10 rounded-2xl p-5 text-white outline-none focus:border-primary shadow-inner" placeholder="Seu nome completo" />

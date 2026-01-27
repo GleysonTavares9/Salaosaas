@@ -227,11 +227,13 @@ const Schedule: React.FC<ScheduleProps> = ({ appointments: initialAppointments, 
     }
 
     const selectedService = services.find(s => s.id === newAppt.serviceId);
-    const selectedPro = allProfessionals.find(p => p.id === newAppt.professionalId);
+
+    // Pegar o ID do usuário atual para o agendamento manual
+    const { data: { user } } = await supabase.auth.getUser();
 
     try {
       await api.appointments.create({
-        client_id: 'manual-booking', // Usuário genérico ou ID fixo para booking interno
+        client_id: user?.id || '00000000-0000-0000-0000-000000000000', // UUID neutro para agendamento manual se não houver user
         salon_id: salon.id,
         professional_id: newAppt.professionalId,
         date: selectedDate,
@@ -239,9 +241,8 @@ const Schedule: React.FC<ScheduleProps> = ({ appointments: initialAppointments, 
         status: 'confirmed',
         valor: selectedService?.price || 0,
         service_names: selectedService?.name || '',
-        duration_min: selectedService?.duration_min || 60,
-        professionalName: selectedPro?.name || '',
-        clientName: newAppt.clientName
+        duration_min: selectedService?.duration_min || 60
+        // Removidos clientName e professionalName (são virtuais/legacy)
       });
 
       setShowAddModal(false);
@@ -251,7 +252,8 @@ const Schedule: React.FC<ScheduleProps> = ({ appointments: initialAppointments, 
       setNewAppt(prev => ({ ...prev, clientName: '', serviceId: '' }));
       fetchData();
     } catch (error) {
-      alert("Erro ao criar agendamento: " + error);
+      console.error("Erro completo:", error);
+      alert("Erro ao criar agendamento: Verifique se a tabela 'appointments' existe no seu Supabase.");
     }
   };
 
@@ -704,7 +706,7 @@ const Schedule: React.FC<ScheduleProps> = ({ appointments: initialAppointments, 
           <div className="absolute inset-0 bg-background-dark/95 backdrop-blur-xl animate-fade-in"></div>
           <div className="relative w-full max-w-xs bg-surface-dark border border-white/10 rounded-[40px] p-8 shadow-2xl animate-scale-in text-center">
             <div className={`size-16 rounded-full mx-auto mb-6 flex items-center justify-center ${confirmModal.actionType === 'delete' ? 'bg-red-500/10 text-red-500' :
-                confirmModal.actionType === 'cancel' ? 'bg-amber-500/10 text-amber-500' : 'bg-primary/10 text-primary'
+              confirmModal.actionType === 'cancel' ? 'bg-amber-500/10 text-amber-500' : 'bg-primary/10 text-primary'
               }`}>
               <span className="material-symbols-outlined text-3xl">
                 {confirmModal.actionType === 'delete' ? 'delete_forever' :
