@@ -46,6 +46,7 @@ const ChooseTime: React.FC<ChooseTimeProps> = ({ bookingDraft, setBookingDraft }
 
   // Carregar salão, profissionais e agendamentos existentes
   useEffect(() => {
+    let isMounted = true;
     if (bookingDraft.salonId) {
       setIsLoading(true);
       Promise.all([
@@ -53,13 +54,19 @@ const ChooseTime: React.FC<ChooseTimeProps> = ({ bookingDraft, setBookingDraft }
         api.professionals.getBySalon(bookingDraft.salonId),
         bookingDraft.professionalId ? api.appointments.getByProfessional(bookingDraft.professionalId) : Promise.resolve([])
       ]).then(([salon, pros, appts]) => {
+        if (!isMounted) return;
         setSalonData(salon);
-        setProfessionals(pros);
+        setProfessionals(pros || []);
         // Filtrar agendamentos apenas do dia selecionado
-        setExistingAppointments(appts.filter((a: any) => a.date === selectedDay && a.status !== 'canceled'));
+        const filteredAppts = Array.isArray(appts) ? appts.filter((a: any) => a.date === selectedDay && a.status !== 'canceled') : [];
+        setExistingAppointments(filteredAppts);
         setIsLoading(false);
+      }).catch(err => {
+        console.error("Erro ao carregar dados de agendamento:", err);
+        if (isMounted) setIsLoading(false);
       });
     }
+    return () => { isMounted = false; };
   }, [bookingDraft.salonId, bookingDraft.professionalId, selectedDay]);
 
   // Gerar Slots Disponíveis
@@ -142,23 +149,38 @@ const ChooseTime: React.FC<ChooseTimeProps> = ({ bookingDraft, setBookingDraft }
             <h3 className="text-[10px] font-black text-primary uppercase tracking-[0.4em]">Seu Artista</h3>
             <span className="text-[8px] font-bold text-slate-600 uppercase tracking-widest">Inspirados por você</span>
           </div>
-          <div className="flex gap-6 overflow-x-auto no-scrollbar py-2">
+          <div className="flex gap-6 overflow-x-auto no-scrollbar py-4 px-1">
             {isLoading ? (
-              <div className="flex gap-6">
-                {[1, 2, 3].map(i => <div key={i} className="size-16 rounded-full bg-white/5 animate-pulse"></div>)}
+              <div className="flex gap-6 w-full">
+                {[1, 2, 3].map(i => (
+                  <div key={i} className="flex flex-col items-center gap-3 shrink-0">
+                    <div className="size-20 rounded-[28px] bg-white/5 animate-pulse border border-white/5"></div>
+                    <div className="h-2 w-10 bg-white/5 rounded animate-pulse"></div>
+                  </div>
+                ))}
               </div>
             ) : (
-              professionals.map(pro => (
-                <button key={pro.id} onClick={() => selectPro(pro)} className={`flex flex-col items-center gap-3 shrink-0 transition-all ${bookingDraft.professionalId === pro.id ? 'opacity-100 scale-110' : 'opacity-30 grayscale'}`}>
-                  <div className={`size-20 rounded-[28px] border-2 p-1.5 transition-all shadow-2xl ${bookingDraft.professionalId === pro.id ? 'border-primary' : 'border-white/5 bg-surface-dark'}`}>
-                    <img src={pro.image || "https://i.pravatar.cc/150"} className="size-full rounded-[20px] object-cover" alt={pro.name} />
-                  </div>
-                  <div className="text-center">
-                    <p className="text-[9px] font-black text-white uppercase tracking-tighter leading-none mb-1">{pro.name.split(' ')[0]}</p>
-                    <p className="text-[7px] font-bold text-primary uppercase tracking-[0.1em]">{pro.role}</p>
-                  </div>
-                </button>
-              ))
+              professionals.length > 0 ? (
+                professionals.map(pro => (
+                  <button
+                    key={pro.id}
+                    onClick={() => selectPro(pro)}
+                    className={`flex flex-col items-center gap-3 shrink-0 transition-all duration-500 ${bookingDraft.professionalId === pro.id ? 'opacity-100 scale-105' : bookingDraft.professionalId ? 'opacity-30 grayscale blur-[1px]' : 'opacity-100'}`}
+                  >
+                    <div className={`size-20 rounded-[28px] border-2 p-1.5 transition-all shadow-2xl ${bookingDraft.professionalId === pro.id ? 'border-primary bg-primary/5' : 'border-white/5 bg-surface-dark'}`}>
+                      <img src={pro.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(pro.name)}&background=c1a571&color=0c0d10&bold=true`} className="size-full rounded-[20px] object-cover" alt={pro.name} />
+                    </div>
+                    <div className="text-center">
+                      <p className={`text-[9px] font-black uppercase tracking-tighter leading-none mb-1 transition-colors ${bookingDraft.professionalId === pro.id ? 'text-primary' : 'text-white'}`}>{pro.name.split(' ')[0]}</p>
+                      <p className="text-[7px] font-bold text-slate-500 uppercase tracking-[0.1em]">{pro.role}</p>
+                    </div>
+                  </button>
+                ))
+              ) : (
+                <div className="w-full py-4 text-center border border-white/5 rounded-2xl bg-surface-dark/40">
+                  <p className="text-[8px] font-black text-slate-600 uppercase tracking-widest">Nenhum artista disponível nesta unidade</p>
+                </div>
+              )
             )}
           </div>
         </section>
