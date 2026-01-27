@@ -3,28 +3,42 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Salon, BusinessSegment, ViewRole } from '../../types.ts';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import MarkerClusterGroup from 'react-leaflet-cluster';
 import L from 'leaflet';
+import 'leaflet.markercluster/dist/MarkerCluster.css';
+import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import { supabase } from '../../lib/supabase';
 import { api } from '../../lib/api';
 
-// Custom salon marker with Luxe Aura branding (Gold Teardrop)
-const SalonIcon = L.divIcon({
+// Custom salon marker factory with Luxe Aura branding
+const createSalonIcon = (logoUrl: string) => L.divIcon({
   className: 'custom-salon-marker',
-  html: `<div class="relative flex flex-col items-center">
-           <!-- Pin Body -->
-           <div class="w-10 h-10 bg-[#c1a571] rounded-full rounded-bl-none rotate-[-45deg] flex items-center justify-center shadow-[0_10px_20px_rgba(0,0,0,0.5)] border border-white/10">
-             <!-- Inner Circle for Icon -->
-             <div class="w-7 h-7 bg-[#0c0d10] rounded-full rotate-[45deg] flex items-center justify-center">
-               <span class="material-symbols-outlined text-[#c1a571] text-base">home_hair</span>
+  html: `<div class="relative flex flex-col items-center group">
+           <!-- Pin Body (Teardrop Shape) -->
+           <div class="w-10 h-10 bg-[#c1a571] rounded-full rounded-bl-none rotate-[-45deg] flex items-center justify-center shadow-[0_10px_20px_rgba(0,0,0,0.5)] border border-white/20 transition-transform group-hover:scale-110 duration-300">
+             <!-- Inner Circle for Logo -->
+             <div class="w-7 h-7 bg-white rounded-full rotate-[45deg] overflow-hidden flex items-center justify-center border border-black/5">
+               <img src="${logoUrl}" class="w-full h-full object-cover" alt="logo" />
              </div>
            </div>
            <!-- Dynamic Glow Pulse -->
-           <div class="absolute -bottom-1 w-2 h-1 bg-[#c1a571]/40 rounded-full blur-[2px] animate-pulse"></div>
+           <div class="absolute -bottom-1 w-2 h-1 bg-[#c1a571]/60 rounded-full blur-[2px] animate-pulse"></div>
          </div>`,
   iconSize: [40, 44],
   iconAnchor: [20, 44],
   popupAnchor: [0, -44],
 });
+
+// Custom Cluster Icon Factory
+const createClusterCustomIcon = (cluster: any) => {
+  return L.divIcon({
+    html: `<div class="size-10 rounded-full gold-gradient border-2 border-background-dark shadow-2xl flex items-center justify-center text-background-dark font-black text-xs">
+             ${cluster.getChildCount()}
+           </div>`,
+    className: 'custom-marker-cluster',
+    iconSize: L.point(40, 40, true),
+  });
+};
 
 // Refined User location marker with branding-consistent pulse
 const UserIcon = L.divIcon({
@@ -251,29 +265,37 @@ const Discovery: React.FC<DiscoveryProps> = ({ salons, role }) => {
                   </Marker>
                 )}
 
-                {filteredSalons.map((salon) => (
-                  <Marker
-                    key={salon.id}
-                    position={[salon.location.lat, salon.location.lng]}
-                    icon={SalonIcon}
-                    eventHandlers={{
-                      click: () => setSelectedSalonId(salon.id),
-                    }}
-                  >
-                    <Popup className="premium-popup">
-                      <div className="text-background-dark p-2 min-w-[120px]">
-                        <h4 className="font-black text-[10px] uppercase tracking-tighter leading-tight mb-1">{salon.nome}</h4>
-                        <p className="text-[8px] text-slate-600 mb-2 font-bold uppercase">{salon.segmento} • {salon.distancia}</p>
-                        <button
-                          onClick={() => navigate(`/salon/${salon.slug_publico}`)}
-                          className="w-full bg-primary text-[8px] font-black py-2 rounded-lg text-background-dark uppercase tracking-widest shadow-lg active:scale-95 transition-all"
-                        >
-                          Ir ao Salão
-                        </button>
-                      </div>
-                    </Popup>
-                  </Marker>
-                ))}
+                <MarkerClusterGroup
+                  chunkedLoading
+                  iconCreateFunction={createClusterCustomIcon}
+                  maxClusterRadius={50}
+                  spiderfyOnMaxZoom={true}
+                  showCoverageOnHover={false}
+                >
+                  {filteredSalons.map((salon) => (
+                    <Marker
+                      key={salon.id}
+                      position={[salon.location.lat, salon.location.lng]}
+                      icon={createSalonIcon(salon.logo_url)}
+                      eventHandlers={{
+                        click: () => setSelectedSalonId(salon.id),
+                      }}
+                    >
+                      <Popup className="premium-popup">
+                        <div className="text-background-dark p-2 min-w-[120px]">
+                          <h4 className="font-black text-[10px] uppercase tracking-tighter leading-tight mb-1">{salon.nome}</h4>
+                          <p className="text-[8px] text-slate-600 mb-2 font-bold uppercase">{salon.segmento} • {salon.distancia}</p>
+                          <button
+                            onClick={() => navigate(`/salon/${salon.slug_publico}`)}
+                            className="w-full bg-primary text-[8px] font-black py-2 rounded-lg text-background-dark uppercase tracking-widest shadow-lg active:scale-95 transition-all"
+                          >
+                            Ir ao Salão
+                          </button>
+                        </div>
+                      </Popup>
+                    </Marker>
+                  ))}
+                </MarkerClusterGroup>
               </MapContainer>
             </div>
 
