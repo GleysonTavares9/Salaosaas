@@ -1,4 +1,5 @@
 
+// Luxe Aura Premium - Sincronização de Deploy
 import React, { useState, useEffect } from 'react';
 import { HashRouter as Router, Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { ViewRole, Appointment, Service, Salon, Product, Professional, GalleryItem } from './types.ts';
