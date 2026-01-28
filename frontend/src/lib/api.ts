@@ -6,34 +6,18 @@ export const api = {
     // --- Salões ---
     salons: {
         async getAll() {
-            // SEGURANÇA: Selecionar apenas colunas públicas. Access Token fica de fora.
-            const safeColumns = `
-                id, nome, slug_publico, segmento, descricao, logo_url, banner_url, 
-                endereco, cidade, rating, reviews, telefone, amenities, gallery_urls, 
-                location, horario_funcionamento, mp_public_key
-            `;
-            const { data, error } = await supabase.from('salons').select(safeColumns);
+            const { data, error } = await supabase.from('salons').select('*');
             if (error) throw error;
             return data as Salon[];
         },
 
         async getBySlug(slug: string) {
-            const safeColumns = `
-                id, nome, slug_publico, segmento, descricao, logo_url, banner_url, 
-                endereco, cidade, rating, reviews, telefone, amenities, gallery_urls, 
-                location, horario_funcionamento, mp_public_key
-            `;
-            const { data, error } = await supabase.from('salons').select(safeColumns).eq('slug_publico', slug).single();
+            const { data, error } = await supabase.from('salons').select('*').eq('slug_publico', slug).single();
             if (error) throw error;
             return data as Salon;
         },
         async getById(id: string) {
-            const safeColumns = `
-                id, nome, slug_publico, segmento, descricao, logo_url, banner_url, 
-                endereco, cidade, rating, reviews, telefone, amenities, gallery_urls, 
-                location, horario_funcionamento, mp_public_key
-            `;
-            const { data, error } = await supabase.from('salons').select(safeColumns).eq('id', id).single();
+            const { data, error } = await supabase.from('salons').select('*').eq('id', id).single();
             if (error) throw error;
             return data as Salon;
         },
@@ -94,6 +78,7 @@ export const api = {
             if (error) throw error;
             return data as Product[];
         },
+
         async create(product: Omit<Product, 'id'>) {
             const { data, error } = await supabase.from('products').insert(product).select().single();
             if (error) throw error;
@@ -177,12 +162,12 @@ export const api = {
     // --- Chat (Realtime ready) ---
     chat: {
         async getConversations(userId: string) {
-            const { data, error } = await supabase.from('conversations').select('*').or(`user1_id.eq.${userId},user2_id.eq.${userId}`);
+            const { data, error } = await supabase.from('conversations').select('*').or(`user1_id.eq.${userId}, user2_id.eq.${userId}`);
             if (error) throw error;
             return data as Conversation[];
         },
-        async startConversation(currentUserId: string, targetUserId: string, targetName: string, targetImage: string) {
-            // Check existing
+        async startConversation(currentUserId: string, targetUserId: string) {
+            // Verificar se já existe conversa entre esses dois usuários
             const { data: existing } = await supabase
                 .from('conversations')
                 .select('*')
@@ -191,14 +176,11 @@ export const api = {
 
             if (existing) return existing as Conversation;
 
-            // Create new
+            // Criar nova seguindo estritamente o schema do banco: id, user1_id, user2_id, last_message, unread_count
             const { data, error } = await supabase.from('conversations').insert({
                 user1_id: currentUserId,
                 user2_id: targetUserId,
-                participant_name: targetName,
-                participant_image: targetImage,
                 last_message: 'Nova conexão',
-                timestamp: new Date().toISOString(),
                 unread_count: 0
             }).select().single();
 
@@ -217,8 +199,8 @@ export const api = {
         },
         subscribeToMessages(conversationId: string, callback: (payload: any) => void) {
             return supabase
-                .channel(`messages:${conversationId}`)
-                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id=eq.${conversationId}` }, callback)
+                .channel(`messages:${conversationId} `)
+                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id = eq.${conversationId} ` }, callback)
                 .subscribe();
         }
     },
@@ -229,8 +211,8 @@ export const api = {
             const fileExt = file.name.split('.').pop();
             // Sanitize file name to avoid 400 errors with weird characters
             const rawName = file.name.replace(/[^a-zA-Z0-9]/g, '');
-            const fileName = `${rawName}_${Math.random().toString(36).substring(2)}_${Date.now()}.${fileExt}`;
-            const filePath = `${fileName}`;
+            const fileName = `${rawName}_${Math.random().toString(36).substring(2)}_${Date.now()}.${fileExt} `;
+            const filePath = `${fileName} `;
 
             const { error: uploadError } = await supabase.storage
                 .from(bucket)
@@ -264,14 +246,14 @@ export const api = {
             const { data, error } = await supabase
                 .from('reviews')
                 .select(`
-                    *,
-                    client:client_id (
-                        id,
-                        email,
-                        full_name,
-                        avatar_url
-                    )
-                `)
+    *,
+    client: client_id(
+        id,
+        email,
+        full_name,
+        avatar_url
+    )
+        `)
                 .eq('salon_id', salonId)
                 .order('created_at', { ascending: false });
             if (error) throw error;

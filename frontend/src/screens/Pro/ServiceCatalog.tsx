@@ -26,9 +26,13 @@ const ServiceCatalog: React.FC<ServiceCatalogProps> = ({ salonId }) => {
   useEffect(() => {
     if (salonId) {
       api.services.getBySalon(salonId).then(data => {
-        setServices(data);
+        setServices(data || []);
+        setIsLoading(false);
+      }).catch(() => {
         setIsLoading(false);
       });
+    } else {
+      setIsLoading(false);
     }
   }, [salonId]);
 

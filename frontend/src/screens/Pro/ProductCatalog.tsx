@@ -26,9 +26,13 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({ salonId }) => {
   useEffect(() => {
     if (salonId) {
       api.products.getBySalon(salonId).then(data => {
-        setProducts(data);
+        setProducts(data || []);
+        setIsLoading(false);
+      }).catch(() => {
         setIsLoading(false);
       });
+    } else {
+      setIsLoading(false);
     }
   }, [salonId]);
 

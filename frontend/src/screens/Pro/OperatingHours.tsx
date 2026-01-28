@@ -32,7 +32,7 @@ const OperatingHours: React.FC<OperatingHoursProps> = ({ salon, onSave }) => {
   const toggleDay = (day: string) => {
     setHours((prev: any) => ({
       ...prev,
-      [day]: prev[day]?.enabled ? { ...prev[day], enabled: false } : { enabled: true, open: '09:00', close: '18:00' }
+      [day]: prev[day]?.closed === false ? { ...prev[day], closed: true } : { closed: false, open: '09:00', close: '18:00' }
     }));
   };
 
@@ -80,20 +80,20 @@ const OperatingHours: React.FC<OperatingHoursProps> = ({ salon, onSave }) => {
 
           <div className="space-y-4">
             {DAYS_OF_WEEK.map(({ key, label }) => {
-              const dayData = hours[key] || { enabled: false, open: '09:00', close: '18:00' };
+              const dayData = hours[key] || { closed: true, open: '09:00', close: '18:00' };
               return (
                 <div key={key} className="bg-background-dark rounded-3xl p-5 border border-white/5">
                   <div className="flex items-center justify-between mb-4">
                     <span className="text-white font-bold text-sm">{label}</span>
                     <button
                       onClick={() => toggleDay(key)}
-                      className={`relative w-14 h-7 rounded-full transition-all ${dayData.enabled ? 'bg-primary' : 'bg-white/10'}`}
+                      className={`relative w-14 h-7 rounded-full transition-all ${!dayData.closed ? 'bg-primary' : 'bg-white/10'}`}
                     >
-                      <div className={`absolute top-1 size-5 rounded-full bg-white shadow-lg transition-all ${dayData.enabled ? 'left-8' : 'left-1'}`} />
+                      <div className={`absolute top-1 size-5 rounded-full bg-white shadow-lg transition-all ${!dayData.closed ? 'left-8' : 'left-1'}`} />
                     </button>
                   </div>
 
-                  {dayData.enabled && (
+                  {!dayData.closed && (
                     <div className="grid grid-cols-2 gap-4 animate-fade-in">
                       <div className="space-y-2">
                         <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Abertura</label>

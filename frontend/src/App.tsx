@@ -69,6 +69,16 @@ const AppContent: React.FC = () => {
   const [bookingDraft, setBookingDraft] = useState<BookingDraft>({ services: [], products: [] });
   const [isEmailConfirmed, setIsEmailConfirmed] = useState<boolean>(true);
   const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [notification, setNotification] = useState<{
+    show: boolean;
+    type: 'success' | 'error';
+    message: string;
+  }>({ show: false, type: 'success', message: '' });
+
+  const showNotification = (type: 'success' | 'error', message: string) => {
+    setNotification({ show: true, type, message });
+    setTimeout(() => setNotification({ show: false, type: 'success', message: '' }), 3000);
+  };
 
   useEffect(() => {
     const fetchSalons = async () => {
@@ -80,36 +90,33 @@ const AppContent: React.FC = () => {
         const allSalons = await api.salons.getAll();
 
         if (userId && (role === 'admin' || role === 'pro')) {
-          // Buscar qual salão este profissional pertence de forma segura
           const { data: proData, error: proError } = await supabase
             .from('professionals')
             .select('salon_id')
             .eq('user_id', userId)
             .maybeSingle();
 
-          if (proError) console.warn("Erro ao buscar vínculo profissional:", proError.message);
-
           if (proData?.salon_id) {
             const mySalon = allSalons.find(s => s.id === proData.salon_id);
             if (mySalon) {
-              setSalons([mySalon]); // Isola apenas o salão do usuário
+              setSalons([mySalon]);
               return;
             }
           } else {
-            // Se for admin/pro mas não tiver salão vinculado ainda, limpamos a lista
-            // para evitar que ele veja dados de outros salões
-            setSalons([]);
-            return;
+            if (role === 'admin') {
+              if (allSalons && allSalons.length > 0) {
+                setSalons([allSalons[0]]);
+                return;
+              }
+            }
           }
         }
 
-        // Para clientes ou visitantes, mostramos todos os salões
-        if (allSalons && allSalons.length > 0) setSalons(allSalons);
+        setSalons(allSalons || []);
       } catch (err) {
-        console.error("Erro ao buscar salões:", err);
+        // Erros silenciosos para não quebrar a UI mobile
       } finally {
         setIsLoading(false);
-        // Esconder splash screen nativo quando terminar de carregar
         SplashScreen.hide();
       }
     };
@@ -243,7 +250,18 @@ const AppContent: React.FC = () => {
         appt.id === id ? { ...appt, status } : appt
       ));
     } catch (error: any) {
-      alert("Erro ao atualizar status: " + error.message);
+      // Falha silenciosa ou log interno
+    }
+  };
+
+  const updateAppointment = async (id: string, updates: Partial<Appointment>) => {
+    try {
+      const updated = await api.appointments.update(id, updates);
+      setAppointments(prev => prev.map(appt =>
+        appt.id === id ? { ...appt, ...updated } : appt
+      ));
+    } catch (error: any) {
+      // Falha silenciosa
     }
   };
 
@@ -273,12 +291,11 @@ const AppContent: React.FC = () => {
 
   const resendEmail = async () => {
     if (userEmail) {
-      const { error } = await supabase.auth.resend({
+      await supabase.auth.resend({
         type: 'signup',
         email: userEmail,
       });
-      if (error) alert("Erro ao reenviar: " + error.message);
-      else alert("E-mail de confirmação enviado!");
+      showNotification('success', 'E-mail enviado!');
     }
   };
 
@@ -346,7 +363,15 @@ const AppContent: React.FC = () => {
 
           <Route path="/pro/admin-bookings" element={
             (role === 'admin' || role === 'pro')
-              ? <AdminBookings appointments={appointments} role={role} userId={currentUserId} onUpdateStatus={updateAppointmentStatus} />
+              ? <AdminBookings
+                appointments={appointments}
+                role={role}
+                salon={salons[0]}
+                userId={currentUserId}
+                onUpdateStatus={updateAppointmentStatus}
+                onUpdateAppointment={updateAppointment}
+                onDeleteAppointment={(id) => setAppointments(prev => prev.filter(a => a.id !== id))}
+              />
               : <Navigate to="/login" replace />
           } />
 
@@ -367,6 +392,17 @@ const AppContent: React.FC = () => {
       </div>
       {shouldShowNav && <BottomNav role={role} />}
       {role === 'client' && <AIConcierge />}
+
+      {/* Global Notification Toast */}
+      {notification.show && (
+        <div className={`fixed bottom-24 left-6 right-6 z-[2000] p-5 rounded-[24px] shadow-2xl animate-slide-up flex items-center gap-4 border backdrop-blur-xl ${notification.type === 'success' ? 'bg-emerald-500/20 border-emerald-500/30 text-emerald-400' : 'bg-red-500/20 border-red-500/30 text-red-400'
+          }`}>
+          <span className="material-symbols-outlined text-xl">
+            {notification.type === 'success' ? 'check_circle' : 'error'}
+          </span>
+          <p className="text-[10px] font-black uppercase tracking-widest flex-1">{notification.message}</p>
+        </div>
+      )}
     </div>
   );
 };

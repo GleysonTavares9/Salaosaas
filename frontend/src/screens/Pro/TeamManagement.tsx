@@ -32,7 +32,8 @@ const TeamManagement: React.FC<TeamManagementProps> = ({ salonId }) => {
     productivity: 0,
     comissao: 0,
     status: 'active' as 'active' | 'away',
-    image: ''
+    image: '',
+    email: ''
   });
 
   const [confirmDialog, setConfirmDialog] = useState<{
@@ -56,9 +57,13 @@ const TeamManagement: React.FC<TeamManagementProps> = ({ salonId }) => {
   useEffect(() => {
     if (salonId) {
       api.professionals.getBySalon(salonId).then(data => {
-        setTeam(data);
+        setTeam(data || []);
+        setIsLoading(false);
+      }).catch(() => {
         setIsLoading(false);
       });
+    } else {
+      setIsLoading(false);
     }
   }, [salonId]);
 
@@ -73,7 +78,8 @@ const TeamManagement: React.FC<TeamManagementProps> = ({ salonId }) => {
           productivity: selectedPro.productivity || 0,
           comissao: selectedPro.comissao || 0,
           status: selectedPro.status,
-          image: selectedPro.image || ''
+          image: selectedPro.image || '',
+          email: selectedPro.email || ''
         });
       }
     }
@@ -263,7 +269,31 @@ const TeamManagement: React.FC<TeamManagementProps> = ({ salonId }) => {
               <div className="flex-1 overflow-y-auto p-8 space-y-6 no-scrollbar pb-32">
                 {/* Profile Header */}
                 <div className="flex items-center gap-6">
-                  <div className="size-24 rounded-3xl bg-cover bg-center border-2 border-primary/20 shadow-xl" style={{ backgroundImage: `url('${editData.image}')` }} />
+                  <div className="relative group shrink-0">
+                    <div className="size-24 rounded-3xl bg-cover bg-center border-2 border-primary/20 shadow-xl overflow-hidden" style={{ backgroundImage: `url('${editData.image}')` }}>
+                      <label htmlFor="edit-pro-photo" className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                        <span className="material-symbols-outlined text-white text-xl">add_a_photo</span>
+                      </label>
+                    </div>
+                    <input
+                      type="file"
+                      id="edit-pro-photo"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          try {
+                            const publicUrl = await api.storage.upload(file);
+                            setEditData({ ...editData, image: publicUrl });
+                            showNotification('success', 'Foto carregada!');
+                          } catch (err: any) {
+                            showNotification('error', 'Falha no upload');
+                          }
+                        }
+                      }}
+                    />
+                  </div>
                   <div className="flex-1">
                     <input
                       type="text"
@@ -275,9 +305,22 @@ const TeamManagement: React.FC<TeamManagementProps> = ({ salonId }) => {
                       type="text"
                       value={editData.role}
                       onChange={(e) => setEditData({ ...editData, role: e.target.value })}
-                      className="text-primary text-xs font-black uppercase tracking-widest mt-1 bg-transparent border-b border-primary/20 outline-none focus:border-primary w-full"
+                      className="text-primary text-xs font-black uppercase tracking-widest mt-1 bg-transparent border-b border-primary/20 outline-none focus:border-primary w-full shadow-none"
                     />
                   </div>
+                </div>
+
+                {/* Email (Login) */}
+                <div className="bg-surface-dark border border-white/5 rounded-3xl p-6">
+                  <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-2">E-mail de Acesso (Login)</p>
+                  <input
+                    type="email"
+                    value={editData.email}
+                    onChange={(e) => setEditData({ ...editData, email: e.target.value })}
+                    className="text-sm font-bold text-white bg-transparent outline-none w-full border-b border-white/10 pb-2 focus:border-primary transition-all"
+                    placeholder="barbeiro@exemplo.com"
+                  />
+                  <p className="text-[7px] text-slate-600 font-bold uppercase tracking-tight mt-2">Este e-mail é o que o barbeiro deve usar para logar e ver sua agenda.</p>
                 </div>
 
                 {/* Editable Stats */}
@@ -457,8 +500,8 @@ const TeamManagement: React.FC<TeamManagementProps> = ({ salonId }) => {
       {notification.show && (
         <div className="fixed top-6 left-6 right-6 z-[90] animate-slide-down">
           <div className={`p-5 rounded-2xl shadow-2xl border backdrop-blur-xl ${notification.type === 'success'
-              ? 'bg-emerald-500/20 border-emerald-500/30 text-emerald-500'
-              : 'bg-red-500/20 border-red-500/30 text-red-500'
+            ? 'bg-emerald-500/20 border-emerald-500/30 text-emerald-500'
+            : 'bg-red-500/20 border-red-500/30 text-red-500'
             }`}>
             <div className="flex items-center gap-3">
               <span className="material-symbols-outlined text-2xl">

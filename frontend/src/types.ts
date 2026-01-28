@@ -69,6 +69,7 @@ export interface Professional {
   rating: number;
   status: 'active' | 'away';
   comissao: number;
+  email?: string;
 }
 
 export interface Appointment {
@@ -84,6 +85,7 @@ export interface Appointment {
   valor: number;
   // Legacy fields for backward compatibility (not in DB)
   clientName?: string;
+  clientPhone?: string;
   professionalName?: string;
   salonName?: string;
   serviceName?: string;

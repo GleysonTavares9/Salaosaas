@@ -46,31 +46,18 @@ const Checkout: React.FC<CheckoutProps> = ({ bookingDraft, salons, onConfirm, se
   }, []);
 
   useEffect(() => {
-    // 1. Prioridade: Chave configurada no Banco de Dados (SaaS Real)
     if (activeSalon?.mp_public_key) {
-      initMercadoPago(activeSalon.mp_public_key, { locale: 'pt-BR' });
-      setMpReady(true);
-      return;
-    }
-
-    // 2. Fallback: LocalStorage (apenas para Admin/Dev testando localmente sem banco atualizado)
-    const configStr = localStorage.getItem('aura_mp_config');
-    if (configStr) {
       try {
-        const config = JSON.parse(configStr);
-        if (config.publicKey && config.publicKey.startsWith('TEST-')) {
-          initMercadoPago(config.publicKey, { locale: 'pt-BR' });
-          setMpReady(true);
-        } else {
-          setMpReady(false);
-        }
+        initMercadoPago(activeSalon.mp_public_key, { locale: 'pt-BR' });
+        setMpReady(true);
       } catch (e) {
+        console.error("Erro ao inicializar MP:", e);
         setMpReady(false);
       }
     } else {
       setMpReady(false);
     }
-  }, [activeSalon]);
+  }, [activeSalon?.mp_public_key]);
 
   useEffect(() => {
     // Se não encontrou nas props, busca direto da API para garantir dados (telefone, endereço)
@@ -120,13 +107,12 @@ const Checkout: React.FC<CheckoutProps> = ({ bookingDraft, salons, onConfirm, se
     }
 
     // Convert date to ISO format if needed
-    let isoDate = bookingDraft.date || new Date().toISOString().split('T')[0];
+    let isoDate = bookingDraft.date;
 
-    // If date is in Brazilian format like "26 de jan.", convert to ISO
-    if (isoDate && !isoDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
-      // Try to parse and convert to ISO
-      const today = new Date();
-      isoDate = today.toISOString().split('T')[0];
+    // Se a data vier no formato PT-BR ou texto, vamos garantir o formato YYYY-MM-DD
+    if (!isoDate || typeof isoDate !== 'string' || !isoDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
+      const d = new Date();
+      isoDate = d.toISOString().split('T')[0];
     }
 
     const finalTotal = total;
@@ -161,7 +147,7 @@ const Checkout: React.FC<CheckoutProps> = ({ bookingDraft, salons, onConfirm, se
         service_names: finalServices.length > 0 ? finalServices.map((s: any) => s.name).join(', ') : 'Shopping Boutique',
         valor: Number(finalTotal.toFixed(2)),
         date: isoDate,
-        time: bookingDraft.time || '10:00',
+        time: bookingDraft.time || '10:00:00', // Formato HH:MM:SS para o Postgres
         duration_min: totalDuration,
         status: 'confirmed'
       });
@@ -527,21 +513,26 @@ const MPPaymentWrapper: React.FC<{ total: number, handleFinalConfirm: () => Prom
   }), []);
 
   return (
-    <div className="mp-brick-container">
+    <div className="mp-brick-container min-h-[500px]">
       <Payment
         initialization={initialization}
         customization={customization}
         onReady={() => console.log('Payment Brick Ready')}
-        onError={(error) => console.error('Payment Brick Error:', error)}
+        onError={(error) => {
+          console.error('Payment Brick Error:', error);
+          // O erro de SVG "" é comum em mobile e geralmente não impede o funcionamento
+        }}
         onSubmit={async (param) => {
-          console.log('MP Param:', param);
-          // @ts-ignore
-          await handleFinalConfirm(param.payment_method_id);
+          try {
+            // @ts-ignore
+            await handleFinalConfirm(param.payment_method_id);
+          } catch (e) {
+            console.error("Explosão no submit do MP:", e);
+          }
         }}
       />
       <style>{`
         .mp-payment-brick__title, .mp-payment-brick__subtitle { display: none !important; }
-        #paymentCard-form > div > div.mp-payment-brick__container > div > div.mp-payment-brick__header { display: none !important; }
         .mp-payment-brick__header { display: none !important; }
       `}</style>
     </div>
