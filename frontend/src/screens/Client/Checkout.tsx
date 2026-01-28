@@ -1,10 +1,10 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Appointment, Service, Salon, Product } from '../../types';
 import { api } from '../../lib/api';
 import { supabase } from '../../lib/supabase';
 import { initMercadoPago, Payment } from '@mercadopago/sdk-react';
+import CheckoutPixView from './CheckoutPixView';
 
 interface CheckoutProps {
   bookingDraft: any;
@@ -34,6 +34,7 @@ const Checkout: React.FC<CheckoutProps> = ({ bookingDraft, salons, onConfirm, se
   const [isProcessing, setIsProcessing] = useState(false);
   const [cardData, setCardData] = useState({ number: '', name: '', expiry: '', cvv: '' });
   const [userId, setUserId] = useState<string | null>(null);
+  const [userEmail, setUserEmail] = useState<string>(''); // E-mail capturado
   const [mpReady, setMpReady] = useState(false);
   const [activeSalon, setActiveSalon] = useState<Salon | undefined>(salons.find(s => s.id === bookingDraft.salonId));
   const [lastOrder, setLastOrder] = useState<any>(null);
@@ -41,7 +42,10 @@ const Checkout: React.FC<CheckoutProps> = ({ bookingDraft, salons, onConfirm, se
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
-      if (user) setUserId(user.id);
+      if (user) {
+        setUserId(user.id);
+        setUserEmail(user.email || 'anonimo@luxe-aura.com');
+      }
     });
   }, []);
 
@@ -94,10 +98,10 @@ const Checkout: React.FC<CheckoutProps> = ({ bookingDraft, salons, onConfirm, se
     }
   };
 
-  const handleFinalConfirm = async (paymentMethodId?: string) => {
+  const handleFinalConfirm = async (paymentDataOrMethodId?: any) => {
     if (!userId) return;
 
-    const currentIsPix = paymentMethodId === 'pix' || paymentMethodId === 'bank_transfer';
+    const currentIsPix = paymentDataOrMethodId === 'pix' || paymentDataOrMethodId === 'bank_transfer' || (typeof paymentDataOrMethodId === 'object' && paymentDataOrMethodId.payment_method_id === 'pix');
     setIsPix(currentIsPix);
 
     // Validate total is a valid number
@@ -139,6 +143,44 @@ const Checkout: React.FC<CheckoutProps> = ({ bookingDraft, salons, onConfirm, se
       };
 
       setLastOrder(orderSnapshot);
+
+      // --- INTEGRAÇÃO REAL COM MERCADO PAGO ORDERS API ---
+      let pixData = null;
+      if (typeof paymentDataOrMethodId === 'object' && activeSalon) {
+        try {
+          // Garantir que temos o email do payer (exigido pela API)
+          if (!paymentDataOrMethodId.payer) paymentDataOrMethodId.payer = {};
+          if (!paymentDataOrMethodId.payer.email) paymentDataOrMethodId.payer.email = userEmail;
+
+          const paymentResponse = await api.payments.createOrder(activeSalon, paymentDataOrMethodId);
+
+          // Verificar se é PIX e capturar QR Code
+          if (paymentResponse.point_of_interaction?.transaction_data) {
+            const tData = paymentResponse.point_of_interaction.transaction_data;
+            pixData = {
+              qrCodeBase64: tData.qr_code_base64,
+              copyPaste: tData.qr_code,
+              ticketUrl: tData.ticket_url,
+              id: paymentResponse.id
+            };
+          }
+
+        } catch (paymentError: any) {
+          console.error("Falha no pagamento MP:", paymentError);
+          alert(`Pagamento não processado: ${paymentError.message}`);
+          setIsProcessing(false);
+          return;
+        }
+      }
+
+      // Se for PIX, paramos aqui e mostramos a tela de QR Code
+      if (pixData) {
+        setLastOrder(prev => ({ ...prev, pixData }));
+        setStep('waiting_pix');
+        setIsProcessing(false);
+        return;
+      }
+
 
       const newAppt = await api.appointments.create({
         salon_id: bookingDraft.salonId || '',
@@ -193,6 +235,20 @@ const Checkout: React.FC<CheckoutProps> = ({ bookingDraft, salons, onConfirm, se
     const phoneNumber = orderData.telefone?.replace(/\D/g, '') || '5511999999999';
     window.open(`https://wa.me/${phoneNumber}?text=${encodeURIComponent(text)}`, '_blank');
   };
+
+  // REF STABLE: Criar uma referência estável para a função de submit
+  // Isso impede que o Payment Brick seja desmontado/remontado quando o pai renderiza
+  const handleFinalConfirmRef = useRef(handleFinalConfirm);
+  // Atualiza a ref a cada render para ter sempre a versão mais nova da função
+  useEffect(() => {
+    handleFinalConfirmRef.current = handleFinalConfirm;
+  });
+
+  // Callback estável que nunca muda
+  const stableSubmit = useCallback(async (param: any) => {
+    return await handleFinalConfirmRef.current(param);
+  }, []); // Sem dependências = referência fixa
+
 
   if (!services.length && !products.length && step !== 'success') {
     return (
@@ -295,7 +351,6 @@ const Checkout: React.FC<CheckoutProps> = ({ bookingDraft, salons, onConfirm, se
               </div>
             </section>
 
-            {/* Remover seleção manual, o Payment Brick cuida disso */}
             <section className="space-y-4">
               <div className="bg-primary/10 border border-primary/20 p-4 rounded-3xl flex items-center gap-4">
                 <div className="size-10 rounded-full bg-primary text-background-dark flex items-center justify-center">
@@ -317,7 +372,7 @@ const Checkout: React.FC<CheckoutProps> = ({ bookingDraft, salons, onConfirm, se
                 {mpReady ? (
                   <MPPaymentWrapper
                     total={total}
-                    handleFinalConfirm={handleFinalConfirm}
+                    handleFinalConfirm={stableSubmit}
                   />
                 ) : (
                   <div className="space-y-6 py-4">
@@ -354,68 +409,21 @@ const Checkout: React.FC<CheckoutProps> = ({ bookingDraft, salons, onConfirm, se
         )}
 
         {step === 'waiting_pix' && (
-          <div className="absolute inset-0 z-[100] bg-background-dark flex flex-col px-8 pt-20 animate-fade-in overflow-y-auto no-scrollbar pb-32">
-            <div className="text-center space-y-4 mb-10">
-              <div className="size-20 rounded-3xl gold-gradient flex items-center justify-center mx-auto shadow-lg rotate-3">
-                <span className="material-symbols-outlined text-4xl text-background-dark font-black">pix</span>
-              </div>
-              <h2 className="text-3xl font-display font-black text-white italic uppercase tracking-tighter">Quase lá!</h2>
-              <p className="text-[10px] text-slate-500 font-black uppercase tracking-[0.3em]">Finalize o pagamento via Pix</p>
-            </div>
-
-            <div className="bg-surface-dark/60 border border-white/5 rounded-[40px] p-8 space-y-8 shadow-2xl relative overflow-hidden">
-              <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
-                <span className="material-symbols-outlined text-8xl text-primary">qr_code_2</span>
-              </div>
-
-              <div className="flex flex-col items-center gap-6">
-                <div className="p-4 bg-white rounded-3xl shadow-[0_0_40px_rgba(255,255,255,0.1)]">
-                  <img
-                    src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent('https://luxeaura.app/simulated-pix-payment')}`}
-                    className="size-48"
-                    alt="Pix QR Code"
-                  />
-                </div>
-                <div className="text-center space-y-2">
-                  <p className="text-xs font-black text-white italic">R$ {total.toFixed(2)}</p>
-                  <p className="text-[8px] text-slate-500 font-black uppercase tracking-widest">Escaneie o código acima ou copie a chave abaixo</p>
-                </div>
-              </div>
-
-              <div className="space-y-3 pt-4">
-                <div className="bg-background-dark/80 rounded-2xl p-4 border border-white/5 flex items-center justify-between gap-4">
-                  <p className="text-[10px] text-primary font-black uppercase tracking-tight truncate flex-1 leading-none pt-1">00020101021226840014br.gov.bcb.pix...</p>
-                  <button
-                    onClick={() => {
-                      navigator.clipboard.writeText('00020101021226840014br.gov.bcb.pix011400010101010101...0520400005303986540510.005802BR5913LUXE_AURA_APP6009SAO_PAULO62070503***6304ABCD');
-                      alert('Chave Pix copiada!');
-                    }}
-                    className="size-10 rounded-xl gold-gradient flex items-center justify-center text-background-dark active:scale-90 transition-all shrink-0 shadow-lg"
-                  >
-                    <span className="material-symbols-outlined text-lg">content_copy</span>
-                  </button>
-                </div>
-                <p className="text-[7px] text-slate-600 font-bold uppercase text-center tracking-widest leading-relaxed">
-                  Após o pagamento, sua reserva será <br /> confirmada automaticamente em até 2 minutos.
-                </p>
-              </div>
-            </div>
-
-            <div className="mt-10 space-y-4">
-              <button
-                onClick={() => setStep('success')}
-                className="w-full gold-gradient text-background-dark py-6 rounded-full font-black uppercase text-[10px] tracking-[0.3em] flex items-center justify-center gap-3 shadow-[0_20px_40px_rgba(193,165,113,0.2)] active:scale-95 transition-all"
-              >
-                JÁ REALIZEI O PAGAMENTO
-              </button>
-              <button
-                onClick={() => setStep('payment_detail')}
-                className="w-full bg-white/5 text-slate-500 py-4 rounded-full font-black uppercase text-[8px] tracking-[0.2em] active:opacity-50 transition-all"
-              >
-                ALTERAR FORMA DE PAGAMENTO
-              </button>
-            </div>
-          </div>
+          <CheckoutPixView
+            lastOrder={lastOrder}
+            bookingDraft={bookingDraft}
+            total={total}
+            activeSalon={activeSalon}
+            userId={userId}
+            onSuccess={(newAppt: any) => {
+              onConfirm(newAppt);
+              setStep('success');
+              setBookingDraft({ services: [], products: [] });
+            }}
+            onBack={() => setStep('payment_detail')}
+            isProcessing={isProcessing}
+            setIsProcessing={setIsProcessing}
+          />
         )}
 
         {step === 'success' && (
@@ -442,39 +450,42 @@ const Checkout: React.FC<CheckoutProps> = ({ bookingDraft, salons, onConfirm, se
       </main>
 
       {step !== 'success' && (
-        <footer className="fixed bottom-0 left-0 right-0 p-10 bg-background-dark/95 backdrop-blur-2xl border-t border-white/5 max-w-[450px] mx-auto z-50">
-          <div className="flex justify-between items-end mb-8 px-2">
+        <footer className="fixed bottom-0 left-0 right-0 p-8 pt-10 bg-background-dark/95 backdrop-blur-2xl border-t border-white/5 max-w-[450px] mx-auto z-50">
+          <div className="flex justify-between items-end mb-6 px-4">
             <div className="text-left">
               <p className="text-[8px] font-black text-slate-600 uppercase tracking-widest mb-1.5">Investimento Total</p>
               <p className="text-4xl font-display font-black text-white italic tracking-tighter">R$ {total.toFixed(2)}</p>
             </div>
             <div className="flex flex-col items-end gap-2">
-              <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest flex items-center gap-1.5">
-                Secured <span className="material-symbols-outlined text-lg">verified_user</span>
+              <span className="text-white bg-green-500/20 border border-green-500/30 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 shadow-[0_0_15px_rgba(34,197,94,0.1)]">
+                Secured <span className="material-symbols-outlined text-sm">verified_user</span>
               </span>
             </div>
           </div>
-          <button
-            onClick={() => {
-              if (step === 'summary') {
-                if (salonInfo?.mp_public_key) {
-                  setStep('payment_detail');
+          {/* Botão Finalizar - Oculto durante o checkout MP */}
+          {(!mpReady || step !== 'payment_detail') && (
+            <button
+              onClick={() => {
+                if (step === 'summary') {
+                  if (salonInfo?.mp_public_key && !salonInfo?.paga_no_local) {
+                    setStep('payment_detail');
+                  } else {
+                    handleFinalConfirm(); // Agendamento direto se for pagamento no local ou se não tiver MP
+                  }
                 } else {
-                  handleFinalConfirm(); // Agendamento direto se não cobrar no ato
+                  if (!mpReady) {
+                    handleFinalConfirm();
+                  }
                 }
-              } else {
-                if (!mpReady) {
-                  handleFinalConfirm();
-                }
-              }
-            }}
-            disabled={isProcessing || (step === 'payment_detail' && mpReady)}
-            className={`w-full gold-gradient text-background-dark font-black py-7 rounded-[36px] shadow-[0_30px_70px_rgba(193,165,113,0.3)] uppercase tracking-[0.4em] text-[12px] flex items-center justify-center gap-4 active:scale-95 transition-all border border-white/20 ${step === 'payment_detail' && mpReady ? 'opacity-0 pointer-events-none absolute' : ''}`}
-          >
-            {isProcessing ? <div className="size-7 border-3 border-background-dark/20 border-t-background-dark rounded-full animate-spin"></div> : (
-              <> {step === 'summary' ? (salonInfo?.mp_public_key ? 'ESCOLHER PAGAMENTO' : 'CONFIRMAR AGENDAMENTO') : 'FINALIZAR'} <span className="material-symbols-outlined font-black">arrow_forward</span> </>
-            )}
-          </button>
+              }}
+              disabled={isProcessing}
+              className={`w-full gold-gradient text-background-dark font-black py-7 rounded-[36px] shadow-[0_30px_70px_rgba(193,165,113,0.3)] uppercase tracking-[0.4em] text-[12px] flex items-center justify-center gap-4 active:scale-95 transition-all border border-white/20`}
+            >
+              {isProcessing ? <div className="size-7 border-3 border-background-dark/20 border-t-background-dark rounded-full animate-spin"></div> : (
+                <> {step === 'summary' ? (salonInfo?.mp_public_key && !salonInfo?.paga_no_local ? 'ESCOLHER PAGAMENTO' : 'CONFIRMAR AGENDAMENTO') : 'FINALIZAR'} <span className="material-symbols-outlined font-black">arrow_forward</span> </>
+              )}
+            </button>
+          )}
         </footer>
       )}
     </div>
@@ -482,7 +493,7 @@ const Checkout: React.FC<CheckoutProps> = ({ bookingDraft, salons, onConfirm, se
 };
 
 // Componente auxiliar para memoizar props e evitar re-render loop do Mercado Pago
-const MPPaymentWrapper: React.FC<{ total: number, handleFinalConfirm: () => Promise<void> }> = React.memo(({ total, handleFinalConfirm }) => {
+const MPPaymentWrapper: React.FC<{ total: number, handleFinalConfirm: (param: any) => Promise<void> }> = React.memo(({ total, handleFinalConfirm }) => {
   const initialization = React.useMemo(() => ({
     amount: Number(total.toFixed(2)),
   }), [total]);
@@ -500,41 +511,110 @@ const MPPaymentWrapper: React.FC<{ total: number, handleFinalConfirm: () => Prom
     },
     visual: {
       style: {
-        theme: 'dark' as const,
+        theme: 'dark' as const, /* VOLTANDO PARA DARK para garantir textos brancos */
         customVariables: {
-          baseColor: '#D4AF37',
-          formBackgroundColor: 'transparent',
-          inputBackgroundColor: '#121212',
-          baseColorFirstVariant: '#C1A571',
-          borderRadiusMedium: '16px',
+          baseColor: '#c1a571', /* Nova base color Khaki */
+          baseColorFirstVariant: '#c1a571',
+
+          formBackgroundColor: '#121212',
+          inputBackgroundColor: '#1A1B25',
+          inputTextColor: '#FFFFFF',
+
+          outlinePrimaryColor: '#c1a571',
         }
       }
     }
   }), []);
 
   return (
-    <div className="mp-brick-container min-h-[500px]">
+    <div className="mp-brick-container min-h-[500px] rounded-[32px] border-2 border-[#D4AF37]/40 shadow-[0_0_30px_rgba(212,175,55,0.15)] overflow-hidden bg-[#121212] p-4">
+      <style>{`
+        /* --- MP PREMIUM GOLD STYLE OVERRIDE vFINAL (MATCHING APP THEME) --- */
+        
+        /* 1. CORREÇÃO DE TEXTO DA BADGE (Parcelamento) - SELETORES NUCLEARES */
+        .mp-payment-brick [class*="installments"], 
+        .mp-payment-brick [class*="badge"], 
+        .mp-payment-brick span[style*="color: #009ee3"], 
+        .mp-payment-brick .mp-text-color-success,
+        [class*="mp-payment-brick"][class*="pill"],
+        /* Força Bruta para qualquer pill verde dentro do brick */
+        .mp-payment-brick__payment-method-option-tag {
+            background-color: rgba(193, 165, 113, 0.2) !important; 
+            background: rgba(193, 165, 113, 0.2) !important;
+            color: #ecd3a5 !important;
+            border: 1px solid rgba(193, 165, 113, 0.4) !important;
+            font-size: 10px !important;
+            font-weight: 700 !important;
+            text-transform: uppercase !important;
+            padding: 4px 8px !important;
+            border-radius: 4px !important;
+            text-shadow: none !important;
+        }
+
+        /* 2. TEXTOS GERAIS */
+        .mp-payment-brick *, .mp-payment-brick__label { 
+            color: white !important; 
+        }
+        
+        /* 3. Itens Normais */
+        .mp-payment-brick__payment-method-item {
+             background-color: transparent !important;
+             border: 1px solid rgba(255,255,255,0.08) !important;
+             border-radius: 12px !important;
+             margin-bottom: 8px !important;
+        }
+
+        /* 4. Item SELECIONADO */
+        .mp-payment-brick__payment-method-item--selected,
+        [class*="payment-method-item--selected"] {
+            background-color: rgba(193, 165, 113, 0.1) !important; /* #c1a571 */
+            background: linear-gradient(90deg, rgba(193, 165, 113, 0.15) 0%, rgba(193, 165, 113, 0.05) 100%) !important;
+            border-color: #c1a571 !important;
+        }
+        
+        /* 5. Botão PAGAR - FORÇA BRUTA */
+        button,
+        .mp-payment-brick__button-container button,
+        .mp-payment-brick__button,
+        button.mp-payment-brick__button {
+            background: linear-gradient(135deg, #c1a571 0%, #ecd3a5 50%, #c1a571 100%) !important;
+            color: #08090a !important; 
+            font-weight: 900 !important;
+            letter-spacing: 0.1em !important;
+            border: none !important;
+            box-shadow: 0 10px 40px rgba(193, 165, 113, 0.25) !important;
+            border-radius: 20px !important;
+            height: 56px !important;
+            opacity: 1 !important;
+        }
+
+        /* Inputs */
+        .mp-payment-brick__input {
+            border-radius: 12px !important;
+            background-color: #1A1B25 !important;
+            border: 1px solid rgba(255,255,255,0.1) !important;
+        }
+        .mp-payment-brick__input:focus {
+            border-color: #c1a571 !important;
+            box-shadow: 0 0 0 1px #c1a571 !important;
+        }
+        
+        /* Fix label input */
+        label { color: #aaa !important; margin-bottom: 4px !important; display: block !important; }
+        
+        /* Radio Buttons */
+        input[type='radio'] { accent-color: #c1a571 !important; }
+
+        /* Headers OFF */
+        .mp-payment-brick__header, .mp-payment-brick__title, .mp-payment-brick__subtitle { display: none !important; }
+      `}</style>
       <Payment
         initialization={initialization}
         customization={customization}
         onReady={() => console.log('Payment Brick Ready')}
-        onError={(error) => {
-          console.error('Payment Brick Error:', error);
-          // O erro de SVG "" é comum em mobile e geralmente não impede o funcionamento
-        }}
-        onSubmit={async (param) => {
-          try {
-            // @ts-ignore
-            await handleFinalConfirm(param.payment_method_id);
-          } catch (e) {
-            console.error("Explosão no submit do MP:", e);
-          }
-        }}
+        onError={(error) => console.error('Payment Brick Error:', error)}
+        onSubmit={handleFinalConfirm}
       />
-      <style>{`
-        .mp-payment-brick__title, .mp-payment-brick__subtitle { display: none !important; }
-        .mp-payment-brick__header { display: none !important; }
-      `}</style>
     </div>
   );
 });

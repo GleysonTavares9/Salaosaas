@@ -6,20 +6,26 @@ export const api = {
     // --- Salões ---
     salons: {
         async getAll() {
-            const { data, error } = await supabase.from('salons').select('*');
+            const { data, error } = await supabase.from('salons').select('id, nome, slug_publico, segmento, descricao, logo_url, banner_url, endereco, cidade, rating, reviews, telefone, amenities, gallery_urls, location, horario_funcionamento, mp_public_key');
             if (error) throw error;
             return data as Salon[];
         },
 
         async getBySlug(slug: string) {
-            const { data, error } = await supabase.from('salons').select('*').eq('slug_publico', slug).single();
+            const { data, error } = await supabase.from('salons').select('id, nome, slug_publico, segmento, descricao, logo_url, banner_url, endereco, cidade, rating, reviews, telefone, amenities, gallery_urls, location, horario_funcionamento, mp_public_key').eq('slug_publico', slug).single();
             if (error) throw error;
             return data as Salon;
         },
         async getById(id: string) {
-            const { data, error } = await supabase.from('salons').select('*').eq('id', id).single();
+            const { data, error } = await supabase.from('salons').select('id, nome, slug_publico, segmento, descricao, logo_url, banner_url, endereco, cidade, rating, reviews, telefone, amenities, gallery_urls, location, horario_funcionamento, mp_public_key').eq('id', id).single();
             if (error) throw error;
             return data as Salon;
+        },
+        async getSecureConfig(id: string) {
+            // Esta chamada só deve ser feita por admins. O RLS no banco deve reforçar isso.
+            const { data, error } = await supabase.from('salons').select('mp_public_key, mp_access_token, paga_no_local').eq('id', id).single();
+            if (error) throw error;
+            return data;
         },
         async create(salon: Omit<Salon, 'id'>) {
             const { data, error } = await supabase.from('salons').insert(salon).select().single();
@@ -283,6 +289,133 @@ export const api = {
 
                 if (updateError) throw updateError;
             }
+        }
+    },
+
+    // --- Pagamentos (Mercado Pago Orders API) ---
+    payments: {
+        async createOrder(salon: Salon, paymentData: any) {
+            // Tenta obter o token do objeto, se não, busca do 'cofre' seguro
+            let accessToken = salon.mp_access_token;
+
+            if (!accessToken) {
+                try {
+                    // Busca segura sob demanda
+                    const { data, error } = await supabase
+                        .from('salons')
+                        .select('mp_access_token')
+                        .eq('id', salon.id)
+                        .single();
+
+                    if (data && data.mp_access_token) {
+                        accessToken = data.mp_access_token;
+                    }
+                } catch (err) {
+                    console.error("Erro ao buscar credenciais seguras para pagamento:", err);
+                }
+            }
+
+            if (!accessToken) throw new Error("Este salão não possui um Access Token configurado para receber pagamentos.");
+
+            console.log("🐛 RAW Payment Data recebido do Brick:", JSON.stringify(paymentData, null, 2));
+
+            // Mapeamento para a nova API de Orders (Modo Automático)
+            // Extração segura com múltiplos fallbacks para estruturas diferentes do Brick v2
+            const amount = paymentData.transaction_amount || paymentData.amount || (paymentData.formData && paymentData.formData.transaction_amount);
+            const token = paymentData.token || (paymentData.formData && paymentData.formData.token);
+            const paymentMethodId = paymentData.payment_method_id || (paymentData.formData && paymentData.formData.payment_method_id);
+            const payerEmail = paymentData.payer?.email || (paymentData.formData && paymentData.formData.payer && paymentData.formData.payer.email) || 'cliente@anonimo.com';
+            const issuerId = paymentData.issuer_id || (paymentData.formData && paymentData.formData.issuer_id);
+            const description = paymentData.description || `Pagamento em ${salon.nome}`;
+
+            // Validação Inteligente: Token só é obrigatório se NÃO for Pix
+            const isPix = paymentMethodId === 'pix';
+            if (!amount || (!token && !isPix) || !paymentMethodId) {
+                console.error("❌ Dados de pagamento incompletos:", { amount, token, paymentMethodId, isPix });
+                throw new Error("Dados de pagamento incompletos. Verifique se preencheu todos os campos.");
+            }
+
+            // Mapeamento para a API Clássica de Payments (v1/payments) - Mais robusta para cartões simples
+            const paymentPayload: any = {
+                transaction_amount: Number(amount),
+                description: description,
+                payment_method_id: paymentMethodId,
+                installments: Number(paymentData.installments || 1),
+                payer: {
+                    email: payerEmail
+                }
+            };
+
+            // PIX: Adicionar expiração de 30 minutos para segurança
+            if (isPix) {
+                const expirationDate = new Date(Date.now() + 30 * 60000).toISOString();
+                paymentPayload.date_of_expiration = expirationDate;
+            }
+
+            // Só adiciona token se existir (Cartão)
+            if (token) paymentPayload.token = token;
+
+            // Só adiciona issuer se existir
+            if (issuerId) paymentPayload.issuer_id = Number(issuerId);
+
+            // Adicionar CPF apenas se existir para evitar erro
+            if (paymentData.payer?.identification?.number) {
+                (paymentPayload.payer as any).identification = {
+                    type: paymentData.payer.identification.type || 'CPF',
+                    number: paymentData.payer.identification.number
+                };
+            }
+
+            console.log("🚀 Payload Pagamento MP (Classic v1):", JSON.stringify(paymentPayload, null, 2));
+
+            // URGENTE: Uso de Proxy CORS para desenvolvimento
+            const corsProxy = 'https://corsproxy.io/?';
+            const mpEndpoint = 'https://api.mercadopago.com/v1/payments'; // Alterado para v1/payments
+            const targetUrl = corsProxy + encodeURIComponent(mpEndpoint);
+
+            const response = await fetch(targetUrl, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`,
+                    'Content-Type': 'application/json',
+                    'X-Idempotency-Key': `idemp_${Date.now()}`
+                },
+                body: JSON.stringify(paymentPayload)
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                console.error("🔥 Erro API MP:", data);
+                throw new Error(data.message || "Erro ao processar pagamento com a API de Payments.");
+            }
+
+            return data;
+        },
+
+        async checkStatus(paymentId: string | number, accessToken: string) {
+            if (!paymentId || !accessToken) throw new Error("ID do pagamento ou Token ausentes.");
+
+            const corsProxy = 'https://corsproxy.io/?';
+            const mpEndpoint = `https://api.mercadopago.com/v1/payments/${paymentId}`;
+            const targetUrl = corsProxy + encodeURIComponent(mpEndpoint);
+
+            const response = await fetch(targetUrl, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                console.error("🔥 Erro ao checar status:", data);
+                throw new Error(data.message || "Erro ao consultar status.");
+            }
+
+            return data;
         }
     },
 

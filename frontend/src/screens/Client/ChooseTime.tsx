@@ -57,23 +57,40 @@ const ChooseTime: React.FC<ChooseTimeProps> = ({ bookingDraft, setBookingDraft }
         if (!isMounted) return;
         setSalonData(salon);
         setProfessionals(pros || []);
-
-        // Comparação robusta de datas (YYYY-MM-DD)
-        const filteredAppts = Array.isArray(appts)
-          ? appts.filter((a: any) => {
-            const apptDate = a.date?.split('T')[0];
-            return apptDate === selectedDay && a.status !== 'canceled';
-          })
-          : [];
-        setExistingAppointments(filteredAppts);
         setIsLoading(false);
       }).catch(err => {
-        console.error("Erro ao carregar dados de agendamento:", err);
+        console.error("Erro ao carregar dados iniciais:", err);
         if (isMounted) setIsLoading(false);
       });
     }
     return () => { isMounted = false; };
-  }, [bookingDraft.salonId, bookingDraft.professionalId, selectedDay]);
+  }, [bookingDraft.salonId]);
+
+  // Novo Effect: Recarrega agendamentos SEMPRE que mudar o profissional ou a data
+  useEffect(() => {
+    let isMounted = true;
+    if (bookingDraft.professionalId) {
+      // Pequeno loading local opcional ou apenas atualiza estado
+      api.appointments.getByProfessional(bookingDraft.professionalId)
+        .then(appts => {
+          if (!isMounted) return;
+
+          // Comparação robusta de datas (YYYY-MM-DD)
+          const filteredAppts = Array.isArray(appts)
+            ? appts.filter((a: any) => {
+              const apptDate = a.date?.split('T')[0];
+              return apptDate === selectedDay && a.status !== 'canceled'; // Garante que cancelados não ocupem vaga
+            })
+            : [];
+
+          setExistingAppointments(filteredAppts);
+        })
+        .catch(err => console.error("Erro ao atualizar agenda do profissional:", err));
+    } else {
+      setExistingAppointments([]);
+    }
+    return () => { isMounted = false; };
+  }, [bookingDraft.professionalId, selectedDay]);
 
   // Gerar Slots Disponíveis
   useEffect(() => {
@@ -90,9 +107,23 @@ const ChooseTime: React.FC<ChooseTimeProps> = ({ bookingDraft, setBookingDraft }
       const dateObj = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
       const dayKeys = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
       const currentDayKey = dayKeys[dateObj.getDay()];
-      const daySchedule = salonData?.horario_funcionamento?.[currentDayKey];
 
-      if (!daySchedule || !daySchedule.enabled) {
+      // Lógica de Prioridade: Profissional > Salão
+      const currentPro = professionals.find(p => p.id === bookingDraft.professionalId);
+      const proSchedule = currentPro?.horario_funcionamento?.[currentDayKey];
+      const salonSchedule = salonData?.horario_funcionamento?.[currentDayKey];
+
+      // Se o profissional tiver horário específico e não estiver fechado, usa o dele.
+      // Caso contrário, usa o do salão.
+      // Se o profissional tiver marcado explicitamente como 'closed', respeita o fechamento dele.
+      let daySchedule = salonSchedule;
+
+      if (proSchedule) {
+        // Se o profissional definiu algo, usamos a regra dele (seja aberto ou fechado)
+        daySchedule = proSchedule;
+      }
+
+      if (!daySchedule || daySchedule.closed) {
         setAvailableSlots([]);
         return;
       }
@@ -102,10 +133,16 @@ const ChooseTime: React.FC<ChooseTimeProps> = ({ bookingDraft, setBookingDraft }
       const startLimit = startHour * 60 + startMin;
       const endLimit = endHour * 60 + endMin;
 
-      // Horário atual em minutos para o caso de ser "Hoje"
+      // Lógica de "Agora" baseada estritamente no relógio local do usuário
       const now = new Date();
-      const isToday = selectedDay === now.toISOString().split('T')[0];
-      const nowInMinutes = now.getHours() * 60 + now.getMinutes() + 15; // +15min de tolerância
+      // Verifica se o dia selecionado (YYYY-MM-DD) bate com o dia atual local
+      const selectedDateParts = selectedDay.split('-').map(Number);
+      const isSameDay =
+        now.getFullYear() === selectedDateParts[0] &&
+        (now.getMonth() + 1) === selectedDateParts[1] &&
+        now.getDate() === selectedDateParts[2];
+
+      const nowInMinutes = now.getHours() * 60 + now.getMinutes() + 10; // Reduzido para 10min para permitir agendamentos próximos
 
       // Converter horários existentes em minutos
       const busyIntervals = existingAppointments.map(a => {
@@ -117,16 +154,17 @@ const ChooseTime: React.FC<ChooseTimeProps> = ({ bookingDraft, setBookingDraft }
 
       // Gerar slots de 30 em 30 minutos
       for (let timeMin = startLimit; timeMin < endLimit; timeMin += 30) {
-        // Ignorar horários passados se for hoje
-        if (isToday && timeMin < nowInMinutes) continue;
+
+        // 1. Verificação de Passado (Se for Hoje, bloqueia horas passadas)
+        if (isSameDay && timeMin < nowInMinutes) continue;
 
         const currentTimeMin = timeMin;
-        const endTimeMin = currentTimeMin + totalDuration;
+        const endTimeMin = currentTimeMin + totalDuration; // Duração do serviço impacta aqui
 
-        // Validar limite de fechamento
-        if (endTimeMin > endLimit) continue;
+        // 2. Verificação de Expediente (Cabe o serviço inteiro antes de fechar?)
+        if (endTimeMin > endLimit) continue; // <-- AQUI PODE ESTAR O MOTIVO DE SUMIR HORAS
 
-        // Verificar conflitos com agendamentos existentes
+        // 3. Verificação de Conflito (Overbooking)
         const isConflict = busyIntervals.some(busy => {
           // Sobreposição: (Início1 < Fim2) && (Fim1 > Início2)
           return (currentTimeMin < busy.end && endTimeMin > busy.start);
@@ -142,7 +180,7 @@ const ChooseTime: React.FC<ChooseTimeProps> = ({ bookingDraft, setBookingDraft }
     };
 
     generateSlots();
-  }, [existingAppointments, totalDuration, bookingDraft.professionalId, salonData, selectedDay]);
+  }, [existingAppointments, totalDuration, bookingDraft.professionalId, salonData, selectedDay, professionals]);
 
   const selectPro = (pro: Professional) => setBookingDraft({ ...bookingDraft, professionalId: pro.id, professionalName: pro.name });
   const selectTime = (time: string) => setBookingDraft({ ...bookingDraft, time, date: selectedDay });

@@ -377,7 +377,7 @@ const AppContent: React.FC = () => {
 
           <Route path="/pro/analytics" element={
             (role === 'admin' || role === 'pro')
-              ? <Analytics appointments={appointments} />
+              ? <Analytics appointments={appointments} role={role} salon={salons[0]} userId={currentUserId} />
               : <Navigate to="/login" replace />
           } />
 

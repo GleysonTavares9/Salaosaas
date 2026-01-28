@@ -126,14 +126,20 @@ const Schedule: React.FC<ScheduleProps> = ({ appointments: initialAppointments, 
   const currentDayKey = dayKeys[dateObj.getDay()];
   const daySchedule = salon?.horario_funcionamento?.[currentDayKey];
 
+  const todayAppointments = appointments.filter(a => a.date === selectedDate && a.status !== 'canceled');
+
   const salonOpen = daySchedule?.enabled ? parseInt(daySchedule.open.split(':')[0]) : 8;
   const salonClose = daySchedule?.enabled ? parseInt(daySchedule.close.split(':')[0]) : 20;
 
-  const startHour = Math.max(0, salonOpen);
-  const endHour = Math.min(23, salonClose);
-  const hours = Array.from({ length: endHour - startHour + 1 }, (_, i) => startHour + i);
+  // Ajustar o range de horas baseado nos agendamentos reais (para não esconder nada)
+  const apptHours = todayAppointments.map(a => parseInt(a.time.split(':')[0]));
+  const minApptHour = apptHours.length > 0 ? Math.min(...apptHours) : 24;
+  const maxApptHour = apptHours.length > 0 ? Math.max(...apptHours) : 0;
 
-  const todayAppointments = appointments.filter(a => a.date === selectedDate && a.status !== 'canceled');
+  const startHour = Math.min(salonOpen, minApptHour, 23);
+  const endHour = Math.max(salonClose, maxApptHour, 0);
+
+  const hours = Array.from({ length: Math.max(1, endHour - startHour + 1) }, (_, i) => startHour + i);
 
   const handleFinish = (id: string) => {
     setConfirmModal({
@@ -189,25 +195,57 @@ const Schedule: React.FC<ScheduleProps> = ({ appointments: initialAppointments, 
 
   const getPosition = (time: string) => {
     const [h, m] = time.split(':').map(Number);
-    const offset = Math.max(0, h - startHour);
-    const top = offset * 100 + (m / 60) * 100;
-    return top;
+    const offset = h - startHour;
+    return offset * 100 + (m / 60) * 100;
   };
 
   const handleDragOver = (e: React.DragEvent) => e.preventDefault();
 
-  const handleDrop = async (e: React.DragEvent, targetHour: number, targetMin: number) => {
+  const handleDrop = async (e: React.DragEvent, targetHour: number, targetMin: number, targetProId?: string) => {
     e.preventDefault();
     const apptId = e.dataTransfer.getData('apptId');
     if (!apptId) return;
 
     const newTime = `${targetHour.toString().padStart(2, '0')}:${targetMin.toString().padStart(2, '0')}`;
 
+    // Pegar o profissional (ou manter o atual se não soltou em uma coluna específica)
+    const appt = appointments.find(a => a.id === apptId);
+    if (!appt) return;
+
+    const finalProId = targetProId || appt.professional_id;
+    const duration = appt.duration_min || 30;
+    const [h, m] = newTime.split(':').map(Number);
+    const newStart = h * 60 + m;
+    const newEnd = newStart + duration;
+
+    // Validar sobreposição no novo profissional/horário
+    const isConflict = appointments.some(a => {
+      if (a.id === apptId || a.date !== selectedDate || a.professional_id !== finalProId || a.status === 'canceled') return false;
+      const [ah, am] = a.time.split(':').map(Number);
+      const aStart = ah * 60 + am;
+      const aEnd = aStart + (a.duration_min || 30);
+      return (newStart < aEnd && newEnd > aStart);
+    });
+
+    if (isConflict) {
+      setConfirmModal({
+        show: true,
+        title: 'Conflito de Horário',
+        message: 'Este profissional já possui um agendamento neste horário.',
+        actionType: null,
+        id: null
+      });
+      return;
+    }
+
     try {
-      await api.appointments.update(apptId, { time: newTime });
+      await api.appointments.update(apptId, {
+        time: newTime,
+        professional_id: finalProId
+      });
       fetchData();
     } catch (error) {
-      alert("Erro ao reagendar: " + error);
+      console.error("Erro ao reagendar:", error);
     }
   };
 
@@ -227,6 +265,25 @@ const Schedule: React.FC<ScheduleProps> = ({ appointments: initialAppointments, 
     }
 
     const selectedService = services.find(s => s.id === newAppt.serviceId);
+
+    // Validar sobreposição antes de criar
+    const duration = selectedService?.duration_min || 60;
+    const [h, m] = newAppt.time.split(':').map(Number);
+    const newStart = h * 60 + m;
+    const newEnd = newStart + duration;
+
+    const isConflict = appointments.some(a => {
+      if (a.date !== selectedDate || a.professional_id !== newAppt.professionalId || a.status === 'canceled') return false;
+      const [ah, am] = a.time.split(':').map(Number);
+      const aStart = ah * 60 + am;
+      const aEnd = aStart + (a.duration_min || 30);
+      return (newStart < aEnd && newEnd > aStart);
+    });
+
+    if (isConflict) {
+      alert("Este profissional já possui um agendamento que sobrepõe este horário.");
+      return;
+    }
 
     // Pegar o ID do usuário atual para o agendamento manual
     const { data: { user } } = await supabase.auth.getUser();
@@ -330,109 +387,180 @@ const Schedule: React.FC<ScheduleProps> = ({ appointments: initialAppointments, 
       <main className="px-4 py-8 animate-fade-in no-scrollbar">
         {activeTab === 'grid' ? (
           <div
-            className="relative bg-surface-dark/30 rounded-[40px] border border-white/5 p-4 overflow-hidden"
+            className="relative bg-surface-dark/30 rounded-[40px] border border-white/5 overflow-hidden flex flex-col"
             style={{ minHeight: `${hours.length * 100 + 80}px` }}
           >
-            {/* Linhas de Horário with Drop Zones */}
-            {hours.map(h => (
-              <div key={h} className="relative h-[100px] border-t border-white/5 w-full flex flex-col">
-                <div
-                  onDragOver={handleDragOver}
-                  onDrop={(e) => handleDrop(e, h, 0)}
-                  onClick={() => {
-                    setNewAppt(prev => ({ ...prev, time: `${h.toString().padStart(2, '0')}:00` }));
-                    setShowAddModal(true);
-                  }}
-                  className="h-1/2 w-full flex items-start pt-2 group/zone relative cursor-pointer hover:bg-white/[0.02] transition-colors"
-                >
-                  <span className="text-[10px] font-black text-slate-700 uppercase tracking-tighter w-12">{h.toString().padStart(2, '0')}:00</span>
-                  <div className="flex-1 h-px bg-white/[0.02] mt-2 ml-2 group-hover/zone:bg-primary/20 transition-colors"></div>
-                  <div className="absolute right-4 top-2 opacity-0 group-hover/zone:opacity-100 transition-opacity">
-                    <span className="material-symbols-outlined text-primary text-sm">add_circle</span>
-                  </div>
+            {/* Professional Column Headers (Sticky) */}
+            {allProfessionals.length > 0 && (
+              <div className="sticky top-0 left-0 right-0 h-20 flex items-center border-b border-white/10 bg-surface-dark/95 backdrop-blur-xl z-[40]">
+                <div className="w-16 shrink-0 border-r border-white/5 h-full flex items-center justify-center bg-black/20">
+                  <span className="material-symbols-outlined text-slate-600 text-sm">schedule</span>
                 </div>
-                <div
-                  onDragOver={handleDragOver}
-                  onDrop={(e) => handleDrop(e, h, 30)}
-                  onClick={() => {
-                    setNewAppt(prev => ({ ...prev, time: `${h.toString().padStart(2, '0')}:30` }));
-                    setShowAddModal(true);
-                  }}
-                  className="h-1/2 w-full flex items-start pt-2 group/zone relative cursor-pointer hover:bg-white/[0.02] transition-colors"
-                >
-                  <span className="text-[8px] font-black text-slate-800 uppercase tracking-tighter w-12 opacity-0 group-hover/zone:opacity-60 transition-opacity">{h}:30</span>
-                  <div className="flex-1 h-px bg-white/[0.01] mt-2 ml-2 border-t border-dashed border-white/5 group-hover/zone:bg-primary/10 transition-colors"></div>
-                  <div className="absolute right-4 top-2 opacity-0 group-hover/zone:opacity-100 transition-opacity">
-                    <span className="material-symbols-outlined text-primary text-sm">add_circle</span>
-                  </div>
+                <div className="flex-1 flex h-full">
+                  {allProfessionals.map((pro) => (
+                    <div key={pro.id} style={{ width: `${100 / allProfessionals.length}%` }} className="flex flex-col items-center justify-center px-1 border-r border-white/5 last:border-r-0">
+                      <div className="size-8 rounded-full border-2 border-primary/30 p-0.5 mb-1">
+                        <img
+                          src={pro.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(pro.name)}&background=c1a571&color=0c0d10&bold=true`}
+                          className="size-full rounded-full object-cover shadow-gold-sm"
+                          alt={pro.name}
+                        />
+                      </div>
+                      <span className="text-[8px] font-black text-white uppercase truncate w-full text-center tracking-tighter">
+                        {pro.name.split(' ')[0]}
+                      </span>
+                    </div>
+                  ))}
                 </div>
-              </div>
-            ))}
-
-            {daySchedule?.enabled === false && (
-              <div className="absolute inset-x-8 top-12 bg-red-500/10 border border-red-500/20 p-6 rounded-[32px] text-center backdrop-blur-md z-50 animate-fade-in">
-                <span className="material-symbols-outlined text-red-500 mb-2">lock_clock</span>
-                <p className="text-[10px] font-black text-red-500 uppercase tracking-widest">Estabelecimento Fechado Hoje</p>
-                <p className="text-[8px] text-slate-400 mt-1">Sua janela de atendimento está desativada para hoje.</p>
               </div>
             )}
 
-            {/* Cards de Agendamento */}
-            {todayAppointments.map(appt => {
-              const top = getPosition(appt.time);
-              const height = Math.max(80, (appt.duration_min || 60) / 60 * 100 - 10);
+            <div className="relative flex-1">
+              {/* Professional Column Separators (Background) */}
+              <div className="absolute inset-0 flex pointer-events-none">
+                <div className="w-16 shrink-0 border-r border-white/5 h-full bg-black/10"></div>
+                <div className="flex-1 flex h-full">
+                  {allProfessionals.map((_, idx) => (
+                    <div key={idx} style={{ width: `${100 / allProfessionals.length}%` }} className="h-full border-r border-white/5 last:border-r-0"></div>
+                  ))}
+                </div>
+              </div>
 
-              return (
-                <div
-                  key={appt.id}
-                  draggable
-                  onDragStart={(e) => {
-                    e.dataTransfer.setData('apptId', appt.id);
-                    setTimeout(() => (e.target as HTMLElement).style.opacity = '0.3', 0);
-                  }}
-                  onDragEnd={(e) => {
-                    (e.target as HTMLElement).style.opacity = '1';
-                  }}
-                  style={{ top: `${top + 8}px`, height: `${height}px`, left: '60px', width: 'calc(100% - 75px)' }}
-                  className="absolute z-10 p-4 rounded-3xl border-l-[6px] border border-white/10 shadow-2xl transition-all cursor-grab active:cursor-grabbing group overflow-hidden bg-surface-dark/90 backdrop-blur-md"
-                  onClick={() => handleFinish(appt.id)}
-                >
-                  <div className={`absolute inset-0 opacity-10 ${appt.status === 'confirmed' ? 'bg-primary' : 'bg-emerald-500'}`}></div>
-                  <div className={`absolute inset-y-0 left-0 w-1 ${appt.status === 'confirmed' ? 'bg-primary' : 'bg-emerald-500'}`}></div>
+              {/* Linhas de Horário with Drop Zones */}
+              {hours.map(h => (
+                <div key={h} className="relative h-[100px] border-b border-white/5 w-full flex flex-col group/row">
+                  {/* Meia hora 00 */}
+                  <div className="h-1/2 w-full flex items-stretch relative">
+                    <div className="w-16 shrink-0 flex items-center justify-center bg-black/5">
+                      <span className="text-[10px] font-black text-slate-500 uppercase tracking-tighter">{h.toString().padStart(2, '0')}:00</span>
+                    </div>
+                    <div className="flex-1 flex">
+                      {allProfessionals.map(pro => (
+                        <div
+                          key={pro.id}
+                          onDragOver={handleDragOver}
+                          onDrop={(e) => handleDrop(e, h, 0, pro.id)}
+                          onClick={() => {
+                            setNewAppt(prev => ({
+                              ...prev,
+                              time: `${h.toString().padStart(2, '0')}:00`,
+                              professionalId: pro.id
+                            }));
+                            setShowAddModal(true);
+                          }}
+                          className="flex-1 h-full hover:bg-primary/5 transition-colors cursor-pointer relative group/item"
+                        >
+                          <div className="absolute right-2 top-2 opacity-0 group-hover/item:opacity-100 transition-opacity">
+                            <span className="material-symbols-outlined text-primary text-[10px]">add_circle</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
 
-                  <div className="relative h-full flex flex-col justify-between">
-                    <div>
-                      <div className="flex justify-between items-start">
-                        <p className={`text-[8px] font-black uppercase tracking-[0.2em] mb-1 ${appt.status === 'confirmed' ? 'text-primary' : 'text-emerald-500'}`}>{appt.time} ({appt.duration_min || 60}m)</p>
-                        <div className="flex items-center gap-2">
+                  {/* Meia hora 30 */}
+                  <div className="h-1/2 w-full flex items-stretch relative border-t border-dashed border-white/5">
+                    <div className="w-16 shrink-0 flex items-center justify-center">
+                      <span className="text-[8px] font-black text-slate-700 uppercase tracking-tighter opacity-0 group-hover/row:opacity-100 transition-opacity">{h}:30</span>
+                    </div>
+                    <div className="flex-1 flex">
+                      {allProfessionals.map(pro => (
+                        <div
+                          key={pro.id}
+                          onDragOver={handleDragOver}
+                          onDrop={(e) => handleDrop(e, h, 30, pro.id)}
+                          onClick={() => {
+                            setNewAppt(prev => ({
+                              ...prev,
+                              time: `${h.toString().padStart(2, '0')}:30`,
+                              professionalId: pro.id
+                            }));
+                            setShowAddModal(true);
+                          }}
+                          className="flex-1 h-full hover:bg-primary/5 transition-colors cursor-pointer relative group/item"
+                        >
+                          <div className="absolute right-2 top-2 opacity-0 group-hover/item:opacity-100 transition-opacity">
+                            <span className="material-symbols-outlined text-primary text-[10px]">add_circle</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ))}
+
+              {/* Cards de Agendamento */}
+              {todayAppointments.map(appt => {
+                const top = getPosition(appt.time);
+                const height = Math.max(80, (appt.duration_min || 60) / 60 * 100 - 4);
+
+                // Encontrar o índice do profissional para o deslocamento horizontal
+                let proIndex = allProfessionals.findIndex(p => p.id === appt.professional_id);
+
+                // Se o profissional não estiver na lista (ex: admin sem proData), 
+                // dar um fallback ou colocar na primeira coluna disponível
+                if (proIndex === -1) {
+                  if (allProfessionals.length > 0) proIndex = 0;
+                  else return null; // Sem colunas disponíveis
+                }
+
+                const columnWidthPercent = allProfessionals.length > 0 ? (100 / allProfessionals.length) : 100;
+
+                return (
+                  <div
+                    key={appt.id}
+                    draggable
+                    onDragStart={(e) => {
+                      e.dataTransfer.setData('apptId', appt.id);
+                      setTimeout(() => (e.target as HTMLElement).style.opacity = '0.3', 0);
+                    }}
+                    onDragEnd={(e) => {
+                      (e.target as HTMLElement).style.opacity = '1';
+                    }}
+                    style={{
+                      top: `${top + 2}px`,
+                      height: `${height}px`,
+                      left: `calc(64px + ((100% - 64px) * ${proIndex} / ${allProfessionals.length}) + 4px)`,
+                      width: `calc(((100% - 64px) / ${allProfessionals.length}) - 8px)`,
+                      zIndex: 20
+                    }}
+                    className="absolute p-3 rounded-2xl border-l-[4px] border border-white/10 shadow-xl transition-all cursor-grab active:cursor-grabbing group overflow-hidden bg-surface-dark/95 backdrop-blur-md"
+                    onClick={() => handleFinish(appt.id)}
+                  >
+                    <div className={`absolute inset-0 opacity-10 ${appt.status === 'confirmed' ? 'bg-primary' : 'bg-emerald-500'}`}></div>
+                    <div className={`absolute inset-y-0 left-0 w-1 ${appt.status === 'confirmed' ? 'bg-primary' : 'bg-emerald-500'}`}></div>
+
+                    <div className="relative h-full flex flex-col justify-between">
+                      <div className="min-w-0">
+                        <div className="flex justify-between items-start gap-1">
+                          <p className={`text-[7px] font-black uppercase tracking-wider truncate shrink-0 ${appt.status === 'confirmed' ? 'text-primary' : 'text-emerald-500'}`}>{appt.time}</p>
                           <button
                             onClick={(e) => { e.stopPropagation(); handleDelete(appt.id); }}
-                            className="size-6 rounded-lg bg-red-500/10 flex items-center justify-center text-red-500 hover:bg-red-500/20 transition-colors"
+                            className="size-4 rounded-md bg-red-500/10 flex items-center justify-center text-red-500 hover:bg-red-500/20 transition-colors"
                           >
-                            <span className="material-symbols-outlined text-xs">delete</span>
+                            <span className="material-symbols-outlined text-[10px]">delete</span>
                           </button>
-                          <span className="material-symbols-outlined text-[10px] text-slate-600 opacity-50">drag_indicator</span>
                         </div>
+                        <h4 className="text-[10px] font-black text-white uppercase italic truncate mt-1">{appt.clientName}</h4>
+                        <p className="text-[8px] font-bold text-slate-500 uppercase truncate">{appt.service_names}</p>
                       </div>
-                      <h4 className="text-[12px] font-black text-white uppercase italic truncate tracking-tight">{appt.clientName}</h4>
-                      <p className="text-[9px] font-bold text-slate-500 uppercase truncate mt-0.5">{appt.service_names}</p>
-                    </div>
 
-                    <div className="flex justify-between items-center mt-2 group-hover:translate-y-0 translate-y-1 opacity-0 group-hover:opacity-100 transition-all">
-                      <span className="text-[10px] font-black text-white/50">R$ {appt.valor}</span>
-                      <span className="material-symbols-outlined text-sm text-primary">check_circle</span>
+                      <div className="flex justify-between items-center mt-1">
+                        <span className="text-[9px] font-black text-primary italic">R$ {appt.valor}</span>
+                        <span className="text-[7px] font-bold text-slate-600 uppercase">{appt.duration_min}m</span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
 
-            {todayAppointments.length === 0 && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center opacity-20 pointer-events-none">
-                <span className="material-symbols-outlined text-6xl">event_busy</span>
-                <p className="text-[10px] font-black uppercase tracking-widest mt-4">Nenhum agendamendo hoje</p>
-              </div>
-            )}
+              {todayAppointments.length === 0 && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center opacity-20 pointer-events-none">
+                  <span className="material-symbols-outlined text-6xl">event_busy</span>
+                  <p className="text-[10px] font-black uppercase tracking-widest mt-4">Nenhum agendamendo hoje</p>
+                </div>
+              )}
+            </div>
           </div>
         ) : (
           <div className="space-y-4">
@@ -454,6 +582,18 @@ const Schedule: React.FC<ScheduleProps> = ({ appointments: initialAppointments, 
                       </div>
                       <h3 className="text-white font-black text-base uppercase italic tracking-tight leading-tight">{appt.clientName}</h3>
                       <p className="text-[10px] text-slate-500 font-bold uppercase mt-1 tracking-wide">{appt.service_names}</p>
+                    </div>
+                    <div className="flex justify-between items-start mb-2 relative z-10">
+                      <div className="min-w-0">
+                        <span className="text-[10px] font-black text-white italic tracking-tighter truncate block">{appt.serviceName}</span>
+                        <div className="flex items-center gap-1 mt-0.5">
+                          <span className="material-symbols-outlined text-[8px] text-primary">person</span>
+                          <span className="text-[7px] font-bold text-slate-400 uppercase tracking-widest truncate">
+                            {allProfessionals.find(p => p.id === appt.professional_id)?.name || 'Profissional'}
+                          </span>
+                        </div>
+                      </div>
+                      <span className="text-[8px] font-black text-white/40 uppercase bg-black/20 px-2 py-0.5 rounded-full shrink-0">{appt.time.substring(0, 5)}</span>
                     </div>
                     <div className="text-right">
                       <p className="text-white font-black text-sm tracking-tighter">R$ {appt.valor}</p>
@@ -566,19 +706,69 @@ const Schedule: React.FC<ScheduleProps> = ({ appointments: initialAppointments, 
                     {openSelectTime && (
                       <div className="absolute top-full left-0 w-full mt-2 bg-background-dark/95 border border-white/10 rounded-[24px] shadow-2xl z-[350] py-2 backdrop-blur-xl animate-fade-in overflow-hidden">
                         <div className="max-h-[200px] overflow-y-auto no-scrollbar grid grid-cols-2 gap-px bg-white/5">
-                          {hours.flatMap(h => [`${h.toString().padStart(2, '0')}:00`, `${h.toString().padStart(2, '0')}:30`]).map(t => (
-                            <button
-                              key={t}
-                              type="button"
-                              onClick={() => {
-                                setNewAppt(prev => ({ ...prev, time: t }));
-                                setOpenSelectTime(false);
-                              }}
-                              className={`px-4 py-3 bg-background-dark text-[10px] font-bold uppercase transition-all hover:bg-white/5 text-center ${newAppt.time === t ? 'text-primary bg-primary/5' : 'text-white'}`}
-                            >
-                              {t}
-                            </button>
-                          ))}
+                          {(() => {
+                            // Validar horário específico do profissional
+                            const dateObj = new Date(selectedDate);
+                            const dayKeys = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+                            // Ajuste fuso/dia (getDay retorna baseado no local, selectedDate é YYYY-MM-DD)
+                            // Melhor criar date com UTC para garantir dia certo da string
+                            const [y, m, d] = selectedDate.split('-').map(Number);
+                            const utcDate = new Date(y, m - 1, d);
+                            const currentDayKey = dayKeys[utcDate.getDay()];
+
+                            const selectedPro = allProfessionals.find(p => p.id === newAppt.professionalId);
+                            const proSchedule = selectedPro?.horario_funcionamento?.[currentDayKey];
+                            const salonSchedule = salon?.horario_funcionamento?.[currentDayKey];
+
+                            // Hierarquia: Pro > Salão
+                            let dayConfig = salonSchedule;
+                            if (proSchedule) {
+                              dayConfig = proSchedule;
+                            }
+
+                            if (!dayConfig || dayConfig.closed) {
+                              return <div className="col-span-2 p-4 text-center text-[10px] text-red-500 font-bold uppercase">Profissional não atende neste dia</div>;
+                            }
+
+                            const [openH] = dayConfig.open.split(':').map(Number);
+                            const [closeH] = dayConfig.close.split(':').map(Number);
+
+                            // Gerar array de horas baseado no range real
+                            const availableHours = [];
+                            for (let h = openH; h < closeH; h++) {
+                              availableHours.push(h);
+                            }
+
+                            return availableHours.flatMap(h => [`${h.toString().padStart(2, '0')}:00`, `${h.toString().padStart(2, '0')}:30`]).map(t => {
+                              const [th, tm] = t.split(':').map(Number);
+                              const tStart = th * 60 + tm;
+                              const tEnd = tStart + (services.find(s => s.id === newAppt.serviceId)?.duration_min || 30);
+
+                              const isBusy = appointments.some(a => {
+                                if (a.date !== selectedDate || a.professional_id !== newAppt.professionalId || a.status === 'canceled') return false;
+                                const [ah, am] = a.time.split(':').map(Number);
+                                const aStart = ah * 60 + am;
+                                const aEnd = aStart + (a.duration_min || 30);
+                                return (tStart < aEnd && tEnd > aStart);
+                              });
+
+                              return (
+                                <button
+                                  key={t}
+                                  type="button"
+                                  disabled={isBusy}
+                                  onClick={() => {
+                                    setNewAppt(prev => ({ ...prev, time: t }));
+                                    setOpenSelectTime(false);
+                                  }}
+                                  className={`px-4 py-3 bg-background-dark text-[10px] font-bold uppercase transition-all hover:bg-white/5 text-center flex flex-col items-center justify-center gap-0.5 ${newAppt.time === t ? 'text-primary bg-primary/5' : 'text-white'} ${isBusy ? 'opacity-20 cursor-not-allowed grayscale' : ''}`}
+                                >
+                                  <span>{t}</span>
+                                  {isBusy && <span className="text-[6px] text-red-500 font-black">OCUPADO</span>}
+                                </button>
+                              );
+                            });
+                          })()}
                         </div>
                       </div>
                     )}

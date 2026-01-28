@@ -32,6 +32,8 @@ export interface Salon {
     [key: string]: WorkingDay;
   };
   mp_public_key?: string; // Chave pública do Mercado Pago salva no banco
+  mp_access_token?: string; // Access Token privado do Mercado Pago
+  paga_no_local?: boolean; // Opção de desabilitar cobrança antecipada
 }
 
 export interface Product {
@@ -70,6 +72,7 @@ export interface Professional {
   status: 'active' | 'away';
   comissao: number;
   email?: string;
+  horario_funcionamento?: { [key: string]: WorkingDay };
 }
 
 export interface Appointment {

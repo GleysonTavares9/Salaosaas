@@ -77,19 +77,11 @@ const BusinessSetup: React.FC<BusinessSetupProps> = ({ salon, userId, onSave }) 
   };
 
   useEffect(() => {
-    const config = localStorage.getItem('aura_mp_config');
-    if (config) setMpConfig(JSON.parse(config));
-
-
     const loadSalon = async () => {
       setIsLoading(true);
 
       // 1. Tentar prop direta
-      if (salon) {
-        setFormData({ ...salon, gallery_urls: salon.gallery_urls || [] });
-        setIsLoading(false);
-        return;
-      }
+      /* Omitindo prop direta simples para forçar o carregamento seguro via userId/id */
 
       // 2. Tentar buscar pelo userId
       if (userId) {
@@ -104,13 +96,44 @@ const BusinessSetup: React.FC<BusinessSetupProps> = ({ salon, userId, onSave }) 
             const allSalons = await api.salons.getAll();
             const mySalon = allSalons.find(s => s.id === proData.salon_id);
             if (mySalon) {
-              setFormData({ ...mySalon, gallery_urls: mySalon.gallery_urls || [] });
+              // Buscar dados sensíveis de segurança que não vêm no fetch comum
+              try {
+                const secureData = await api.salons.getSecureConfig(mySalon.id);
+                setFormData({
+                  ...mySalon,
+                  mp_public_key: secureData.mp_public_key,
+                  mp_access_token: secureData.mp_access_token,
+                  paga_no_local: secureData.paga_no_local,
+                  gallery_urls: mySalon.gallery_urls || []
+                });
+              } catch (secErr) {
+                console.error("Erro ao carregar dados seguros:", secErr);
+                setFormData({ ...mySalon, gallery_urls: mySalon.gallery_urls || [] });
+              }
               setIsLoading(false);
               return;
             }
           }
         } catch (e) {
           console.error("Erro ao carregar salão via userId:", e);
+        }
+      }
+
+      // Se veio via prop direta, vamos também tentar enriquecer com secure data
+      if (salon?.id) {
+        try {
+          const secureData = await api.salons.getSecureConfig(salon.id);
+          setFormData({
+            ...salon,
+            mp_public_key: secureData.mp_public_key,
+            mp_access_token: secureData.mp_access_token,
+            paga_no_local: secureData.paga_no_local,
+            gallery_urls: salon.gallery_urls || []
+          });
+          setIsLoading(false);
+          return;
+        } catch (e) {
+          console.error("Erro secure data via prop:", e);
         }
       }
 
@@ -131,7 +154,8 @@ const BusinessSetup: React.FC<BusinessSetupProps> = ({ salon, userId, onSave }) 
         cidade: '',
         telefone: '',
         location: { lat: 0, lng: 0 },
-        horario_funcionamento: {}
+        horario_funcionamento: {},
+        paga_no_local: false
       } as Salon);
 
       setIsLoading(false);
@@ -139,6 +163,16 @@ const BusinessSetup: React.FC<BusinessSetupProps> = ({ salon, userId, onSave }) 
 
     loadSalon();
   }, [salon, userId]);
+
+  // Sincronizar mpConfig quando formData mudar
+  useEffect(() => {
+    if (formData) {
+      setMpConfig({
+        publicKey: formData.mp_public_key || '',
+        accessToken: (formData as any).mp_access_token || ''
+      });
+    }
+  }, [formData?.id]);
 
   if (isLoading || !formData) {
     return (
@@ -201,8 +235,8 @@ const BusinessSetup: React.FC<BusinessSetupProps> = ({ salon, userId, onSave }) 
     }
 
     try {
+      // Opcional: manter no localStorage apenas como um "último usado" ou remover para evitar inconsistência
       localStorage.setItem('aura_mp_config', JSON.stringify(mpConfig));
-      localStorage.setItem('aura_salon_data', JSON.stringify(finalData));
 
       if (finalData.id) {
         // Update existing
@@ -564,6 +598,26 @@ const BusinessSetup: React.FC<BusinessSetupProps> = ({ salon, userId, onSave }) 
                 placeholder="APP_USR-..."
               />
               <p className="text-[8px] text-slate-600 font-bold uppercase ml-2">Chave secreta para operações financeiras. Mantenha segura!</p>
+            </div>
+
+            <div className="pt-4 border-t border-white/5">
+              <button
+                onClick={() => setFormData({ ...formData, paga_no_local: !formData.paga_no_local })}
+                className={`w-full p-5 rounded-2xl border transition-all flex items-center justify-between group ${formData.paga_no_local ? 'bg-primary/10 border-primary/20' : 'bg-background-dark border-white/5'}`}
+              >
+                <div className="flex items-center gap-4 text-left">
+                  <div className={`size-10 rounded-xl flex items-center justify-center transition-colors shrink-0 ${formData.paga_no_local ? 'bg-primary text-background-dark' : 'bg-white/5 text-slate-500'}`}>
+                    <span className="material-symbols-outlined text-xl">{formData.paga_no_local ? 'payments' : 'money_off'}</span>
+                  </div>
+                  <div className="min-w-0">
+                    <p className={`text-[10px] font-black uppercase tracking-widest leading-none mb-1 ${formData.paga_no_local ? 'text-primary' : 'text-white'}`}>Pagar no Local</p>
+                    <p className="text-[8px] text-slate-500 font-bold uppercase truncate">Permitir checkout sem pagamento online</p>
+                  </div>
+                </div>
+                <div className={`size-6 rounded-full border-2 flex items-center justify-center transition-all ${formData.paga_no_local ? 'border-primary bg-primary' : 'border-white/10'}`}>
+                  {formData.paga_no_local && <span className="material-symbols-outlined text-background-dark text-xs font-black">check</span>}
+                </div>
+              </button>
             </div>
           </div>
         </section>

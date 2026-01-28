@@ -197,7 +197,8 @@ const SalonPage: React.FC<SalonPageProps> = ({ salons, role, setBookingDraft }) 
                 <div className="bg-surface-dark p-5 rounded-3xl border border-white/5">
                   <h4 className="text-[8px] font-black text-primary uppercase tracking-[0.3em] mb-4">Horário de Funcionamento</h4>
                   <div className="space-y-2">
-                    {Object.entries(salon.horario_funcionamento).map(([day, hours]: [string, any]) => {
+                    {['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].map(day => {
+                      const hours = salon.horario_funcionamento?.[day];
                       const dayLabels: { [key: string]: string } = {
                         monday: 'Segunda',
                         tuesday: 'Terça',
@@ -208,10 +209,12 @@ const SalonPage: React.FC<SalonPageProps> = ({ salons, role, setBookingDraft }) 
                         sunday: 'Domingo'
                       };
 
+                      if (!hours) return null;
+
                       return (
                         <div key={day} className="flex justify-between items-center py-2 border-b border-white/5 last:border-0">
                           <span className="text-xs text-slate-400 font-bold">{dayLabels[day]}</span>
-                          {hours?.enabled ? (
+                          {!hours.closed ? (
                             <span className="text-xs text-white font-mono">{hours.open} - {hours.close}</span>
                           ) : (
                             <span className="text-xs text-red-500 font-bold">Fechado</span>

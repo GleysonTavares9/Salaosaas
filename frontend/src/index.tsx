@@ -58,6 +58,13 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
 const container = document.getElementById('root');
 const loader = document.getElementById('app-loader');
 
+// Supress Recharts defaultProps warning (known issue with React 18+)
+const error = console.error;
+console.error = (...args: any[]) => {
+  if (/defaultProps/.test(args[0])) return;
+  error(...args);
+};
+
 if (container) {
   try {
     const root = createRoot(container);

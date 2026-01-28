@@ -17,9 +17,6 @@ interface AdminBookingsProps {
 const AdminBookings: React.FC<AdminBookingsProps> = ({ appointments, role, salon, userId, onUpdateStatus, onUpdateAppointment, onDeleteAppointment }) => {
   const navigate = useNavigate();
   const [filter, setFilter] = useState('all');
-  const [showDateFilter, setShowDateFilter] = useState(false);
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
   const [enrichedAppointments, setEnrichedAppointments] = useState<Appointment[]>([]);
   const [showRescheduleModal, setShowRescheduleModal] = useState(false);
   const [selectedAppt, setSelectedAppt] = useState<Appointment | null>(null);
@@ -254,24 +251,6 @@ const AdminBookings: React.FC<AdminBookingsProps> = ({ appointments, role, salon
     });
   };
 
-  const generateReport = () => {
-    if (!startDate || !endDate) {
-      alert('Selecione o período para gerar o relatório');
-      return;
-    }
-
-    const completedInPeriod = userAppointments.filter(a => {
-      if (a.status !== 'completed') return false;
-      const apptDate = new Date(a.date);
-      const start = new Date(startDate);
-      const end = new Date(endDate);
-      return apptDate >= start && apptDate <= end;
-    });
-
-    const total = completedInPeriod.reduce((sum, a) => sum + parseFloat(a.valor?.toString() || '0'), 0);
-    showNotification('success', `Relatório Gerado: R$ ${total.toFixed(2)}`);
-    setShowDateFilter(false);
-  };
 
   return (
     <div className="flex-1 bg-background-dark min-h-screen">
@@ -285,7 +264,7 @@ const AdminBookings: React.FC<AdminBookingsProps> = ({ appointments, role, salon
             <p className="text-primary text-[8px] font-black uppercase tracking-[0.2em] mt-1">Gestão de Sessões em Tempo Real</p>
           </div>
           <button
-            onClick={() => setShowDateFilter(true)}
+            onClick={() => navigate('/pro/analytics')}
             className="size-10 rounded-full gold-gradient flex items-center justify-center text-background-dark shadow-lg">
             <span className="material-symbols-outlined">assessment</span>
           </button>
@@ -305,49 +284,6 @@ const AdminBookings: React.FC<AdminBookingsProps> = ({ appointments, role, salon
         </div>
       </header>
 
-      {/* Modal de Filtro de Datas */}
-      {showDateFilter && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm px-6">
-          <div className="bg-surface-dark border border-white/10 rounded-3xl p-8 w-full max-w-md shadow-2xl">
-            <h2 className="text-xl font-display font-black text-white italic mb-2">Relatório de Faturamento</h2>
-            <p className="text-xs text-slate-400 mb-6">Selecione o período para gerar o relatório</p>
-
-            <div className="space-y-4 mb-6">
-              <div>
-                <label className="text-[10px] font-black text-primary uppercase tracking-widest mb-2 block">Data Inicial</label>
-                <input
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  className="w-full bg-background-dark border border-white/10 rounded-xl px-4 py-3 text-white text-sm">
-                </input>
-              </div>
-              <div>
-                <label className="text-[10px] font-black text-primary uppercase tracking-widest mb-2 block">Data Final</label>
-                <input
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                  className="w-full bg-background-dark border border-white/10 rounded-xl px-4 py-3 text-white text-sm">
-                </input>
-              </div>
-            </div>
-
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowDateFilter(false)}
-                className="flex-1 bg-white/5 border border-white/10 text-white py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-white/10 active:scale-95 transition-all">
-                Cancelar
-              </button>
-              <button
-                onClick={generateReport}
-                className="flex-1 gold-gradient text-background-dark py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:opacity-90 active:scale-95 transition-all shadow-lg">
-                Gerar Relatório
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       <main className="px-6 py-8 space-y-6 pb-40 animate-fade-in">
         {filteredAppts.map(appt => (
@@ -369,7 +305,13 @@ const AdminBookings: React.FC<AdminBookingsProps> = ({ appointments, role, salon
                   </span>
                 </div>
                 <h3 className="text-xl font-display font-black text-white italic tracking-tight mb-1">{appt.clientName || "Cliente Aura"}</h3>
-                <p className="text-xs font-bold text-primary uppercase tracking-wider">{appt.serviceName}</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-xs font-bold text-primary uppercase tracking-wider">{appt.serviceName}</p>
+                  <span className="text-slate-500">•</span>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                    {appt.professionalName || "Sem Profissional"}
+                  </p>
+                </div>
               </div>
               <div className="text-right">
                 <p className="text-2xl font-display font-black text-primary mb-1">R$ {appt.valor}</p>
