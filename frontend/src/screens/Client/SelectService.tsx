@@ -112,7 +112,7 @@ const SelectService: React.FC<SelectServiceProps> = ({ bookingDraft, setBookingD
             <p className="text-slate-500 text-xs font-bold uppercase tracking-widest">Carregando...</p>
           </div>
         ) : activeTab === 'services' ? (
-          <div className="space-y-4 animate-fade-in">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade-in">
             {salonServices.length > 0 ? salonServices.map(s => {
               const isSelected = selectedServiceIds.includes(s.id);
               return (
@@ -139,7 +139,7 @@ const SelectService: React.FC<SelectServiceProps> = ({ bookingDraft, setBookingD
             )}
           </div>
         ) : (
-          <div className="space-y-4 animate-fade-in">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade-in">
             {salonProducts.length > 0 ? salonProducts.map(p => {
               const isSelected = selectedProductIds.includes(p.id);
               return (
@@ -169,22 +169,24 @@ const SelectService: React.FC<SelectServiceProps> = ({ bookingDraft, setBookingD
       </main>
 
       {itemCount > 0 && (
-        <footer className="fixed-floating-footer">
-          <button
-            onClick={handleNext}
-            className="w-full gold-gradient text-background-dark font-black py-5 rounded-2xl flex items-center justify-between px-7 shadow-2xl active:scale-95 transition-all"
-          >
-            <div className="text-left">
-              <p className="text-[7px] uppercase tracking-widest opacity-60 font-black">{itemCount} Itens Selecionados</p>
-              <p className="text-base font-display font-black">R$ {totalPrice.toFixed(2)}</p>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-[8px] uppercase font-black tracking-widest">
-                {!role ? 'Entrar para Finalizar' : (servicesInDraft.length > 0 ? 'Escolher Horário' : 'Finalizar Compra')}
-              </span>
-              <span className="material-symbols-outlined text-lg font-black">arrow_forward</span>
-            </div>
-          </button>
+        <footer className="fixed bottom-0 left-0 right-0 z-50 flex justify-center pointer-events-none p-4 md:p-8">
+          <div className="w-full max-w-md bg-background-dark/95 backdrop-blur-2xl border border-white/10 p-4 rounded-[28px] shadow-2xl pointer-events-auto">
+            <button
+              onClick={handleNext}
+              className="w-full gold-gradient text-background-dark font-black py-5 rounded-2xl flex items-center justify-between px-7 shadow-2xl active:scale-95 transition-all"
+            >
+              <div className="text-left">
+                <p className="text-[7px] uppercase tracking-widest opacity-60 font-black">{itemCount} Itens Selecionados</p>
+                <p className="text-base font-display font-black">R$ {totalPrice.toFixed(2)}</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-[8px] uppercase font-black tracking-widest">
+                  {!role ? 'Entrar para Finalizar' : (servicesInDraft.length > 0 ? 'Escolher Horário' : 'Finalizar Compra')}
+                </span>
+                <span className="material-symbols-outlined text-lg font-black">arrow_forward</span>
+              </div>
+            </button>
+          </div>
         </footer>
       )}
     </div>

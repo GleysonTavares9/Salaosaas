@@ -17,8 +17,8 @@ const BottomNav: React.FC<BottomNavProps> = ({ role }) => {
   // Public Guest Nav
   if (!role) {
     return (
-      <div className="fixed bottom-0 left-0 right-0 max-w-[450px] mx-auto z-[100]">
-        <nav className="flex justify-around items-center bg-background-dark/95 backdrop-blur-2xl border-t border-white/5 px-6 pb-10 pt-4">
+      <div className="fixed bottom-0 left-0 right-0 z-[100] flex justify-center pointer-events-none px-4 md:px-0">
+        <nav className={`${navClass} w-full max-w-md pointer-events-auto md:rounded-t-[32px] md:mb-4 md:border-x md:border-t md:shadow-2xl`}>
           <button onClick={() => navigate('/explore')} className={`flex flex-col items-center gap-1.5 transition-all ${isActive('/explore') ? 'text-primary' : 'text-slate-500 opacity-60'}`}>
             <span className={`material-symbols-outlined text-2xl ${isActive('/explore') ? 'fill-1' : ''}`}>explore</span>
             <span className="text-[9px] font-black uppercase tracking-widest">Explorar</span>
@@ -39,8 +39,8 @@ const BottomNav: React.FC<BottomNavProps> = ({ role }) => {
   // Client Nav
   if (role === 'client') {
     return (
-      <div className="fixed bottom-0 left-0 right-0 max-w-[450px] mx-auto z-[100]">
-        <nav className={navClass}>
+      <div className="fixed bottom-0 left-0 right-0 z-[100] flex justify-center pointer-events-none px-4 md:px-0">
+        <nav className={`${navClass} w-full max-w-md pointer-events-auto md:rounded-t-[32px] md:mb-4 md:border-x md:border-t md:shadow-2xl`}>
           <button onClick={() => navigate('/explore')} className={`flex flex-col items-center gap-1.5 transition-all ${isActive('/explore') ? 'text-primary' : 'text-slate-500 opacity-60'}`}>
             <span className={`material-symbols-outlined text-2xl ${isActive('/explore') ? 'fill-1' : ''}`}>explore</span>
             <span className="text-[9px] font-black uppercase tracking-widest">Explorar</span>
@@ -64,8 +64,8 @@ const BottomNav: React.FC<BottomNavProps> = ({ role }) => {
 
   // Pro/Admin Nav
   return (
-    <div className="fixed bottom-0 left-0 right-0 max-w-[450px] mx-auto z-[100]">
-      <nav className={navClass}>
+    <div className="fixed bottom-0 left-0 right-0 z-[100] flex justify-center pointer-events-none px-4 md:px-0">
+      <nav className={`${navClass} w-full max-w-md pointer-events-auto md:rounded-t-[32px] md:mb-4 md:border-x md:border-t md:shadow-2xl`}>
         <button onClick={() => navigate('/pro')} className={`flex flex-col items-center gap-1.5 transition-all ${isActive('/pro') ? 'text-primary' : 'text-slate-500 opacity-60'}`}>
           <span className={`material-symbols-outlined text-2xl ${isActive('/pro') ? 'fill-1' : ''}`}>dashboard</span>
           <span className="text-[9px] font-black uppercase tracking-widest">Dashboard</span>

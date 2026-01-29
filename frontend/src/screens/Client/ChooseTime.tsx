@@ -258,7 +258,7 @@ const ChooseTime: React.FC<ChooseTimeProps> = ({ bookingDraft, setBookingDraft }
               <span className="size-8 border-2 border-primary/20 border-t-primary rounded-full animate-spin inline-block"></span>
             </div>
           ) : (
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
               {availableSlots.length > 0 ? availableSlots.map(t => (
                 <button key={t} onClick={() => selectTime(t)} className={`py-4 rounded-2xl border text-xs font-black font-display italic transition-all shadow-md ${bookingDraft.time === t ? 'bg-primary text-background-dark border-primary' : 'bg-surface-dark border-white/5 text-slate-600 hover:border-primary/50'}`}>
                   {t}
@@ -273,15 +273,17 @@ const ChooseTime: React.FC<ChooseTimeProps> = ({ bookingDraft, setBookingDraft }
         </section>
       </main>
 
-      <footer className="fixed bottom-0 left-0 right-0 p-8 bg-background-dark/95 backdrop-blur-xl border-t border-white/5 max-w-[450px] mx-auto z-50">
-        <button
-          disabled={!canProceed}
-          onClick={() => navigate('/checkout')}
-          className={`w-full py-6 rounded-3xl font-black uppercase tracking-[0.4em] text-[11px] flex items-center justify-center gap-3 transition-all shadow-[0_20px_50px_rgba(0,0,0,0.5)] ${canProceed ? 'gold-gradient text-background-dark active:scale-95' : 'bg-white/5 text-slate-800 cursor-not-allowed opacity-50'}`}
-        >
-          AVANÇAR PARA CHECKOUT
-          <span className="material-symbols-outlined font-black">arrow_forward</span>
-        </button>
+      <footer className="fixed bottom-0 left-0 right-0 z-50 flex justify-center pointer-events-none p-4 md:p-8">
+        <div className="w-full max-w-md bg-background-dark/95 backdrop-blur-2xl border border-white/10 p-6 rounded-[32px] shadow-2xl pointer-events-auto">
+          <button
+            disabled={!canProceed}
+            onClick={() => navigate('/checkout')}
+            className={`w-full py-6 rounded-3xl font-black uppercase tracking-[0.4em] text-[11px] flex items-center justify-center gap-3 transition-all shadow-[0_20px_50px_rgba(0,0,0,0.5)] ${canProceed ? 'gold-gradient text-background-dark active:scale-95' : 'bg-white/5 text-slate-800 cursor-not-allowed opacity-50'}`}
+          >
+            AVANÇAR PARA CHECKOUT
+            <span className="material-symbols-outlined font-black">arrow_forward</span>
+          </button>
+        </div>
       </footer>
     </div>
   );

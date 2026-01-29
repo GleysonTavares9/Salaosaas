@@ -34,6 +34,7 @@ CREATE TABLE public.salons (
     horario_funcionamento jsonb,
     mp_public_key text,
     mp_access_token text,
+    paga_no_local boolean DEFAULT false,
     created_at timestamp with time zone DEFAULT now(),
     CONSTRAINT salons_pkey PRIMARY KEY (id)
 );
@@ -78,6 +79,7 @@ CREATE TABLE public.professionals (
     status text DEFAULT 'active' CHECK (status = ANY (ARRAY['active', 'away'])),
     comissao numeric DEFAULT 0,
     email text,
+    horario_funcionamento jsonb,
     created_at timestamp with time zone DEFAULT now(),
     CONSTRAINT professionals_pkey PRIMARY KEY (id)
 );
@@ -193,11 +195,12 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 ALTER TABLE salons ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Public salons are viewable by everyone" ON salons FOR SELECT USING (true);
 CREATE POLICY "Enable insert for authenticated users only" ON salons FOR INSERT TO authenticated WITH CHECK (true);
-CREATE POLICY "Enable update for owners" ON salons FOR UPDATE USING (
+CREATE POLICY "Enable update for owners and admins" ON salons FOR UPDATE USING (
     EXISTS (
         SELECT 1 FROM professionals 
         WHERE professionals.salon_id = salons.id 
         AND professionals.user_id = auth.uid()
+        AND professionals.role IN ('owner', 'admin')
     )
 );
 
@@ -304,3 +307,30 @@ CREATE POLICY "Users can create reviews for their appointments" ON reviews FOR I
 
 -- STORAGE SETUP (AURA-PUBLIC)
 -- INSERT INTO storage.buckets (id, name, public) VALUES ('aura-public', 'aura-public', true) ON CONFLICT (id) DO NOTHING;
+
+-- 11. FUNÇÃO ADMINISTRATIVA PARA ACESSOS (AUTORIDADE DO GESTOR)
+-- Permite que o administrador do sistema altere e-mail e senha de colaboradores sem que eles precisem confirmar o link de reset.
+CREATE OR REPLACE FUNCTION public.admin_update_user_auth(target_user_id UUID, new_email TEXT, new_password TEXT)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER 
+SET search_path = public, auth, extensions
+AS $$
+BEGIN
+  -- Atualiza e-mail em todas as tabelas vinculadas
+  IF new_email IS NOT NULL AND new_email <> '' THEN
+    UPDATE auth.users SET email = LOWER(TRIM(new_email)), email_confirmed_at = now() WHERE id = target_user_id;
+    UPDATE public.profiles SET email = LOWER(TRIM(new_email)) WHERE id = target_user_id;
+    UPDATE public.professionals SET email = LOWER(TRIM(new_email)) WHERE user_id = target_user_id;
+  END IF;
+
+  -- Atualiza a senha usando a criptografia nativa do Supabase (pgcrypto)
+  IF new_password IS NOT NULL AND new_password <> '' THEN
+    UPDATE auth.users
+    SET encrypted_password = extensions.crypt(new_password, extensions.gen_salt('bf')),
+        email_confirmed_at = now(),
+        updated_at = now()
+    WHERE id = target_user_id;
+  END IF;
+END;
+$$;

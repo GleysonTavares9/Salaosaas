@@ -51,21 +51,28 @@ const Dashboard: React.FC<DashboardProps> = ({ role, salon, appointments, userId
 
   // Cálculos de Faturamento Hoje (Admin vê total, Pro vê sua comissão/ganho)
   const stats = useMemo(() => {
-    const today = new Date().toISOString().split('T')[0];
+    // Usar data local para evitar problemas de fuso horário na virada do dia (UTC)
+    const today = new Date().toLocaleDateString('en-CA'); // Formato YYYY-MM-DD
     const filtered = appointments.filter(a => a.date === today && a.status === 'completed');
 
     if (role === 'admin') {
       return {
         label: 'Faturamento Unidade',
-        value: filtered.reduce((acc, curr) => acc + (curr.valor || 0), 0)
+        value: filtered.reduce((acc, curr) => acc + (curr.valor || 0), 0),
+        gross: filtered.reduce((acc, curr) => acc + (curr.valor || 0), 0),
+        net: filtered.reduce((acc, curr) => acc + (curr.valor || 0), 0)
       };
     } else {
-      const myAppts = filtered.filter(a => a.professional_id === userId || a.professional_id === proProfile?.id);
-      const totalGains = myAppts.reduce((acc, curr) => acc + (curr.valor || 0), 0);
+      const myAppts = filtered.filter(a => a.professional_id === proProfile?.id);
+      const gross = myAppts.reduce((acc, curr) => acc + (curr.valor || 0), 0);
       const commission = proProfile?.comissao || 0;
+      const net = (gross * commission) / 100;
+
       return {
-        label: 'Meus Ganhos (Hoje)',
-        value: (totalGains * commission) / 100
+        label: 'Meu Faturamento',
+        value: gross, // Mostramos o faturamento bruto como principal se solicitado
+        gross: gross,
+        net: net
       };
     }
   }, [appointments, role, userId, proProfile]);
@@ -150,8 +157,16 @@ const Dashboard: React.FC<DashboardProps> = ({ role, salon, appointments, userId
             <div>
               <p className="text-slate-500 font-black text-[10px] uppercase tracking-[0.4em] mb-2">{stats.label}</p>
               <h1 className="font-display text-4xl font-black text-white tracking-tighter">
-                R$ {stats.value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                R$ {stats.gross.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
               </h1>
+              {role === 'pro' && (
+                <div className="flex items-center gap-2 mt-2">
+                  <span className="text-[10px] text-emerald-500 font-black">Minha Comissão:</span>
+                  <span className="text-lg text-emerald-500 font-display font-black">
+                    R$ {stats.net.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  </span>
+                </div>
+              )}
             </div>
             <div className="flex flex-col items-end gap-1">
               <span className="text-[10px] font-black text-emerald-500 bg-emerald-500/10 px-3 py-1.5 rounded-full border border-emerald-500/20">AO VIVO</span>
@@ -187,7 +202,7 @@ const Dashboard: React.FC<DashboardProps> = ({ role, salon, appointments, userId
             )}
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {menuItems.map((item) => (
               <button
                 key={item.label}

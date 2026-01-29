@@ -1,4 +1,3 @@
-
 import { supabase } from './supabase';
 import { Salon, Service, Product, Professional, Appointment, ChatMessage, Conversation } from '../types';
 
@@ -22,7 +21,6 @@ export const api = {
             return data as Salon;
         },
         async getSecureConfig(id: string) {
-            // Esta chamada só deve ser feita por admins. O RLS no banco deve reforçar isso.
             const { data, error } = await supabase.from('salons').select('mp_public_key, mp_access_token, paga_no_local').eq('id', id).single();
             if (error) throw error;
             return data;
@@ -47,7 +45,6 @@ export const api = {
             return data as any;
         },
         async update(id: string, updates: any) {
-            // Usamos upsert para evitar erro caso o perfil ainda não exista na tabela public.profiles
             const { data, error } = await supabase
                 .from('profiles')
                 .upsert({ id, ...updates })
@@ -84,7 +81,6 @@ export const api = {
             if (error) throw error;
             return data as Product[];
         },
-
         async create(product: Omit<Product, 'id'>) {
             const { data, error } = await supabase.from('products').insert(product).select().single();
             if (error) throw error;
@@ -143,9 +139,7 @@ export const api = {
                 .select('*, profiles:client_id(full_name)')
                 .eq('professional_id', proId)
                 .order('date', { ascending: false });
-
             if (error) throw error;
-
             return (data || []).map(appt => ({
                 ...appt,
                 clientName: (appt as any).profiles?.full_name || 'Cliente'
@@ -165,7 +159,7 @@ export const api = {
         }
     },
 
-    // --- Chat (Realtime ready) ---
+    // --- Chat ---
     chat: {
         async getConversations(userId: string) {
             const { data, error } = await supabase.from('conversations').select('*').or(`user1_id.eq.${userId}, user2_id.eq.${userId}`);
@@ -173,23 +167,18 @@ export const api = {
             return data as Conversation[];
         },
         async startConversation(currentUserId: string, targetUserId: string) {
-            // Verificar se já existe conversa entre esses dois usuários
             const { data: existing } = await supabase
                 .from('conversations')
                 .select('*')
                 .or(`and(user1_id.eq.${currentUserId},user2_id.eq.${targetUserId}),and(user1_id.eq.${targetUserId},user2_id.eq.${currentUserId})`)
                 .maybeSingle();
-
             if (existing) return existing as Conversation;
-
-            // Criar nova seguindo estritamente o schema do banco: id, user1_id, user2_id, last_message, unread_count
             const { data, error } = await supabase.from('conversations').insert({
                 user1_id: currentUserId,
                 user2_id: targetUserId,
                 last_message: 'Nova conexão',
                 unread_count: 0
             }).select().single();
-
             if (error) throw error;
             return data as Conversation;
         },
@@ -205,221 +194,124 @@ export const api = {
         },
         subscribeToMessages(conversationId: string, callback: (payload: any) => void) {
             return supabase
-                .channel(`messages:${conversationId} `)
-                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id = eq.${conversationId} ` }, callback)
+                .channel(`messages:${conversationId}`)
+                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id = eq.${conversationId}` }, callback)
                 .subscribe();
         }
     },
 
-    // --- Armazenamento (Supabase Storage) ---
+    // --- Armazenamento ---
     storage: {
         async upload(file: File, bucket: string = 'aura-public') {
             const fileExt = file.name.split('.').pop();
-            // Sanitize file name to avoid 400 errors with weird characters
             const rawName = file.name.replace(/[^a-zA-Z0-9]/g, '');
-            const fileName = `${rawName}_${Math.random().toString(36).substring(2)}_${Date.now()}.${fileExt} `;
-            const filePath = `${fileName} `;
-
+            const fileName = `${rawName}_${Math.random().toString(36).substring(2)}_${Date.now()}.${fileExt}`;
             const { error: uploadError } = await supabase.storage
                 .from(bucket)
-                .upload(filePath, file, {
-                    cacheControl: '3600',
-                    upsert: false
-                });
-
+                .upload(fileName, file, { cacheControl: '3600', upsert: false });
             if (uploadError) throw uploadError;
-
-            const { data } = supabase.storage
-                .from(bucket)
-                .getPublicUrl(filePath);
-
+            const { data } = supabase.storage.from(bucket).getPublicUrl(fileName);
             return data.publicUrl;
         }
     },
 
-    // --- Avaliações (Reviews) ---
+    // --- Avaliações ---
     reviews: {
-        async create(review: { appointment_id: string; salon_id: string; professional_id?: string; client_id: string; rating: number; comment?: string }) {
+        async create(review: { appointment_id?: string; salon_id: string; client_id: string; rating: number; comment?: string }) {
             const { data, error } = await supabase.from('reviews').insert(review).select().single();
             if (error) throw error;
-
-            // Atualizar rating médio do salão
-            await this.updateSalonRating(review.salon_id);
-
+            await this.updateSalonRatingIncremental(review.salon_id, review.rating, 'add');
             return data;
         },
         async getBySalon(salonId: string) {
-            const { data, error } = await supabase
-                .from('reviews')
-                .select(`
-    *,
-    client: client_id(
-        id,
-        email,
-        full_name,
-        avatar_url
-    )
-        `)
-                .eq('salon_id', salonId)
-                .order('created_at', { ascending: false });
-            if (error) throw error;
-            return data;
-        },
-        async updateSalonRating(salonId: string) {
-            // Buscar todas as avaliações do salão
             const { data: reviews, error: reviewsError } = await supabase
                 .from('reviews')
-                .select('rating')
-                .eq('salon_id', salonId);
-
+                .select('*')
+                .eq('salon_id', salonId)
+                .order('created_at', { ascending: false });
             if (reviewsError) throw reviewsError;
-
-            if (reviews && reviews.length > 0) {
-                const avgRating = reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length;
-                const roundedRating = Math.round(avgRating * 10) / 10; // Arredondar para 1 casa decimal
-
-                // Atualizar salão
-                const { error: updateError } = await supabase
-                    .from('salons')
-                    .update({
-                        rating: roundedRating,
-                        reviews: reviews.length
-                    })
-                    .eq('id', salonId);
-
-                if (updateError) throw updateError;
+            if (!reviews || reviews.length === 0) return [];
+            const clientIds = [...new Set(reviews.map(r => r.client_id))];
+            const { data: profiles, error: profilesError } = await supabase
+                .from('profiles')
+                .select('id, full_name, avatar_url')
+                .in('id', clientIds);
+            if (profilesError) return reviews;
+            return reviews.map(review => ({
+                ...review,
+                client: profiles.find(p => p.id === review.client_id) || null
+            }));
+        },
+        async delete(reviewId: string, salonId: string) {
+            const { data: review } = await supabase.from('reviews').select('rating').eq('id', reviewId).single();
+            const { error } = await supabase.from('reviews').delete().eq('id', reviewId);
+            if (error) throw error;
+            if (review) {
+                await this.updateSalonRatingIncremental(salonId, review.rating, 'subtract');
             }
+        },
+        async updateSalonRatingIncremental(salonId: string, ratingValue: number, action: 'add' | 'subtract') {
+            const { data: salon } = await supabase.from('salons').select('rating, reviews').eq('id', salonId).single();
+            if (!salon) return;
+            const currentRating = Number(salon.rating) || 5.0;
+            const currentCount = Number(salon.reviews) || 0;
+            let newCount = action === 'add' ? currentCount + 1 : Math.max(0, currentCount - 1);
+            let newRating = 5.0;
+            if (newCount > 0) {
+                const currentSum = currentRating * currentCount;
+                const newSum = action === 'add' ? currentSum + ratingValue : currentSum - ratingValue;
+                newRating = Math.round((newSum / newCount) * 10) / 10;
+            }
+            await supabase.from('salons').update({
+                rating: Math.max(0, Math.min(5, newRating)),
+                reviews: newCount
+            }).eq('id', salonId);
         }
     },
 
-    // --- Pagamentos (Mercado Pago Orders API) ---
+    // --- Pagamentos (Mercado Pago API) ---
     payments: {
         async createOrder(salon: Salon, paymentData: any) {
-            // Tenta obter o token do objeto, se não, busca do 'cofre' seguro
             let accessToken = salon.mp_access_token;
-
             if (!accessToken) {
-                try {
-                    // Busca segura sob demanda
-                    const { data, error } = await supabase
-                        .from('salons')
-                        .select('mp_access_token')
-                        .eq('id', salon.id)
-                        .single();
-
-                    if (data && data.mp_access_token) {
-                        accessToken = data.mp_access_token;
-                    }
-                } catch (err) {
-                    console.error("Erro ao buscar credenciais seguras para pagamento:", err);
-                }
+                const { data } = await supabase.from('salons').select('mp_access_token').eq('id', salon.id).single();
+                if (data?.mp_access_token) accessToken = data.mp_access_token;
             }
-
-            if (!accessToken) throw new Error("Este salão não possui um Access Token configurado para receber pagamentos.");
-
-            console.log("🐛 RAW Payment Data recebido do Brick:", JSON.stringify(paymentData, null, 2));
-
-            // Mapeamento para a nova API de Orders (Modo Automático)
-            // Extração segura com múltiplos fallbacks para estruturas diferentes do Brick v2
+            if (!accessToken) throw new Error("Acesso negado ao Mercado Pago.");
             const amount = paymentData.transaction_amount || paymentData.amount || (paymentData.formData && paymentData.formData.transaction_amount);
             const token = paymentData.token || (paymentData.formData && paymentData.formData.token);
             const paymentMethodId = paymentData.payment_method_id || (paymentData.formData && paymentData.formData.payment_method_id);
-            const payerEmail = paymentData.payer?.email || (paymentData.formData && paymentData.formData.payer && paymentData.formData.payer.email) || 'cliente@anonimo.com';
-            const issuerId = paymentData.issuer_id || (paymentData.formData && paymentData.formData.issuer_id);
-            const description = paymentData.description || `Pagamento em ${salon.nome}`;
-
-            // Validação Inteligente: Token só é obrigatório se NÃO for Pix
             const isPix = paymentMethodId === 'pix';
-            if (!amount || (!token && !isPix) || !paymentMethodId) {
-                console.error("❌ Dados de pagamento incompletos:", { amount, token, paymentMethodId, isPix });
-                throw new Error("Dados de pagamento incompletos. Verifique se preencheu todos os campos.");
-            }
-
-            // Mapeamento para a API Clássica de Payments (v1/payments) - Mais robusta para cartões simples
-            const paymentPayload: any = {
+            if (!amount || (!token && !isPix)) throw new Error("Dados de pagamento incompletos.");
+            const payload: any = {
                 transaction_amount: Number(amount),
-                description: description,
+                description: paymentData.description || `Pagamento em ${salon.nome}`,
                 payment_method_id: paymentMethodId,
                 installments: Number(paymentData.installments || 1),
-                payer: {
-                    email: payerEmail
-                }
+                payer: { email: paymentData.payer?.email || 'cliente@aura.com' }
             };
-
-            // PIX: Adicionar expiração de 30 minutos para segurança
-            if (isPix) {
-                const expirationDate = new Date(Date.now() + 30 * 60000).toISOString();
-                paymentPayload.date_of_expiration = expirationDate;
-            }
-
-            // Só adiciona token se existir (Cartão)
-            if (token) paymentPayload.token = token;
-
-            // Só adiciona issuer se existir
-            if (issuerId) paymentPayload.issuer_id = Number(issuerId);
-
-            // Adicionar CPF apenas se existir para evitar erro
-            if (paymentData.payer?.identification?.number) {
-                (paymentPayload.payer as any).identification = {
-                    type: paymentData.payer.identification.type || 'CPF',
-                    number: paymentData.payer.identification.number
-                };
-            }
-
-            console.log("🚀 Payload Pagamento MP (Classic v1):", JSON.stringify(paymentPayload, null, 2));
-
-            // URGENTE: Uso de Proxy CORS para desenvolvimento
-            const corsProxy = 'https://corsproxy.io/?';
-            const mpEndpoint = 'https://api.mercadopago.com/v1/payments'; // Alterado para v1/payments
-            const targetUrl = corsProxy + encodeURIComponent(mpEndpoint);
-
+            if (token) payload.token = token;
+            const mpEndpoint = 'https://api.mercadopago.com/v1/payments';
+            const targetUrl = 'https://corsproxy.io/?' + encodeURIComponent(mpEndpoint);
             const response = await fetch(targetUrl, {
                 method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${accessToken}`,
-                    'Content-Type': 'application/json',
-                    'X-Idempotency-Key': `idemp_${Date.now()}`
-                },
-                body: JSON.stringify(paymentPayload)
+                headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
             });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                console.error("🔥 Erro API MP:", data);
-                throw new Error(data.message || "Erro ao processar pagamento com a API de Payments.");
-            }
-
-            return data;
+            return await response.json();
         },
-
         async checkStatus(paymentId: string | number, accessToken: string) {
-            if (!paymentId || !accessToken) throw new Error("ID do pagamento ou Token ausentes.");
-
-            const corsProxy = 'https://corsproxy.io/?';
             const mpEndpoint = `https://api.mercadopago.com/v1/payments/${paymentId}`;
-            const targetUrl = corsProxy + encodeURIComponent(mpEndpoint);
-
+            const targetUrl = 'https://corsproxy.io/?' + encodeURIComponent(mpEndpoint);
             const response = await fetch(targetUrl, {
                 method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${accessToken}`,
-                    'Content-Type': 'application/json'
-                }
+                headers: { 'Authorization': `Bearer ${accessToken}` }
             });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                console.error("🔥 Erro ao checar status:", data);
-                throw new Error(data.message || "Erro ao consultar status.");
-            }
-
-            return data;
+            return await response.json();
         }
     },
 
-    // --- Auth Helper ---
+    // --- Auth ---
     auth: {
         async signUp(email: string, pass: string, metadata: any) {
             const { data, error } = await supabase.auth.signUp({ email, password: pass, options: { data: metadata } });

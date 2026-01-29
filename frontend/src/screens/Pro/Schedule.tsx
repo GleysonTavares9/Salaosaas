@@ -96,7 +96,13 @@ const Schedule: React.FC<ScheduleProps> = ({ appointments: initialAppointments, 
         setSalon(realSalon);
         setAppointments(realAppts);
         setServices(salonServices || []);
-        setAllProfessionals(salonPros || []);
+
+        // Filtrar profissionais baseado no papel
+        if (userRole === 'pro' && proId) {
+          setAllProfessionals((salonPros || []).filter(p => p.id === proId));
+        } else {
+          setAllProfessionals(salonPros || []);
+        }
 
         if (proId) {
           setNewAppt(prev => ({ ...prev, professionalId: proId }));

@@ -450,42 +450,44 @@ const Checkout: React.FC<CheckoutProps> = ({ bookingDraft, salons, onConfirm, se
       </main>
 
       {step !== 'success' && (
-        <footer className="fixed bottom-0 left-0 right-0 p-8 pt-10 bg-background-dark/95 backdrop-blur-2xl border-t border-white/5 max-w-[450px] mx-auto z-50">
-          <div className="flex justify-between items-end mb-6 px-4">
-            <div className="text-left">
-              <p className="text-[8px] font-black text-slate-600 uppercase tracking-widest mb-1.5">Investimento Total</p>
-              <p className="text-4xl font-display font-black text-white italic tracking-tighter">R$ {total.toFixed(2)}</p>
+        <footer className="fixed bottom-0 left-0 right-0 z-50 flex justify-center pointer-events-none p-4 md:p-8">
+          <div className="w-full max-w-md bg-background-dark/95 backdrop-blur-2xl border border-white/10 p-6 pt-8 rounded-[32px] shadow-2xl pointer-events-auto">
+            <div className="flex justify-between items-end mb-6 px-4">
+              <div className="text-left">
+                <p className="text-[8px] font-black text-slate-600 uppercase tracking-widest mb-1.5">Investimento Total</p>
+                <p className="text-4xl font-display font-black text-white italic tracking-tighter">R$ {total.toFixed(2)}</p>
+              </div>
+              <div className="flex flex-col items-end gap-2">
+                <span className="text-white bg-green-500/20 border border-green-500/30 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 shadow-[0_0_15px_rgba(34,197,94,0.1)]">
+                  Secured <span className="material-symbols-outlined text-sm">verified_user</span>
+                </span>
+              </div>
             </div>
-            <div className="flex flex-col items-end gap-2">
-              <span className="text-white bg-green-500/20 border border-green-500/30 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 shadow-[0_0_15px_rgba(34,197,94,0.1)]">
-                Secured <span className="material-symbols-outlined text-sm">verified_user</span>
-              </span>
-            </div>
-          </div>
-          {/* Botão Finalizar - Oculto durante o checkout MP */}
-          {(!mpReady || step !== 'payment_detail') && (
-            <button
-              onClick={() => {
-                if (step === 'summary') {
-                  if (salonInfo?.mp_public_key && !salonInfo?.paga_no_local) {
-                    setStep('payment_detail');
+            {/* Botão Finalizar - Oculto durante o checkout MP */}
+            {(!mpReady || step !== 'payment_detail') && (
+              <button
+                onClick={() => {
+                  if (step === 'summary') {
+                    if (salonInfo?.mp_public_key && !salonInfo?.paga_no_local) {
+                      setStep('payment_detail');
+                    } else {
+                      handleFinalConfirm(); // Agendamento direto se for pagamento no local ou se não tiver MP
+                    }
                   } else {
-                    handleFinalConfirm(); // Agendamento direto se for pagamento no local ou se não tiver MP
+                    if (!mpReady) {
+                      handleFinalConfirm();
+                    }
                   }
-                } else {
-                  if (!mpReady) {
-                    handleFinalConfirm();
-                  }
-                }
-              }}
-              disabled={isProcessing}
-              className={`w-full gold-gradient text-background-dark font-black py-7 rounded-[36px] shadow-[0_30px_70px_rgba(193,165,113,0.3)] uppercase tracking-[0.4em] text-[12px] flex items-center justify-center gap-4 active:scale-95 transition-all border border-white/20`}
-            >
-              {isProcessing ? <div className="size-7 border-3 border-background-dark/20 border-t-background-dark rounded-full animate-spin"></div> : (
-                <> {step === 'summary' ? (salonInfo?.mp_public_key && !salonInfo?.paga_no_local ? 'ESCOLHER PAGAMENTO' : 'CONFIRMAR AGENDAMENTO') : 'FINALIZAR'} <span className="material-symbols-outlined font-black">arrow_forward</span> </>
-              )}
-            </button>
-          )}
+                }}
+                disabled={isProcessing}
+                className={`w-full gold-gradient text-background-dark font-black py-7 rounded-[36px] shadow-[0_30px_70px_rgba(193,165,113,0.3)] uppercase tracking-[0.4em] text-[12px] flex items-center justify-center gap-4 active:scale-95 transition-all border border-white/20`}
+              >
+                {isProcessing ? <div className="size-7 border-3 border-background-dark/20 border-t-background-dark rounded-full animate-spin"></div> : (
+                  <> {step === 'summary' ? (salonInfo?.mp_public_key && !salonInfo?.paga_no_local ? 'ESCOLHER PAGAMENTO' : 'CONFIRMAR AGENDAMENTO') : 'FINALIZAR'} <span className="material-symbols-outlined font-black">arrow_forward</span> </>
+                )}
+              </button>
+            )}
+          </div>
         </footer>
       )}
     </div>

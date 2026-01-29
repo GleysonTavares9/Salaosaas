@@ -14,13 +14,16 @@ const PartnerLogin: React.FC<PartnerLoginProps> = ({ onLogin }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [loginRole, setLoginRole] = useState<ViewRole>('pro');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [redirectInfo, setRedirectInfo] = useState<{ role: string, message: string } | null>(null);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setErrorMessage(null);
     try {
-      const { user } = await api.auth.signIn(email, password);
+      const data = await api.auth.signIn(email.trim(), password.trim());
+      const user = data.user;
+
       if (user) {
         const realRole = user.user_metadata.role || 'client';
 
@@ -36,7 +39,7 @@ const PartnerLogin: React.FC<PartnerLoginProps> = ({ onLogin }) => {
           return;
         }
 
-        // 2. CORREÇÃO DE ABA (Barbeiro vs Gestor) - Mantém na tela de login
+        // 2. CORREÇÃO DE ABA (Barbeiro vs Gestor)
         if (loginRole !== realRole) {
           await api.auth.signOut();
           const roleLabel = realRole === 'admin' ? 'Gestor' : 'Barbeiro';
@@ -45,8 +48,8 @@ const PartnerLogin: React.FC<PartnerLoginProps> = ({ onLogin }) => {
           setIsLoading(false);
 
           setTimeout(() => {
-            setRedirectInfo(null); // Remove o overlay
-            setLoginRole(realRole as ViewRole); // Troca a aba visualmente
+            setRedirectInfo(null);
+            setLoginRole(realRole as ViewRole);
           }, 3000);
 
           return;
@@ -56,14 +59,20 @@ const PartnerLogin: React.FC<PartnerLoginProps> = ({ onLogin }) => {
         navigate('/pro');
       }
     } catch (error: any) {
-      setErrorMessage(error.message || "Erro no login.");
+      console.error("Login Error:", error);
+      let msg = error.message || "Erro no login.";
+
+      if (msg.includes("Email not confirmed")) {
+        msg = "Acesso ainda não ativado. Peça ao Gestor para 'Salvar' seu perfil novamente na Gestão de Equipe para liberar seu acesso.";
+      } else if (msg.includes("Invalid login credentials")) {
+        msg = "E-mail ou senha incorretos. Verifique seus dados.";
+      }
+
+      setErrorMessage(msg);
     } finally {
       setIsLoading(false);
     }
   };
-
-  // Estado para o Overlay de Redirecionamento
-  const [redirectInfo, setRedirectInfo] = useState<{ role: string, message: string } | null>(null);
 
   if (redirectInfo) {
     return (
@@ -71,12 +80,8 @@ const PartnerLogin: React.FC<PartnerLoginProps> = ({ onLogin }) => {
         <div className="size-20 rounded-full bg-primary/10 border-2 border-primary flex items-center justify-center mb-6 animate-pulse">
           <span className="material-symbols-outlined text-4xl text-primary">sync_alt</span>
         </div>
-        <h2 className="text-3xl font-display font-black text-white italic tracking-tighter mb-2">
-          Redirecionando...
-        </h2>
-        <p className="text-slate-400 text-xs font-bold uppercase tracking-widest max-w-xs">
-          {redirectInfo.message}
-        </p>
+        <h2 className="text-3xl font-display font-black text-white italic tracking-tighter mb-2">Redirecionando...</h2>
+        <p className="text-slate-400 text-xs font-bold uppercase tracking-widest max-w-xs">{redirectInfo.message}</p>
         <div className="w-48 h-1 bg-white/10 rounded-full mt-8 overflow-hidden">
           <div className="h-full bg-primary animate-progress-bar"></div>
         </div>
@@ -109,14 +114,13 @@ const PartnerLogin: React.FC<PartnerLoginProps> = ({ onLogin }) => {
           <h1 className="text-5xl font-display font-black text-white italic tracking-tighter leading-none">Aura <br /> <span className="text-primary text-4xl uppercase">Management.</span></h1>
           <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.3em] mt-4">Gestão inteligente para artistas.</p>
         </div>
-        {/* Error Message */}
+
         {errorMessage && (
           <div className="bg-red-500/10 border border-red-500/20 p-5 rounded-[24px] text-red-500 text-[10px] font-black uppercase tracking-widest text-center animate-shake mb-8">
             {errorMessage}
           </div>
         )}
 
-        {/* Role Selector */}
         <div className="flex bg-surface-dark p-1.5 rounded-2xl border border-white/5 mb-10 shadow-2xl">
           <button
             type="button"
@@ -136,13 +140,13 @@ const PartnerLogin: React.FC<PartnerLoginProps> = ({ onLogin }) => {
 
         <form onSubmit={handleLogin} className="space-y-6">
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Usuário / E-mail</label>
+            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">E-mail</label>
             <input
-              type="text"
+              type="email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="seu.usuario"
+              placeholder="seu@email.com"
               className="w-full bg-surface-dark border border-white/5 rounded-2xl py-5 px-6 text-white text-sm outline-none focus:border-primary/50 transition-all shadow-inner"
             />
           </div>

@@ -56,9 +56,7 @@ const MyAppointments: React.FC<MyAppointmentsProps> = ({ appointments, onCancelA
       // 2. Iniciar conversa
       const conversation = await api.chat.startConversation(
         user.id,
-        pro.user_id,
-        pro.name,
-        pro.image
+        pro.user_id
       );
 
       navigate(`/chat/${conversation.id}`);
@@ -162,7 +160,46 @@ const MyAppointments: React.FC<MyAppointmentsProps> = ({ appointments, onCancelA
           {upcoming.length === 0 && (
             <div className="py-20 text-center opacity-30 flex flex-col items-center">
               <span className="material-symbols-outlined text-6xl mb-4">calendar_month</span>
-              <p className="text-[10px] font-black uppercase tracking-widest">Vazio por enquanto</p>
+              <p className="text-[10px] font-black uppercase tracking-widest">Sem agendamentos próximos</p>
+            </div>
+          )}
+        </section>
+
+        {/* Histórico e Avaliações */}
+        <section className="space-y-8 mt-12">
+          <h2 className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-500 px-1">Histórico & Avaliações</h2>
+          {history.length > 0 ? history.map(appt => {
+            const formattedDate = appt.date ? new Date(appt.date + 'T00:00:00').toLocaleDateString('pt-BR', {
+              day: '2-digit',
+              month: 'long'
+            }) : appt.date;
+
+            return (
+              <div key={appt.id} className="bg-surface-dark/40 rounded-[32px] border border-white/5 p-6 space-y-4 opacity-80">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <h3 className="text-sm font-display font-black text-white tracking-tight leading-none mb-1">{appt.service_names || 'Serviço'}</h3>
+                    <p className="text-[8px] text-slate-500 font-bold uppercase">{formattedDate} • {appt.time}</p>
+                  </div>
+                  <span className={`px-2 py-1 rounded-lg text-[6px] font-black uppercase tracking-widest ${appt.status === 'completed' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}>
+                    {appt.status === 'completed' ? 'CONCLUÍDO' : 'CANCELADO'}
+                  </span>
+                </div>
+
+                {appt.status === 'completed' && (
+                  <button
+                    onClick={() => navigate(`/evaluate/${appt.id}`)}
+                    className="w-full bg-primary/10 border border-primary/20 text-primary py-3 rounded-xl text-[8px] font-black uppercase tracking-widest active:scale-95 transition-all flex items-center justify-center gap-2"
+                  >
+                    <span className="material-symbols-outlined text-xs">star</span>
+                    AVALIAR EXPERIÊNCIA
+                  </button>
+                )}
+              </div>
+            );
+          }) : (
+            <div className="py-10 text-center opacity-20 flex flex-col items-center border border-dashed border-white/10 rounded-[32px]">
+              <p className="text-[8px] font-black uppercase tracking-widest">Nenhum histórico</p>
             </div>
           )}
         </section>

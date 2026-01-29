@@ -4,6 +4,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import { api } from '../../lib/api';
+import { Professional } from '../../types';
 
 interface ProfileProps {
   onLogout: () => void;
@@ -30,6 +31,8 @@ const Profile: React.FC<ProfileProps> = ({ onLogout }) => {
   const [notifyEmail, setNotifyEmail] = useState(true);
   const [notifySms, setNotifySms] = useState(true);
 
+  const [proData, setProData] = useState<Professional | null>(null);
+
   useEffect(() => {
     const getUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -46,17 +49,29 @@ const Profile: React.FC<ProfileProps> = ({ onLogout }) => {
           const name = profile?.full_name || user.user_metadata.nome || user.user_metadata.owner_name || 'Membro Aura';
           const avatar = profile?.avatar_url || user.user_metadata.avatar_url;
           const phone = profile?.phone || user.user_metadata.phone || '';
+          const role = user.user_metadata.role || 'client';
 
           setUserData({
             id: user.id,
             name: name,
             email: user.email || '',
-            role: user.user_metadata.role || 'client',
+            role: role,
             avatar_url: avatar,
             phone: phone
           });
           setEditName(name);
           setEditPhone(phone);
+
+          // Se for PRO, busca os dados da tabela professionals
+          if (role === 'pro') {
+            const { data: pData } = await supabase
+              .from('professionals')
+              .select('*')
+              .eq('user_id', user.id)
+              .maybeSingle();
+            if (pData) setProData(pData);
+          }
+
         } catch (err) {
           console.error("Erro ao buscar perfil:", err);
           setUserData({
@@ -82,7 +97,20 @@ const Profile: React.FC<ProfileProps> = ({ onLogout }) => {
         phone: editPhone
       });
 
-      // 2. Sincroniza com os metadados do Auth (para sessões futuras)
+      // 2. Se for PRO, atualiza dados profissionais (como Status)
+      if (userData.role === 'pro' && proData) {
+        const { error: proError } = await supabase
+          .from('professionals')
+          .update({
+            status: proData.status,
+            // name: editName, // Sincroniza nome se necessário
+          })
+          .eq('user_id', userData.id);
+
+        if (proError) throw proError;
+      }
+
+      // 3. Sincroniza com os metadados do Auth
       const { error: authError } = await supabase.auth.updateUser({
         data: {
           full_name: editName,
@@ -92,7 +120,7 @@ const Profile: React.FC<ProfileProps> = ({ onLogout }) => {
 
       if (authError) throw authError;
 
-      // 3. Atualiza o estado local para refletir a mudança instantaneamente
+      // 4. Atualiza o estado local
       setUserData(prev => prev ? { ...prev, full_name: editName, phone: editPhone, name: editName } : null);
       setIsEditing(false);
       alert("✨ Sua Aura foi atualizada com sucesso!");
@@ -210,10 +238,17 @@ const Profile: React.FC<ProfileProps> = ({ onLogout }) => {
 
         <div className="text-center">
           <div className="px-3 py-1 rounded-full bg-primary/10 border border-primary/20 inline-block mb-3">
-            <span className="text-[8px] font-black text-primary uppercase tracking-[0.3em]">{userData?.role === 'admin' ? 'Proprietário' : userData?.role === 'pro' ? 'Artista' : 'Cliente Vip'}</span>
+            <span className="text-[8px] font-black text-primary uppercase tracking-[0.3em]">
+              {userData?.role === 'admin' ? 'Proprietário' : userData?.role === 'pro' ? (proData?.role || 'Artista') : 'Cliente Vip'}
+            </span>
           </div>
 
           <h2 className="text-3xl font-display font-black text-white italic tracking-tighter uppercase leading-none">{userData?.name || 'Carregando...'}</h2>
+
+          {userData?.role === 'pro' && proData && (
+            <p className="text-primary text-[10px] font-black uppercase tracking-[0.2em] mt-2 italic">{proData.role}</p>
+          )}
+
           <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest mt-1.5">{userData?.email}</p>
           {userData?.phone && <p className="text-primary text-[10px] font-black uppercase tracking-widest mt-1">{userData.phone}</p>}
         </div>
@@ -266,7 +301,11 @@ const Profile: React.FC<ProfileProps> = ({ onLogout }) => {
           <div className="w-full max-w-sm space-y-10">
             <div className="text-center">
               <h2 className="text-4xl font-display font-black text-white italic tracking-tighter mb-2">Editar <span className="text-primary italic">Perfil.</span></h2>
+              {userData?.role === 'pro' && proData && (
+                <p className="text-primary text-[10px] font-black uppercase tracking-widest italic">{proData.role}</p>
+              )}
             </div>
+
             <form
               onSubmit={(e) => {
                 e.preventDefault();
@@ -274,14 +313,57 @@ const Profile: React.FC<ProfileProps> = ({ onLogout }) => {
               }}
               className="space-y-6"
             >
+              {/* Nome e Telefone para Todos */}
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Nome de Exibição</label>
                 <input type="text" value={editName} onChange={e => setEditName(e.target.value)} className="w-full bg-surface-dark border border-white/10 rounded-2xl p-5 text-white outline-none focus:border-primary shadow-inner" placeholder="Seu nome completo" />
               </div>
+
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Telefone</label>
                 <input type="tel" value={editPhone} onChange={e => setEditPhone(e.target.value)} className="w-full bg-surface-dark border border-white/10 rounded-2xl p-5 text-white outline-none focus:border-primary shadow-inner" placeholder="(00) 00000-0000" />
               </div>
+
+              {/* Campos Exclusivos de Profissional (Estilo Marco Aurélio) */}
+              {userData?.role === 'pro' && proData && (
+                <div className="animate-fade-in space-y-6">
+                  <div className="bg-surface-dark border border-white/5 rounded-3xl p-6">
+                    <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-2">E-mail de Acesso</p>
+                    <p className="text-sm font-bold text-white/40 italic">{userData.email}</p>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-surface-dark border border-white/5 rounded-3xl p-6">
+                      <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-2">Produtividade</p>
+                      <p className="text-3xl font-display font-black text-primary italic leading-none">{proData.productivity || 0}</p>
+                    </div>
+                    <div className="bg-surface-dark border border-white/5 rounded-3xl p-6">
+                      <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-2">Comissão %</p>
+                      <p className="text-3xl font-display font-black text-white italic leading-none">{proData.comissao || 0}</p>
+                    </div>
+                  </div>
+
+                  <div className="bg-surface-dark border border-white/5 rounded-3xl p-6">
+                    <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-3">Minha Disponibilidade</p>
+                    <div className="flex gap-4">
+                      <button
+                        type="button"
+                        onClick={() => setProData({ ...proData, status: 'active' })}
+                        className={`flex-1 p-4 rounded-2xl border transition-all ${proData.status === 'active' ? 'bg-emerald-500/20 border-emerald-500 text-emerald-500' : 'border-white/10 text-slate-500'}`}
+                      >
+                        <span className="text-xs font-black uppercase">Ativo</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setProData({ ...proData, status: 'away' })}
+                        className={`flex-1 p-4 rounded-2xl border transition-all ${proData.status === 'away' ? 'bg-red-500/10 border-red-500 text-red-500' : 'border-white/10 text-slate-500'}`}
+                      >
+                        <span className="text-xs font-black uppercase">Ausente</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
               <div className="flex gap-4">
                 <button type="button" onClick={() => setIsEditing(false)} className="flex-1 py-5 rounded-2xl border border-white/10 text-white text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all">Cancelar</button>
                 <button type="submit" disabled={isSaving} className="flex-1 py-5 rounded-2xl gold-gradient text-background-dark text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all shadow-2xl">{isSaving ? 'Salvando...' : 'Confirmar'}</button>
