@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Salon } from '../../types';
 import { api } from '../../lib/api';
+import { useToast } from '../../contexts/ToastContext';
 
 interface OperatingHoursProps {
   salon: Salon | undefined;
@@ -20,6 +21,7 @@ const DAYS_OF_WEEK = [
 
 const OperatingHours: React.FC<OperatingHoursProps> = ({ salon, onSave }) => {
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const [hours, setHours] = useState<any>({});
   const [isLoading, setIsLoading] = useState(false);
 
@@ -44,23 +46,27 @@ const OperatingHours: React.FC<OperatingHoursProps> = ({ salon, onSave }) => {
   };
 
   const handleSave = async () => {
-    if (!salon?.id) return;
+    if (!salon?.id) {
+      console.warn("Save Operating Hours aborted: Missing salon.id", { salon });
+      showToast("Unidade não identificada. Tente recarregar a página.", "error");
+      return;
+    }
     setIsLoading(true);
     try {
       const updated = await api.salons.update(salon.id, { horario_funcionamento: hours });
       onSave(updated);
-      alert('Horários atualizados com sucesso!');
+      showToast('Horários de funcionamento atualizados!', 'success');
       navigate('/pro');
     } catch (error: any) {
       console.error(error);
-      alert('Erro ao salvar: ' + error.message);
+      showToast('Erro ao salvar horários: ' + error.message, 'error');
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="flex-1 bg-background-dark min-h-screen">
+    <div className="flex-1 bg-background-dark overflow-y-auto h-full">
       <header className="p-6 pt-16 flex items-center justify-between sticky top-0 bg-background-dark/95 backdrop-blur-xl z-50 border-b border-white/5">
         <button onClick={() => navigate(-1)} className="text-white size-10 flex items-center justify-center rounded-full border border-white/5 active:scale-95 transition-all">
           <span className="material-symbols-outlined">arrow_back</span>
@@ -71,7 +77,7 @@ const OperatingHours: React.FC<OperatingHoursProps> = ({ salon, onSave }) => {
         </button>
       </header>
 
-      <main className="p-6 space-y-6 pb-40 no-scrollbar overflow-y-auto max-w-[450px] mx-auto animate-fade-in">
+      <main className="p-6 space-y-6 pb-40 max-w-[450px] mx-auto animate-fade-in">
         <div className="bg-surface-dark border border-white/5 rounded-[40px] p-8 shadow-2xl space-y-6">
           <div>
             <h3 className="text-[10px] font-black text-primary uppercase tracking-[0.4em] mb-2">Configuração Semanal</h3>

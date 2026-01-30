@@ -21,7 +21,7 @@ const UserLogin: React.FC<UserLoginProps> = ({ onLogin }) => {
   };
 
   return (
-    <div className="flex-1 bg-background-dark min-h-screen flex flex-col p-8">
+    <div className="flex-1 bg-background-dark h-full overflow-y-auto flex flex-col p-8 no-scrollbar">
       <header className="pt-8 pb-12">
         <button onClick={() => navigate('/')} className="size-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-white">
           <span className="material-symbols-outlined">close</span>
@@ -30,11 +30,11 @@ const UserLogin: React.FC<UserLoginProps> = ({ onLogin }) => {
 
       <main className="flex-1 flex flex-col justify-center max-w-sm mx-auto w-full">
         <div className="mb-12 text-center">
-           <div className="px-4 py-2 bg-primary/10 border border-primary/20 rounded-full inline-block mb-4">
-              <span className="text-[8px] font-black text-primary uppercase tracking-[0.3em]">Área do Cliente</span>
-           </div>
-           <h1 className="text-4xl font-display font-black text-white italic tracking-tighter mb-2">Bem-vinda de <br/><span className="text-primary">Volta.</span></h1>
-           <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em]">Entre para gerenciar seus agendamentos</p>
+          <div className="px-4 py-2 bg-primary/10 border border-primary/20 rounded-full inline-block mb-4">
+            <span className="text-[8px] font-black text-primary uppercase tracking-[0.3em]">Área do Cliente</span>
+          </div>
+          <h1 className="text-4xl font-display font-black text-white italic tracking-tighter mb-2">Bem-vinda de <br /><span className="text-primary">Volta.</span></h1>
+          <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em]">Entre para gerenciar seus agendamentos</p>
         </div>
 
         <form onSubmit={handleLogin} className="space-y-6">
@@ -51,7 +51,7 @@ const UserLogin: React.FC<UserLoginProps> = ({ onLogin }) => {
             <input type="password" required placeholder="••••••••" className="w-full bg-surface-dark border border-white/5 rounded-2xl py-5 px-6 text-white text-sm outline-none focus:border-primary/50 transition-all shadow-inner" />
           </div>
 
-          <button 
+          <button
             type="submit"
             disabled={isLoading}
             className="w-full gold-gradient text-background-dark font-black py-5 rounded-2xl shadow-2xl uppercase tracking-[0.3em] text-[11px] flex items-center justify-center gap-3 active:scale-95 transition-all"
@@ -64,10 +64,10 @@ const UserLogin: React.FC<UserLoginProps> = ({ onLogin }) => {
           <p className="text-slate-600 text-[10px] font-bold uppercase tracking-widest">
             Novo na Aura? <button onClick={() => navigate('/register-user')} className="text-primary ml-1 underline underline-offset-4">Criar conta grátis</button>
           </p>
-          
+
           <div className="pt-8 border-t border-white/5">
-            <button 
-              onClick={() => navigate('/login')} 
+            <button
+              onClick={() => navigate('/login')}
               className="text-[9px] font-black text-slate-700 uppercase tracking-[0.2em] hover:text-slate-400 transition-colors"
             >
               Sou um Profissional / Salão →

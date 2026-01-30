@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Appointment } from '../../types';
 import { api } from '../../lib/api';
 import { supabase } from '../../lib/supabase';
+import { useToast } from '../../contexts/ToastContext';
 
 interface MyAppointmentsProps {
   appointments: Appointment[];
@@ -12,18 +13,43 @@ interface MyAppointmentsProps {
 
 const MyAppointments: React.FC<MyAppointmentsProps> = ({ appointments, onCancelAppointment }) => {
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const upcoming = appointments.filter(a => a.status === 'confirmed' || a.status === 'pending');
   const history = appointments.filter(a => a.status === 'completed' || a.status === 'canceled');
 
+  // State para o Modal de Confirmação Customizado
+  const [confirmModal, setConfirmModal] = React.useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    confirmText: 'Confirmar',
+    cancelText: 'Cancelar',
+    isDanger: false,
+    onConfirm: () => { },
+  });
+
+  const closeConfirmModal = () => {
+    setConfirmModal(prev => ({ ...prev, isOpen: false }));
+  };
+
   const handleCancel = (id: string) => {
-    if (window.confirm("Deseja realmente cancelar este agendamento?")) {
-      onCancelAppointment(id);
-    }
+    setConfirmModal({
+      isOpen: true,
+      title: 'Cancelar Agendamento',
+      message: 'Deseja realmente cancelar este agendamento? Essa ação não pode ser desfeita.',
+      confirmText: 'Sim, Cancelar',
+      cancelText: 'Voltar',
+      isDanger: true,
+      onConfirm: () => {
+        onCancelAppointment(id);
+        closeConfirmModal();
+      }
+    });
   };
 
   const handleChat = async (appt: Appointment) => {
     if (!appt.professional_id) {
-      alert("Este agendamento não tem um profissional específico.");
+      showToast("Este agendamento não tem um profissional específico.", 'error');
       return;
     }
 
@@ -43,12 +69,21 @@ const MyAppointments: React.FC<MyAppointmentsProps> = ({ appointments, onCancelA
         const phone = salon?.telefone?.replace(/\D/g, '');
 
         if (phone) {
-          if (window.confirm(`O chat direto com ${pro?.name || 'este profissional'} está indisponível. Deseja contatar o salão via WhatsApp?`)) {
-            const text = encodeURIComponent(`Olá, gostaria de falar sobre meu agendamento com ${pro?.name || 'o profissional'}.`);
-            window.open(`https://wa.me/${phone}?text=${text}`, '_blank');
-          }
+          setConfirmModal({
+            isOpen: true,
+            title: 'Chat Indisponível',
+            message: `O chat direto com ${pro?.name || 'este profissional'} está indisponível no momento. Deseja contatar o salão via WhatsApp?`,
+            confirmText: 'Abrir WhatsApp',
+            cancelText: 'Cancelar',
+            isDanger: false,
+            onConfirm: () => {
+              const text = encodeURIComponent(`Olá, gostaria de falar sobre meu agendamento com ${pro?.name || 'o profissional'}.`);
+              window.open(`https://wa.me/${phone}?text=${text}`, '_blank');
+              closeConfirmModal();
+            }
+          });
         } else {
-          alert("Chat indisponível para este profissional no momento.");
+          showToast("Chat indisponível para este profissional no momento.", 'error');
         }
         return;
       }
@@ -62,12 +97,12 @@ const MyAppointments: React.FC<MyAppointmentsProps> = ({ appointments, onCancelA
       navigate(`/chat/${conversation.id}`);
     } catch (e) {
       console.error(e);
-      alert("Erro ao abrir chat.");
+      showToast("Erro ao abrir chat.", 'error');
     }
   };
 
   return (
-    <div className="flex-1 bg-background-dark min-h-screen pb-32">
+    <div className="flex-1 bg-background-dark h-full overflow-y-auto pb-32 relative">
       <header className="sticky top-0 z-50 bg-background-dark/90 backdrop-blur-md p-5 flex items-center justify-between border-b border-primary/10">
         <button onClick={() => navigate('/explore')} className="text-primary">
           <span className="material-symbols-outlined">arrow_back_ios</span>
@@ -78,6 +113,40 @@ const MyAppointments: React.FC<MyAppointmentsProps> = ({ appointments, onCancelA
           <span className="absolute -top-1 -right-1 size-2 bg-red-500 rounded-full"></span>
         </button>
       </header>
+
+      {/* MODAL DE CONFIRMAÇÃO CUSTOMIZADO */}
+      {confirmModal.isOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/80 backdrop-blur-sm animate-fade-in">
+          <div className="bg-[#1A1B25] border border-white/10 rounded-[32px] p-6 w-full max-w-sm shadow-2xl relative overflow-hidden">
+            {/* Efeito de brilho de fundo */}
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-1 bg-primary blur-[20px] opacity-40"></div>
+
+            <div className="flex flex-col items-center text-center space-y-4">
+              <div className={`size-14 rounded-full flex items-center justify-center mb-2 ${confirmModal.isDanger ? 'bg-red-500/10 text-red-500' : 'bg-primary/10 text-primary'}`}>
+                <span className="material-symbols-outlined text-3xl">{confirmModal.isDanger ? 'warning' : 'info'}</span>
+              </div>
+
+              <h3 className="text-lg font-display font-black text-white italic tracking-tight">{confirmModal.title}</h3>
+              <p className="text-slate-400 text-xs font-bold leading-relaxed">{confirmModal.message}</p>
+
+              <div className="grid grid-cols-2 gap-3 w-full pt-4">
+                <button
+                  onClick={closeConfirmModal}
+                  className="bg-white/5 border border-white/10 text-white py-4 rounded-2xl text-[9px] font-black uppercase tracking-widest active:scale-95 transition-all"
+                >
+                  {confirmModal.cancelText}
+                </button>
+                <button
+                  onClick={confirmModal.onConfirm}
+                  className={`${confirmModal.isDanger ? 'bg-red-500 hover:bg-red-600 shadow-red-900/20' : 'gold-gradient text-background-dark shadow-primary/20'} py-4 rounded-2xl text-[9px] font-black uppercase tracking-widest shadow-lg active:scale-95 transition-all`}
+                >
+                  {confirmModal.confirmText}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="px-6 py-8 animate-fade-in">
         <section className="space-y-8">

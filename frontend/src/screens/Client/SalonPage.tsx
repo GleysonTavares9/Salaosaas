@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Salon, Service, Product, Professional, GalleryItem, ViewRole } from '../../types.ts';
 import { api } from '../../lib/api';
 import { supabase } from '../../lib/supabase';
+import { useToast } from '../../contexts/ToastContext';
 
 interface SalonPageProps {
   salons: Salon[];
@@ -40,9 +41,11 @@ const PreciseRatingStars: React.FC<{ rating: number; size?: string; className?: 
 const SalonPage: React.FC<SalonPageProps> = ({ salons, role, setBookingDraft }) => {
   const { slug } = useParams();
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const [activeTab, setActiveTab] = useState<TabType>('services');
   const [currentSalon, setCurrentSalon] = useState<Salon | null>(null);
   const [salonServices, setSalonServices] = useState<Service[]>([]);
+  const [salonProducts, setSalonProducts] = useState<Product[]>([]);
   const [salonGallery, setSalonGallery] = useState<string[]>([]);
   const [salonReviews, setSalonReviews] = useState<any[]>([]);
   const [showReviewForm, setShowReviewForm] = useState(false);
@@ -54,6 +57,7 @@ const SalonPage: React.FC<SalonPageProps> = ({ salons, role, setBookingDraft }) 
 
   const [dynamicRating, setDynamicRating] = useState(0);
   const [dynamicReviewsCount, setDynamicReviewsCount] = useState(0);
+  const [selectedServices, setSelectedServices] = useState<Service[]>([]);
 
   const initialSalon = useMemo(() => salons.find(s => s.slug_publico === slug), [salons, slug]);
 
@@ -72,12 +76,14 @@ const SalonPage: React.FC<SalonPageProps> = ({ salons, role, setBookingDraft }) 
           setDynamicReviewsCount(Number(freshSalon.reviews) || 0);
           setSalonGallery(freshSalon.gallery_urls || []);
 
-          const [services, reviews] = await Promise.all([
+          const [services, products, reviews] = await Promise.all([
             api.services.getBySalon(freshSalon.id),
+            api.products.getBySalon(freshSalon.id),
             api.reviews.getBySalon(freshSalon.id)
           ]);
 
           setSalonServices(services);
+          setSalonProducts(products);
           setSalonReviews(reviews.map((r: any) => ({
             ...r,
             clientName: r.client?.full_name || 'Usuário Aura',
@@ -104,9 +110,29 @@ const SalonPage: React.FC<SalonPageProps> = ({ salons, role, setBookingDraft }) 
   if (!salon && !isLoading) return <div className="p-10 text-center text-white">Salão não encontrado.</div>;
   if (!salon) return null;
 
+  const toggleService = (service: Service) => {
+    setSelectedServices(prev => {
+      const isSelected = prev.find(s => s.id === service.id);
+      if (isSelected) {
+        return prev.filter(s => s.id !== service.id);
+      } else {
+        return [...prev, service];
+      }
+    });
+  };
+
   const startBooking = () => {
-    setBookingDraft({ salonId: salon.id, salonName: salon.nome, services: [], products: [] });
-    navigate(role ? '/select-service' : '/login-user');
+    if (selectedServices.length === 0) {
+      showToast('Selecione pelo menos um serviço', 'error');
+      return;
+    }
+    setBookingDraft({
+      salonId: salon.id,
+      salonName: salon.nome,
+      services: selectedServices,
+      products: []
+    });
+    navigate(role ? '/choose-time' : '/login-user');
   };
 
   const handlePublicReview = async (e: React.FormEvent) => {
@@ -160,9 +186,11 @@ const SalonPage: React.FC<SalonPageProps> = ({ salons, role, setBookingDraft }) 
           <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-background-dark pointer-events-none"></div>
 
           <header className="relative z-10 p-6 pt-12 flex items-center justify-between">
-            <button onClick={() => navigate(-1)} className="size-10 flex items-center justify-center rounded-xl bg-black/40 backdrop-blur-md border border-white/10 text-white">
-              <span className="material-symbols-outlined">arrow_back</span>
+            <button onClick={() => navigate(-1)} className="size-12 flex items-center justify-center rounded-2xl bg-black/40 backdrop-blur-md border border-white/10 text-white active:scale-95 transition-all">
+              <span className="material-symbols-outlined text-xl">arrow_back</span>
             </button>
+            <h2 className="absolute left-1/2 -translate-x-1/2 text-white font-display font-black text-xs italic tracking-[0.3em] uppercase opacity-90">Itens da Reserva</h2>
+            <div className="size-12"></div> {/* Spacer for symmetry */}
           </header>
 
           <div className="absolute bottom-6 left-6 right-6 z-10">
@@ -183,16 +211,24 @@ const SalonPage: React.FC<SalonPageProps> = ({ salons, role, setBookingDraft }) 
           </div>
         </div>
 
-        <nav className="sticky top-0 z-[60] bg-background-dark/95 backdrop-blur-xl px-6 pt-4 border-b border-white/5 flex gap-8 overflow-x-auto no-scrollbar">
-          {['services', 'portfolio', 'reviews', 'info'].map(tab => (
-            <button key={tab} onClick={() => setActiveTab(tab as TabType)} className={`pb-4 text-[9px] font-black uppercase tracking-[0.2em] relative whitespace-nowrap ${activeTab === tab ? 'text-primary' : 'text-slate-500'}`}>
-              {tab === 'services' ? 'Rituais' : tab === 'portfolio' ? 'Portfólio' : tab === 'reviews' ? 'Avaliações' : 'Local'}
-              {activeTab === tab && <div className="absolute bottom-0 left-0 right-0 h-0.5 gold-gradient rounded-full"></div>}
-            </button>
-          ))}
+        <nav className="sticky top-0 z-[60] bg-background-dark/95 backdrop-blur-xl border-b border-white/5 overflow-x-auto no-scrollbar">
+          <div className="flex p-4 gap-2 min-w-max">
+            {['services', 'portfolio', 'reviews', 'info'].map(tab => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab as TabType)}
+                className={`py-3 px-5 text-[9px] font-black uppercase tracking-widest rounded-2xl transition-all outline-none whitespace-nowrap ${activeTab === tab
+                  ? 'gold-gradient text-background-dark shadow-lg scale-100'
+                  : 'bg-white/5 text-slate-500 hover:text-white border border-white/5'
+                  }`}
+              >
+                {tab === 'services' ? 'Rituais' : tab === 'portfolio' ? 'Portfólio' : tab === 'reviews' ? 'Avaliações' : 'Local'}
+              </button>
+            ))}
+          </div>
         </nav>
 
-        <main className="px-6 py-6 pb-32">
+        <main className="px-6 py-6 pb-48">
           {activeTab === 'reviews' && (
             <div className="space-y-6">
               <div className="bg-surface-dark/40 border border-white/5 rounded-3xl p-6 flex items-center justify-between">
@@ -259,32 +295,198 @@ const SalonPage: React.FC<SalonPageProps> = ({ salons, role, setBookingDraft }) 
             </div>
           )}
           {activeTab === 'services' && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {salonServices.map(service => (
-                <div key={service.id} className="bg-surface-dark/40 border border-white/5 rounded-3xl p-4 flex gap-4">
-                  <img src={service.image} className="size-16 rounded-xl object-cover" alt={service.name} />
-                  <div className="flex-1 flex flex-col justify-center min-w-0">
-                    <h4 className="text-white font-bold text-xs italic font-display truncate">{service.name}</h4>
-                    <p className="text-[7px] text-slate-500 uppercase font-black mt-1">{service.duration_min} MIN</p>
-                    <div className="flex items-center justify-between mt-2">
-                      <span className="text-white font-display font-black text-sm">R$ {service.price.toFixed(2)}</span>
-                      <button onClick={startBooking} className="text-[7px] font-black uppercase tracking-widest bg-primary/10 px-3 py-1.5 rounded-lg border border-primary/20 text-primary">RESERVAR</button>
+            <div className="flex flex-col gap-4 -mx-6">
+              {salonServices.map(service => {
+                const isSelected = selectedServices.some(s => s.id === service.id);
+                return (
+                  <button
+                    key={service.id}
+                    onClick={() => toggleService(service)}
+                    className={`bg-[#121417]/60 border ${isSelected ? 'border-primary' : 'border-white/5'
+                      } p-5 flex items-center gap-6 shadow-2xl backdrop-blur-md group active:scale-[0.98] transition-all relative overflow-hidden text-left w-full`}
+                  >
+                    {/* Imagem do Ritual */}
+                    <div className="relative shrink-0">
+                      <img src={service.image} className="size-20 rounded-2xl object-cover shadow-2xl" alt={service.name} />
+                      <div className="absolute inset-0 rounded-2xl ring-1 ring-white/10 ring-inset"></div>
+                    </div>
+
+                    {/* Informações Centrais */}
+                    <div className="flex-1 min-w-0 py-1">
+                      <h4 className="text-white font-black text-sm italic font-display uppercase tracking-widest leading-snug line-clamp-2">{service.name}</h4>
+                      <div className="flex items-center gap-2 mt-1.5 opacity-40">
+                        <span className="text-[7px] text-white font-black uppercase tracking-widest">{service.duration_min} MIN</span>
+                        <span className="text-white">•</span>
+                        <span className="text-[7px] text-white font-black uppercase tracking-widest">SERVIÇO</span>
+                      </div>
+                      <div className="mt-3">
+                        <span className="text-primary font-display font-black text-xl italic tracking-tight">R$ {service.price.toFixed(2)}</span>
+                      </div>
+                    </div>
+
+                    {/* Botão de Seleção (Checkmark) */}
+                    <div className={`size-10 rounded-full flex items-center justify-center transition-all ${isSelected ? 'bg-primary text-background-dark' : 'bg-white/5 text-white/10 border border-white/10'
+                      }`}>
+                      <span className="material-symbols-outlined text-xl font-black">{isSelected ? 'check' : ''}</span>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          {activeTab === 'portfolio' && (
+            <div className="grid grid-cols-2 gap-3">
+              {salonGallery.length > 0 ? (
+                salonGallery.map((url, idx) => (
+                  <div key={idx} className="aspect-square rounded-2xl overflow-hidden border border-white/5 shadow-xl">
+                    <img src={url} className="w-full h-full object-cover hover:scale-110 transition-transform duration-500" alt="Portfolio" />
+                  </div>
+                ))
+              ) : (
+                <div className="col-span-2 py-20 text-center opacity-20">
+                  <span className="material-symbols-outlined text-6xl mb-4 text-white">grid_view</span>
+                  <p className="text-[10px] font-black uppercase tracking-[0.3em]">Galeria em breve</p>
+                </div>
+              )}
+            </div>
+          )
+          }
+          {
+            activeTab === 'info' && (
+              <div className="space-y-8 animate-fade-in px-1 flex flex-col items-center">
+                {/* Card Único Premium Centralizado */}
+                <div className="bg-surface-dark/40 border border-white/5 rounded-[40px] p-8 space-y-12 shadow-2xl backdrop-blur-sm w-full flex flex-col items-center text-center">
+
+                  {/* Endereço Centralizado */}
+                  <button
+                    onClick={() => {
+                      const searchquery = `${salon.nome} ${salon.endereco} ${salon.cidade}`;
+                      window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(searchquery)}`, '_blank');
+                    }}
+                    className="w-full flex flex-col items-center group outline-none"
+                  >
+                    <div className="size-16 rounded-[24px] bg-white/5 border border-white/10 flex items-center justify-center shrink-0 group-active:scale-95 transition-all mb-6 shadow-xl">
+                      <span className="material-symbols-outlined text-primary text-3xl">location_on</span>
+                    </div>
+                    <div className="flex flex-col items-center">
+                      <h4 className="text-[11px] font-black text-white uppercase tracking-[0.4em] mb-2">Endereço</h4>
+                      <p className="text-sm text-slate-400 font-medium leading-relaxed max-w-[280px]">{salon.endereco}, {salon.cidade}</p>
+                    </div>
+                  </button>
+
+                  {/* Contato com WhatsApp Centralizado */}
+                  <button
+                    onClick={() => {
+                      const phone = salon.telefone?.replace(/\D/g, '');
+                      const message = encodeURIComponent(`Olá ${salon.nome}, vi seu salão no App Aura e gostaria de tirar uma dúvida.`);
+                      if (phone) window.open(`https://wa.me/55${phone}?text=${message}`, '_blank');
+                    }}
+                    className="w-full flex flex-col items-center group outline-none"
+                  >
+                    <div className="size-16 rounded-[24px] bg-white/5 border border-white/10 flex items-center justify-center shrink-0 group-active:scale-95 transition-all mb-6 shadow-xl">
+                      <WhatsAppIcon className="size-8 text-primary" />
+                    </div>
+                    <div className="flex flex-col items-center space-y-4">
+                      <h4 className="text-[11px] font-black text-white uppercase tracking-[0.4em] mb-1">Contato WhatsApp</h4>
+                      <p className="text-2xl font-display font-black text-white italic tracking-tighter">{salon.telefone || '(31) 99124-1598'}</p>
+                      <div className="bg-primary/10 border border-primary/20 px-6 py-2.5 rounded-full shadow-lg animate-pulse-slow">
+                        <span className="text-[9px] font-black text-primary uppercase tracking-[0.2em]">
+                          TOQUE AQUI PARA INICIAR UMA CONVERSA
+                        </span>
+                      </div>
+                    </div>
+                  </button>
+
+                  {/* Horário e Grade */}
+                  <div className="w-full flex flex-col items-center">
+                    <div className="size-16 rounded-[24px] bg-white/5 border border-white/10 flex items-center justify-center shrink-0 mb-6 shadow-xl">
+                      <span className="material-symbols-outlined text-primary text-3xl">schedule</span>
+                    </div>
+                    <div className="w-full flex flex-col items-center">
+                      <h4 className="text-[11px] font-black text-white uppercase tracking-[0.4em] mb-2">Horário Comercial</h4>
+                      <p className="text-sm text-slate-400 font-medium mb-8">
+                        {(() => {
+                          const todayIndex = new Date().getDay();
+                          const enDays: { [key: number]: string } = { 0: 'sunday', 1: 'monday', 2: 'tuesday', 3: 'wednesday', 4: 'thursday', 5: 'friday', 6: 'saturday' };
+                          const schedule = (salon.horario_funcionamento as any)?.[enDays[todayIndex]];
+
+                          if (!schedule || schedule.closed) return 'Fechado hoje';
+                          return `Aberto hoje: ${schedule.open} às ${schedule.close}`;
+                        })()}
+                      </p>
+
+                      <div className="space-y-4 border-t border-white/5 pt-8 w-full max-w-[300px] px-2">
+                        {[
+                          { key: 'monday', label: 'Segunda' },
+                          { key: 'tuesday', label: 'Terça' },
+                          { key: 'wednesday', label: 'Quarta' },
+                          { key: 'thursday', label: 'Quinta' },
+                          { key: 'friday', label: 'Sexta' },
+                          { key: 'saturday', label: 'Sábado' },
+                          { key: 'sunday', label: 'Domingo' }
+                        ].map(day => {
+                          const schedule = (salon.horario_funcionamento as any)?.[day.key];
+                          const today = new Date().toLocaleDateString('pt-BR', { weekday: 'long' }).toLowerCase();
+                          const isToday = today.includes(day.label.toLowerCase());
+
+                          return (
+                            <div key={day.key} className="flex justify-between items-center w-full">
+                              <span className={`text-[10px] font-black uppercase tracking-[0.2em] ${isToday ? 'text-white' : 'text-slate-600'}`}>
+                                {day.label} {isToday && '•'}
+                              </span>
+                              <span className={`text-[10px] font-black tracking-wider ${!schedule || schedule.closed ? 'text-red-500/40 italic' : 'text-primary'}`}>
+                                {!schedule || schedule.closed ? 'Fechado' : `${schedule.open} — ${schedule.close}`}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
-        </main>
-      </div>
-      <footer className="fixed bottom-6 left-6 right-6 z-[100]">
-        <button onClick={startBooking} className="w-full gold-gradient text-background-dark py-5 rounded-2xl shadow-2xl flex items-center justify-center gap-3 active:scale-95 transition-all">
-          <span className="font-black uppercase tracking-[0.3em] text-[10px]">RESERVAR AGORA</span>
-          <span className="material-symbols-outlined text-lg font-black">calendar_today</span>
-        </button>
-      </footer>
-    </div>
+
+                {/* Comodidades Estilo Original */}
+                {salon.amenities && salon.amenities.length > 0 && (
+                  <div className="space-y-4 px-2 w-full">
+                    <h3 className="text-[10px] font-black text-slate-600 uppercase tracking-[0.3em] text-center">Comodidades</h3>
+                    <div className="flex flex-wrap gap-2.5 justify-center">
+                      {salon.amenities.map((item: string, idx: number) => (
+                        <span key={idx} className="bg-white/5 border border-white/10 px-6 py-3 rounded-2xl text-[9px] font-black text-slate-300 uppercase tracking-widest shadow-md">
+                          {item}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )
+          }
+        </main >
+      </div >
+      {/* Footer Fixo com Botão Premium Centralizado */}
+      {selectedServices.length > 0 && (
+        <footer className="fixed bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-background-dark via-background-dark/80 to-transparent z-[100] pb-safe flex justify-center animate-slide-up">
+          <div className="w-full max-w-[450px]">
+            <button
+              onClick={startBooking}
+              className="w-full gold-gradient text-background-dark p-6 rounded-[32px] shadow-[0_20px_50px_rgba(193,165,113,0.3)] flex items-center justify-between gap-4 active:scale-95 transition-all"
+            >
+              <div className="text-left">
+                <p className="text-[8px] font-black uppercase tracking-widest opacity-60">{selectedServices.length} {selectedServices.length === 1 ? 'Ritual Selecionado' : 'Rituais Selecionados'}</p>
+                <p className="text-xl font-display font-black italic tracking-tighter">R$ {selectedServices.reduce((acc, s) => acc + s.price, 0).toFixed(2)}</p>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="font-black uppercase tracking-widest text-[9px]">ESCOLHER HORÁRIO</span>
+                <span className="material-symbols-outlined text-xl font-black">arrow_forward</span>
+              </div>
+            </button>
+          </div>
+        </footer>
+      )}
+    </div >
   );
 };
+
 
 export default SalonPage;

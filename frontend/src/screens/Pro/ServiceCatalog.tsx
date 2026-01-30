@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Service } from '../../types';
 import { api } from '../../lib/api';
+import { useToast } from '../../contexts/ToastContext';
 
 interface ServiceCatalogProps {
   salonId?: string;
@@ -10,9 +11,13 @@ interface ServiceCatalogProps {
 
 const ServiceCatalog: React.FC<ServiceCatalogProps> = ({ salonId }) => {
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const [services, setServices] = useState<Service[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isAdding, setIsAdding] = useState(false);
+
+  const [activeCategory, setActiveCategory] = useState('Todos');
+  const categories = ['Todos', 'Cabelo', 'Barba', 'Unhas', 'Estética', 'Sobrancelha', 'Estilo', 'Outros'];
 
   const [newService, setNewService] = useState({
     name: '',
@@ -54,106 +59,184 @@ const ServiceCatalog: React.FC<ServiceCatalogProps> = ({ salonId }) => {
         description: '',
         image: 'https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&q=80&w=400'
       });
+      showToast("✨ Serviço criado com sucesso!", 'success');
     } catch (error: any) {
-      alert("Erro ao criar serviço: " + error.message);
+      showToast("Erro ao criar serviço: " + error.message, 'error');
     }
   };
 
   return (
-    <div className="flex-1 bg-background-dark min-h-screen">
+    <div className="flex-1 bg-background-dark overflow-y-auto h-full">
       <header className="sticky top-0 z-50 bg-background-dark/95 backdrop-blur-md px-6 pt-12 pb-6 border-b border-white/5">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="font-display text-2xl font-black tracking-tight text-white italic">Rituais & Estética</h1>
-            <p className="text-primary text-[8px] font-black uppercase tracking-[0.2em] mt-1">Gestão de Catálogo</p>
+            <h1 className="font-display text-2xl font-black tracking-tight text-white italic uppercase tracking-tighter">Rituais & Estética</h1>
+            <p className="text-primary text-[8px] font-black uppercase tracking-[0.2em] mt-1">Gestão de Catálogo de Serviços</p>
           </div>
-          <button onClick={() => navigate('/pro')} className="size-10 rounded-full border border-white/5 bg-surface-dark flex items-center justify-center text-slate-400 active:scale-95 transition-all">
-            <span className="material-symbols-outlined">close</span>
+          <button onClick={() => navigate('/pro')} className="size-10 rounded-full border border-white/10 bg-white/5 flex items-center justify-center text-white active:scale-95 transition-all shadow-xl">
+            <span className="material-symbols-outlined">arrow_back</span>
           </button>
+        </div>
+
+        {/* Category Filters for uniformity with ProductCatalog */}
+        <div className="flex gap-2 overflow-x-auto no-scrollbar pt-6">
+          {categories.map(cat => (
+            <button
+              key={cat}
+              onClick={() => setActiveCategory(cat)}
+              className={`px-5 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all border whitespace-nowrap ${activeCategory === cat
+                ? 'bg-primary text-background-dark border-primary shadow-lg shadow-primary/20'
+                : 'bg-white/5 text-slate-500 border-white/5 hover:border-white/10'
+                }`}
+            >
+              {cat}
+            </button>
+          ))}
         </div>
       </header>
 
-      <main className="px-6 py-8 pb-40 no-scrollbar overflow-y-auto max-w-[450px] mx-auto">
+      <main className="px-6 py-8 pb-40 max-w-[450px] mx-auto">
+        <div className="mb-8">
+          <button
+            onClick={() => setIsAdding(true)}
+            className="w-full bg-white/5 border border-dashed border-white/10 rounded-[32px] py-8 flex flex-col items-center justify-center gap-3 group hover:border-primary/20 hover:bg-white/[0.07] transition-all active:scale-[0.98]"
+          >
+            <div className="size-12 rounded-full gold-gradient flex items-center justify-center text-background-dark shadow-lg shadow-primary/20 group-hover:scale-110 transition-transform">
+              <span className="material-symbols-outlined font-black">add</span>
+            </div>
+            <span className="text-[10px] font-black text-white uppercase tracking-[0.3em]">Adicionar Novo Ritual</span>
+          </button>
+        </div>
+
         {isLoading ? (
           <div className="py-20 text-center flex flex-col items-center">
             <div className="size-8 border-2 border-primary/20 border-t-primary rounded-full animate-spin"></div>
           </div>
         ) : (
-          <div className="space-y-6">
-            {services.map((s) => (
-              <div key={s.id} className="group flex items-center gap-5 bg-surface-dark p-6 rounded-[32px] border border-white/5 shadow-xl active:scale-[0.98] transition-all">
-                <div className="size-16 rounded-2xl overflow-hidden shrink-0 border border-white/10 shadow-inner">
-                  <img src={s.image} className="size-full object-cover grayscale-[0.2] group-hover:grayscale-0 transition-all" alt={s.name} />
+          <div className="space-y-4">
+            {services.filter(s => activeCategory === 'Todos' || s.category === activeCategory).map((s) => (
+              <div key={s.id} className="group flex items-center gap-5 bg-surface-dark/60 p-5 rounded-[32px] border border-white/5 shadow-xl hover:border-primary/20 transition-all">
+                <div className="size-20 rounded-2xl overflow-hidden shrink-0 border border-white/5 shadow-inner relative">
+                  <img src={s.image} className="size-full object-cover grayscale-[0.2] group-hover:grayscale-0 transition-all duration-500" alt={s.name} />
+                  <div className="absolute inset-x-0 bottom-0 bg-black/40 backdrop-blur-md py-1">
+                    <p className="text-[7px] text-white font-black text-center uppercase tracking-widest">{s.category}</p>
+                  </div>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h4 className="font-display text-base font-black text-white italic tracking-tight truncate">{s.name}</h4>
-                  <div className="flex items-center gap-2 mt-1.5 text-[10px] font-black text-slate-500 uppercase tracking-widest">
-                    <span className="flex items-center gap-1"><span className="material-symbols-outlined text-xs">schedule</span> {s.duration_min} min</span>
+                  <h4 className="font-display text-base font-black text-white italic tracking-tight truncate uppercase leading-tight">{s.name}</h4>
+                  <div className="flex items-center gap-2 mt-2">
+                    <div className="flex items-center gap-1.5 px-2 py-1 bg-white/5 rounded-lg border border-white/10">
+                      <span className="material-symbols-outlined text-[10px] text-primary">schedule</span>
+                      <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">{s.duration_min} min</span>
+                    </div>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-lg font-display font-black text-primary tracking-tight italic">R$ {s.price.toFixed(2)}</p>
+                  <p className="text-[8px] font-black text-slate-600 uppercase tracking-widest leading-none mb-1 text-right">A partir de</p>
+                  <p className="text-xl font-display font-black text-primary tracking-tight italic leading-none">R$ {s.price.toFixed(2)}</p>
                 </div>
               </div>
             ))}
 
-            {services.length === 0 && !isAdding && (
+            {services.filter(s => activeCategory === 'Todos' || s.category === activeCategory).length === 0 && !isAdding && (
               <div className="py-20 text-center flex flex-col items-center opacity-30">
-                <span className="material-symbols-outlined text-6xl mb-4">menu_book</span>
-                <p className="text-[10px] font-black uppercase tracking-widest">Nenhum serviço cadastrado</p>
+                <span className="material-symbols-outlined text-6xl mb-4 text-slate-600">content_paste_off</span>
+                <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Nenhum ritual cadastrado</p>
               </div>
             )}
           </div>
         )}
       </main>
 
-      {/* Overlay de Adicionar */}
       {isAdding && (
-        <div className="fixed inset-0 z-[60] bg-background-dark/95 backdrop-blur-xl animate-fade-in flex flex-col">
-          <header className="p-8 flex items-center justify-between">
-            <h2 className="text-xl font-display font-black text-white italic tracking-tighter uppercase">Novo Serviço</h2>
-            <button onClick={() => setIsAdding(false)} className="text-slate-500"><span className="material-symbols-outlined">close</span></button>
-          </header>
-          <form onSubmit={handleCreate} className="p-8 flex-1 overflow-y-auto space-y-6 no-scrollbar pb-32">
-            <div className="space-y-2">
-              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Nome</label>
-              <input type="text" required value={newService.name} onChange={e => setNewService({ ...newService, name: e.target.value })} className="w-full bg-surface-dark border border-white/5 rounded-2xl p-5 text-white text-sm outline-none focus:border-primary" />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
+        <div className="fixed inset-0 z-[60] bg-background-dark/95 backdrop-blur-xl animate-fade-in flex flex-col items-center overflow-hidden">
+          <div className="flex-1 flex flex-col bg-background-dark max-w-[450px] w-full h-full">
+            <header className="p-8 flex items-center justify-between">
+              <h2 className="text-xl font-display font-black text-white italic tracking-tighter uppercase">Novo Serviço</h2>
+              <button onClick={() => setIsAdding(false)} className="text-slate-500"><span className="material-symbols-outlined">close</span></button>
+            </header>
+            <form onSubmit={handleCreate} className="p-8 flex-1 overflow-y-auto space-y-6 pb-40 min-h-0">
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Preço (R$)</label>
-                <input type="number" step="0.01" required value={newService.price} onChange={e => setNewService({ ...newService, price: parseFloat(e.target.value) })} className="w-full bg-surface-dark border border-white/5 rounded-2xl p-5 text-white text-sm outline-none" />
+                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Nome</label>
+                <input type="text" required value={newService.name} onChange={e => setNewService({ ...newService, name: e.target.value })} className="w-full bg-surface-dark border border-white/5 rounded-2xl p-5 text-white text-sm outline-none focus:border-primary" />
               </div>
-              <div className="space-y-2">
-                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Tempo (min)</label>
-                <input type="number" required value={newService.duration_min} onChange={e => setNewService({ ...newService, duration_min: parseInt(e.target.value) })} className="w-full bg-surface-dark border border-white/5 rounded-2xl p-5 text-white text-sm outline-none" />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Preço (R$)</label>
+                  <input type="number" step="0.01" required value={newService.price} onChange={e => setNewService({ ...newService, price: parseFloat(e.target.value) })} className="w-full bg-surface-dark border border-white/5 rounded-2xl p-5 text-white text-sm outline-none" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Tempo (min)</label>
+                  <input type="number" required value={newService.duration_min} onChange={e => setNewService({ ...newService, duration_min: parseInt(e.target.value) })} className="w-full bg-surface-dark border border-white/5 rounded-2xl p-5 text-white text-sm outline-none" />
+                </div>
               </div>
-            </div>
-            <div className="space-y-2">
-              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Categoria</label>
-              <select value={newService.category} onChange={e => setNewService({ ...newService, category: e.target.value })} className="w-full bg-surface-dark border border-white/5 rounded-2xl p-5 text-white text-sm outline-none">
-                <option>Cabelo</option>
-                <option>Barba</option>
-                <option>Unhas</option>
-                <option>Estética</option>
-                <option>Sobrancelha</option>
-              </select>
-            </div>
-            <div className="space-y-2">
-              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Foto URL (Unsplash)</label>
-              <input type="text" value={newService.image} onChange={e => setNewService({ ...newService, image: e.target.value })} className="w-full bg-surface-dark border border-white/5 rounded-2xl p-5 text-white text-[10px] outline-none" />
-            </div>
-            <button type="submit" className="w-full gold-gradient text-background-dark font-black py-5 rounded-2xl shadow-xl uppercase tracking-widest text-xs">Criar Ritual</button>
-          </form>
+              <div className="space-y-3">
+                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Categoria de Ritual</label>
+                <div className="grid grid-cols-2 gap-2">
+                  {categories.filter(c => c !== 'Todos').map(c => (
+                    <button
+                      key={c}
+                      type="button"
+                      onClick={() => setNewService({ ...newService, category: c })}
+                      className={`py-4 rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all border ${newService.category === c
+                        ? 'bg-primary/20 text-primary border-primary shadow-inner'
+                        : 'bg-surface-dark border-white/5 text-slate-500'
+                        }`}
+                    >
+                      {c}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="space-y-4">
+                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Imagem do Ritual</label>
+                <div className="flex items-center gap-6">
+                  <div className="size-24 rounded-3xl bg-surface-dark border-2 border-dashed border-white/10 flex items-center justify-center overflow-hidden shrink-0">
+                    {newService.image ? (
+                      <img src={newService.image} className="size-full object-cover" alt="Preview" />
+                    ) : (
+                      <span className="material-symbols-outlined text-slate-700 text-3xl">add_a_photo</span>
+                    )}
+                  </div>
+                  <div className="flex-1 space-y-2">
+                    <input
+                      type="file"
+                      id="service-image"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          try {
+                            setIsLoading(true);
+                            const publicUrl = await api.storage.upload(file);
+                            setNewService({ ...newService, image: publicUrl });
+                            showToast("Imagem enviada!", "success");
+                          } catch (err: any) {
+                            showToast("Erro no upload: " + err.message, "error");
+                          } finally {
+                            setIsLoading(false);
+                          }
+                        }
+                      }}
+                    />
+                    <label htmlFor="service-image" className="inline-block px-6 py-3 bg-white/5 border border-white/10 rounded-xl text-[9px] font-black text-white uppercase tracking-widest cursor-pointer hover:bg-white/10 active:scale-95 transition-all">
+                      {newService.image ? 'Alterar Foto' : 'Selecionar Arquivo'}
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-4">
+                <button type="submit" disabled={isLoading} className="w-full gold-gradient text-background-dark font-black py-5 rounded-2xl shadow-xl uppercase tracking-widest text-xs flex items-center justify-center gap-2">
+                  {isLoading ? <div className="size-4 border-2 border-background-dark/30 border-t-background-dark rounded-full animate-spin"></div> : 'Criar Ritual'}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
 
-      <div className="fixed bottom-[110px] right-6 z-40">
-        <button onClick={() => setIsAdding(true)} className="flex items-center gap-3 gold-gradient text-background-dark px-8 py-5 rounded-full shadow-[0_15px_40px_rgba(193,165,113,0.4)] active:scale-95 transition-all">
-          <span className="material-symbols-outlined text-xl font-black">add</span>
-          <span className="text-[10px] font-black uppercase tracking-[0.25em]">Novo Serviço</span>
-        </button>
-      </div>
     </div>
   );
 };

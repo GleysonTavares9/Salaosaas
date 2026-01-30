@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ChatMessage } from '../../types';
 import { api } from '../../lib/api';
+import { useToast } from '../../contexts/ToastContext';
 
 interface ChatRoomProps {
   userId: string | null;
@@ -11,6 +12,7 @@ interface ChatRoomProps {
 const ChatRoom: React.FC<ChatRoomProps> = ({ userId }) => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const [messageText, setMessageText] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -60,7 +62,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ userId }) => {
       // O Supabase Realtime cuidará de adicionar o item na lista se configurado corretamente,
       // mas se houver delay, podemos otimizar aqui se necessário.
     } catch (error: any) {
-      alert("Erro ao enviar: " + error.message);
+      showToast("Erro ao enviar mensagem: " + error.message, 'error');
     }
   };
 
@@ -101,8 +103,8 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ userId }) => {
             return (
               <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
                 <div className={`max-w-[85%] px-5 py-4 rounded-[32px] shadow-2xl transition-all ${isMe
-                    ? 'gold-gradient text-background-dark font-black rounded-tr-sm'
-                    : 'bg-surface-dark border border-white/5 text-slate-100 rounded-tl-sm'
+                  ? 'gold-gradient text-background-dark font-black rounded-tr-sm'
+                  : 'bg-surface-dark border border-white/5 text-slate-100 rounded-tl-sm'
                   }`}>
                   <p className="text-sm leading-relaxed">{msg.text}</p>
                   <div className={`flex items-center gap-1.5 mt-2 opacity-40 text-[7px] font-black uppercase tracking-widest ${isMe ? 'text-background-dark' : 'text-slate-400'}`}>

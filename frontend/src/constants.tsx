@@ -2,13 +2,13 @@
 import { Service, Professional, Salon, Product, GalleryItem, Appointment } from './types.ts';
 
 export const INITIAL_HOURS = {
-  'Seg': { open: '09:00', close: '18:00', closed: false },
-  'Ter': { open: '09:00', close: '18:00', closed: false },
-  'Qua': { open: '09:00', close: '18:00', closed: false },
-  'Qui': { open: '09:00', close: '19:00', closed: false },
-  'Sex': { open: '09:00', close: '20:00', closed: false },
-  'Sáb': { open: '08:00', close: '17:00', closed: false },
-  'Dom': { open: '00:00', close: '00:00', closed: true },
+  'monday': { open: '09:00', close: '18:00', closed: false },
+  'tuesday': { open: '09:00', close: '18:00', closed: false },
+  'wednesday': { open: '09:00', close: '18:00', closed: false },
+  'thursday': { open: '09:00', close: '19:00', closed: false },
+  'friday': { open: '09:00', close: '20:00', closed: false },
+  'saturday': { open: '08:00', close: '17:00', closed: false },
+  'sunday': { open: '00:00', close: '00:00', closed: true },
 };
 
 // Limpando dados de demonstração para versão real

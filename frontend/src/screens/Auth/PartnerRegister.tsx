@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { BusinessSegment, Salon } from '../../types';
 import { api } from '../../lib/api';
 import { INITIAL_HOURS } from '../../constants';
+import { useToast } from '../../contexts/ToastContext';
 
 interface PartnerRegisterProps {
   onRegister: (role: 'admin', userId: string) => void;
@@ -11,19 +12,27 @@ interface PartnerRegisterProps {
 
 const PartnerRegister: React.FC<PartnerRegisterProps> = ({ onRegister }) => {
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     salonName: '',
     ownerName: '',
     email: '',
     password: '',
+    confirmPassword: '',
     segment: 'Salão' as BusinessSegment
   });
-
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const segments: BusinessSegment[] = ['Salão', 'Manicure', 'Sobrancelha', 'Barba', 'Estética', 'Spa'];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (formData.password !== formData.confirmPassword) {
+      showToast("As senhas não coincidem. Verifique e tente novamente.", "error");
+      return;
+    }
     setIsLoading(true);
     try {
       // 1. Criar usuário no Auth
@@ -36,59 +45,48 @@ const PartnerRegister: React.FC<PartnerRegisterProps> = ({ onRegister }) => {
 
       if (!authRes.user) throw new Error("Erro ao criar usuário.");
 
-      console.log("✅ Usuário criado:", authRes.user.id);
-
       // Aguardar um momento para garantir que o usuário foi persistido
       await new Promise(resolve => setTimeout(resolve, 1000));
 
-      // 2. Criar o Salão no Banco
+      // 2. Criar o Salão e o Profissional via RPC (Resolve erro de RLS/Auth)
       const slug = formData.salonName.toLowerCase().trim().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
-      const newSalon: Omit<Salon, 'id'> = {
-        nome: formData.salonName,
-        slug_publico: `${slug}-${Math.floor(Math.random() * 1000)}`,
-        segmento: formData.segment,
-        descricao: `Seja bem-vindo ao ${formData.salonName}!`,
-        logo_url: `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.salonName)}&background=c1a571&color=0c0d10&bold=true`,
-        banner_url: "https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?auto=format&fit=crop&q=80&w=1200",
-        endereco: "Endereço a definir",
-        cidade: "São Paulo",
-        rating: 5.0,
-        reviews: 0,
-        telefone: "",
-        amenities: [],
-        location: { lat: 0, lng: 0 }, // Pendente de ajuste no Business Setup
-        horario_funcionamento: INITIAL_HOURS
-      };
-
-      const salonRecord = await api.salons.create(newSalon);
-      console.log("✅ Salão criado:", salonRecord.id);
-
-      // 3. Criar o registro de Profissional (Dono)
-      await api.professionals.create({
-        salon_id: salonRecord.id,
-        user_id: authRes.user.id,
-        name: formData.ownerName,
-        role: 'Proprietário',
-        image: `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.ownerName)}&background=0c0d10&color=c1a571&bold=true`,
-        productivity: 0,
-        rating: 5.0,
-        status: 'active',
-        comissao: 100
+      const salonId = await api.salons.registerNewSalon({
+        p_user_id: authRes.user.id,
+        p_salon_name: formData.salonName,
+        p_segment: formData.segment,
+        p_owner_name: formData.ownerName,
+        p_slug: `${slug}-${Math.floor(Math.random() * 1000)}`,
+        p_email: formData.email,
+        p_logo_url: `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.salonName)}&background=c1a571&color=0c0d10&bold=true`,
+        p_banner_url: "https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?auto=format&fit=crop&q=80&w=1200",
+        p_initial_hours: INITIAL_HOURS
       });
-
-      console.log("✅ Profissional criado");
 
       onRegister('admin', authRes.user.id);
       navigate('/pro/business-setup'); // Leva direto para configurar a unidade
 
     } catch (error: any) {
-      console.error(error);
-      if (error.message?.includes('rate limit exceeded') || error.message?.includes('Too Many Requests')) {
-        alert("⏰ Limite de cadastros atingido!\n\nVocê tentou criar muitas contas em pouco tempo. Por favor, aguarde 1 hora e tente novamente.\n\nSe já possui uma conta, faça login em vez de criar uma nova.");
-      } else if (error.message?.includes('User already registered') || error.message?.includes('Database error saving new user')) {
-        alert("Este e-mail já está cadastrado. Não é possível usar o mesmo e-mail para contas diferentes (Cliente/Parceiro).");
+      console.error("Erro no cadastro:", error.message || error);
+      const errorMessage = error.message || '';
+
+      if (errorMessage.includes('Too Many Requests') || errorMessage.includes('security purposes') || errorMessage.includes('email rate limit exceeded')) {
+        // Tenta extrair os segundos se existirem na mensagem
+        const secondsMatch = errorMessage.match(/(\d+)\s+seconds/);
+        const waitTime = secondsMatch ? `por mais ${secondsMatch[1]} segundos` : 'por um momento';
+
+        let customMsg = `⏰ Calma lá! Curto-circuito de segurança.\n\nPor segurança, o sistema pede que você aguarde ${waitTime} antes de tentar um novo cadastro.`;
+
+        if (errorMessage.includes('email rate limit exceeded')) {
+          customMsg = `📧 Limite de E-mails atingido!\n\nO servidor de e-mail enviou muitas mensagens em pouco tempo. Por favor, aguarde cerca de 1 hora ou use um e-mail diferente para continuar testando agora. 🛡️`;
+        } else {
+          customMsg += `\n\nIsso acontece para proteger sua conta contra robôs. 🛡️`;
+        }
+
+        showToast(customMsg, 'error');
+      } else if (errorMessage.includes('User already registered') || errorMessage.includes('Database error saving new user')) {
+        showToast("Este e-mail já está cadastrado. Tente fazer login ou use outro e-mail corporativo.", 'error');
       } else {
-        alert("Erro no cadastro: " + (error.message || error));
+        showToast("Erro no cadastro: " + errorMessage, 'error');
       }
     } finally {
       setIsLoading(false);
@@ -130,9 +128,32 @@ const PartnerRegister: React.FC<PartnerRegisterProps> = ({ onRegister }) => {
             </div>
             <div className="space-y-2">
               <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Segmento</label>
-              <select value={formData.segment} onChange={(e) => setFormData({ ...formData, segment: e.target.value as BusinessSegment })} className="w-full bg-surface-dark border border-white/5 rounded-2xl py-4 px-6 text-white text-sm outline-none focus:border-primary/50 transition-all appearance-none">
-                {segments.map(s => <option key={s} value={s}>{s}</option>)}
-              </select>
+              <div className="relative">
+                <div
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                  className="w-full bg-surface-dark border border-white/5 rounded-2xl py-4 px-6 text-white text-sm outline-none cursor-pointer flex items-center justify-between group active:scale-[0.98] transition-all"
+                >
+                  <span className="font-medium">{formData.segment}</span>
+                  <span className={`material-symbols-outlined text-primary transition-transform duration-300 ${isDropdownOpen ? 'rotate-180' : ''}`}>expand_more</span>
+                </div>
+
+                {isDropdownOpen && (
+                  <div className="absolute top-full left-0 right-0 mt-2 bg-surface-dark border border-white/10 rounded-[24px] shadow-2xl overflow-hidden z-[100] animate-fade-in ring-1 ring-white/10">
+                    {segments.map(s => (
+                      <div
+                        key={s}
+                        onClick={() => {
+                          setFormData({ ...formData, segment: s });
+                          setIsDropdownOpen(false);
+                        }}
+                        className={`px-6 py-4 text-[10px] font-black uppercase tracking-widest cursor-pointer transition-all hover:bg-white/5 hover:pl-8 ${formData.segment === s ? 'text-primary bg-primary/5' : 'text-slate-400'}`}
+                      >
+                        {s}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
@@ -141,9 +162,49 @@ const PartnerRegister: React.FC<PartnerRegisterProps> = ({ onRegister }) => {
             <input type="email" required value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} className="w-full bg-surface-dark border border-white/5 rounded-2xl py-4 px-6 text-white text-sm outline-none focus:border-primary/50 transition-all" />
           </div>
 
-          <div className="space-y-2">
-            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Senha de Admin</label>
-            <input type="password" required value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} className="w-full bg-surface-dark border border-white/5 rounded-2xl py-4 px-6 text-white text-sm outline-none focus:border-primary/50 transition-all" />
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Senha de Admin</label>
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  required
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  className="w-full bg-surface-dark border border-white/5 rounded-2xl py-4 px-6 text-white text-sm outline-none focus:border-primary/50 transition-all"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500"
+                >
+                  <span className="material-symbols-outlined text-sm">
+                    {showPassword ? 'visibility' : 'visibility_off'}
+                  </span>
+                </button>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Confirmar Senha</label>
+              <div className="relative">
+                <input
+                  type={showConfirmPassword ? "text" : "password"}
+                  required
+                  value={formData.confirmPassword}
+                  onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                  className="w-full bg-surface-dark border border-white/5 rounded-2xl py-4 px-6 text-white text-sm outline-none focus:border-primary/50 transition-all"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500"
+                >
+                  <span className="material-symbols-outlined text-sm">
+                    {showConfirmPassword ? 'visibility' : 'visibility_off'}
+                  </span>
+                </button>
+              </div>
+            </div>
           </div>
 
           <button type="submit" disabled={isLoading} className="w-full gold-gradient text-background-dark font-black py-5 rounded-2xl shadow-2xl uppercase tracking-[0.3em] text-[11px] flex items-center justify-center gap-3 active:scale-95 transition-all">

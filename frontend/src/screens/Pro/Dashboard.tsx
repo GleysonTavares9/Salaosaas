@@ -127,22 +127,31 @@ const Dashboard: React.FC<DashboardProps> = ({ role, salon, appointments, userId
   const menuItems = role === 'admin' ? adminMenu : proMenu;
 
   return (
-    <div className="flex-1 bg-background-dark min-h-screen">
+    <div className="flex-1 bg-background-dark h-full overflow-y-auto">
       <header className="p-6 pt-16 flex items-center justify-between sticky top-0 bg-background-dark/95 backdrop-blur-xl z-50 border-b border-white/5">
         <div className="flex items-center gap-4">
-          <div className="size-12 rounded-2xl gold-gradient flex items-center justify-center text-background-dark shadow-lg transition-transform active:scale-90">
+          <div className="size-12 rounded-2xl gold-gradient flex items-center justify-center text-background-dark shadow-lg transition-transform active:scale-90 relative">
             <span className="material-symbols-outlined font-black">{role === 'admin' ? 'admin_panel_settings' : 'content_cut'}</span>
           </div>
-          <div>
-            <p className="text-[10px] text-primary font-black uppercase tracking-[0.2em] mb-1 leading-none">
-              {role === 'admin' ? 'Painel Executivo' : 'Dashboard do Artista'}
-            </p>
-            <h2 className="text-lg font-display font-black text-white italic tracking-tighter">
-              {role === 'admin' ? (salon?.nome || 'Minha Unidade') : (proProfile?.name || 'Portal Aura')}
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 mb-1">
+              <p className="text-[10px] text-primary font-black uppercase tracking-[0.2em] leading-none shrink-0">
+                {role === 'admin' ? 'Painel Executivo' : 'Dashboard do Artista'}
+              </p>
+              {salon?.segmento && (
+                <span className="text-[7px] bg-primary/10 text-primary border border-primary/20 px-1.5 py-0.5 rounded-md font-black uppercase tracking-widest leading-none">
+                  {salon.segmento}
+                </span>
+              )}
+            </div>
+            <h2 className="text-sm font-display font-black text-white italic tracking-tighter leading-tight truncate">
+              {role === 'admin'
+                ? `${proProfile?.name || userProfile?.full_name || 'Gestor'} • ${salon?.nome || 'Minha Unidade'}`
+                : (proProfile?.name || userProfile?.full_name || 'Portal Aura')}
             </h2>
           </div>
         </div>
-        <button onClick={() => navigate('/profile')} className="size-12 bg-surface-dark rounded-2xl flex items-center justify-center text-slate-400 border border-white/10 overflow-hidden active:scale-95 transition-transform shadow-xl">
+        <button onClick={() => navigate('/profile')} className="size-12 bg-surface-dark rounded-2xl flex items-center justify-center text-slate-400 border border-white/10 overflow-hidden active:scale-95 transition-transform shadow-xl shrink-0">
           <img
             src={userProfile?.avatar_url || (role === 'admin' ? (salon?.logo_url || 'https://i.pravatar.cc/150?u=admin') : (proProfile?.image || 'https://i.pravatar.cc/150?u=pro'))}
             className="size-full object-cover"
@@ -151,7 +160,7 @@ const Dashboard: React.FC<DashboardProps> = ({ role, salon, appointments, userId
         </button>
       </header>
 
-      <main className="p-6 space-y-8 pb-32 safe-area-bottom animate-fade-in no-scrollbar overflow-y-auto">
+      <main className="p-6 space-y-8 pb-32 safe-area-bottom animate-fade-in">
         <section className="p-8 bg-surface-dark rounded-[40px] border border-white/5 shadow-2xl overflow-hidden relative group">
           <div className="flex justify-between items-start mb-6">
             <div>
@@ -241,6 +250,22 @@ const Dashboard: React.FC<DashboardProps> = ({ role, salon, appointments, userId
             >
               <span className="material-symbols-outlined">history</span>
               HORÁRIOS
+            </button>
+            <button
+              onClick={async () => {
+                if (!window.confirm('Enviar lembretes para agendamentos de AMANHÃ?')) return;
+                try {
+                  const { data, error } = await supabase.functions.invoke('send-reminders');
+                  if (error) throw error;
+                  alert(`Sucesso! ${data?.message || 'Lembretes enviados.'}`);
+                } catch (err: any) {
+                  alert('Erro: ' + err.message);
+                }
+              }}
+              className="bg-purple-500/10 border border-purple-500/20 text-purple-500 py-6 rounded-3xl flex items-center justify-center gap-3 font-black uppercase tracking-[0.2em] text-[10px] active:scale-95 transition-all shadow-lg col-span-2"
+            >
+              <span className="material-symbols-outlined">notification_important</span>
+              DISPARAR LEMBRETES (AMANHÃ)
             </button>
           </div>
         )}

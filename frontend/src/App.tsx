@@ -36,6 +36,8 @@ import ChatRoom from './screens/Chat/ChatRoom.tsx';
 import PartnerLogin from './screens/Auth/PartnerLogin.tsx';
 import PartnerRegister from './screens/Auth/PartnerRegister.tsx';
 import UserRegister from './screens/Auth/UserRegister.tsx';
+import ResetPassword from './screens/Auth/ResetPassword.tsx';
+import { ToastProvider, useToast } from './contexts/ToastContext.tsx';
 
 interface BookingDraft {
   salonId?: string;
@@ -69,16 +71,7 @@ const AppContent: React.FC = () => {
   const [bookingDraft, setBookingDraft] = useState<BookingDraft>({ services: [], products: [] });
   const [isEmailConfirmed, setIsEmailConfirmed] = useState<boolean>(true);
   const [userEmail, setUserEmail] = useState<string | null>(null);
-  const [notification, setNotification] = useState<{
-    show: boolean;
-    type: 'success' | 'error';
-    message: string;
-  }>({ show: false, type: 'success', message: '' });
-
-  const showNotification = (type: 'success' | 'error', message: string) => {
-    setNotification({ show: true, type, message });
-    setTimeout(() => setNotification({ show: false, type: 'success', message: '' }), 3000);
-  };
+  const { showToast } = useToast();
 
   useEffect(() => {
     const fetchSalons = async () => {
@@ -114,7 +107,7 @@ const AppContent: React.FC = () => {
 
         setSalons(allSalons || []);
       } catch (err) {
-        // Erros silenciosos para não quebrar a UI mobile
+        console.error("fetchSalons error:", err);
       } finally {
         setIsLoading(false);
         SplashScreen.hide();
@@ -212,7 +205,12 @@ const AppContent: React.FC = () => {
   }, [currentUserId, role, salons]);
 
   const handleUpdateSalon = (updatedSalon: Salon) => {
-    setSalons(prev => prev.map(s => s.id === updatedSalon.id ? updatedSalon : s));
+    setSalons(prev => {
+      if (prev.length === 0) return [updatedSalon];
+      const exists = prev.some(s => s.id === updatedSalon.id);
+      if (!exists) return [updatedSalon, ...prev];
+      return prev.map(s => s.id === updatedSalon.id ? updatedSalon : s);
+    });
   };
 
   const handleLogin = (selectedRole: ViewRole, userId?: string) => {
@@ -295,17 +293,17 @@ const AppContent: React.FC = () => {
         type: 'signup',
         email: userEmail,
       });
-      showNotification('success', 'E-mail enviado!');
+      showToast('Link de confirmação enviado para seu e-mail!', 'success');
     }
   };
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-background-dark overflow-hidden">
+    <div className="flex-1 flex flex-col min-h-full bg-background-dark">
       <ScrollToTop />
 
       {/* Native Email Confirmation Banner */}
       {currentUserId && !isEmailConfirmed && (
-        <div className="bg-primary/20 border-b border-primary/30 p-4 px-6 flex items-center justify-between animate-fade-in z-[1001] backdrop-blur-md">
+        <div className="mobile-constrained top-0 border-b border-primary/30 p-4 px-6 flex items-center justify-between animate-fade-in z-[1001] bg-background-dark/80 backdrop-blur-md shrink-0">
           <div className="flex items-center gap-3">
             <span className="material-symbols-outlined text-primary text-xl">mark_email_unread</span>
             <div>
@@ -322,7 +320,7 @@ const AppContent: React.FC = () => {
         </div>
       )}
 
-      <div className={`flex-1 overflow-y-auto no-scrollbar ${shouldShowNav ? 'pb-24' : ''}`}>
+      <div className={`flex-1 flex flex-col min-h-0 ${shouldShowNav ? 'pb-24' : ''}`}>
         <Routes>
           <Route path="/" element={<Landing salons={salons} />} />
           <Route path="/explore" element={<Discovery salons={salons} role={role} />} />
@@ -331,6 +329,7 @@ const AppContent: React.FC = () => {
           <Route path="/register-user" element={<UserRegister onRegister={(role, uid) => handleLogin(role, uid)} />} />
           <Route path="/login" element={<PartnerLogin onLogin={(role, uid) => handleLogin(role, uid)} />} />
           <Route path="/register" element={<PartnerRegister onRegister={(role, uid) => handleLogin(role, uid)} />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/salon/:slug" element={<SalonPage salons={salons} role={role} setBookingDraft={setBookingDraft} />} />
           <Route path="/my-appointments" element={<MyAppointments appointments={appointments} onCancelAppointment={(id) => updateAppointmentStatus(id, 'canceled')} />} />
           <Route path="/profile" element={<Profile onLogout={handleLogout} />} />
@@ -392,17 +391,6 @@ const AppContent: React.FC = () => {
       </div>
       {shouldShowNav && <BottomNav role={role} />}
       {role === 'client' && <AIConcierge />}
-
-      {/* Global Notification Toast */}
-      {notification.show && (
-        <div className={`fixed bottom-24 left-6 right-6 z-[2000] p-5 rounded-[24px] shadow-2xl animate-slide-up flex items-center gap-4 border backdrop-blur-xl ${notification.type === 'success' ? 'bg-emerald-500/20 border-emerald-500/30 text-emerald-400' : 'bg-red-500/20 border-red-500/30 text-red-400'
-          }`}>
-          <span className="material-symbols-outlined text-xl">
-            {notification.type === 'success' ? 'check_circle' : 'error'}
-          </span>
-          <p className="text-[10px] font-black uppercase tracking-widest flex-1">{notification.message}</p>
-        </div>
-      )}
     </div>
   );
 };
@@ -410,7 +398,9 @@ const AppContent: React.FC = () => {
 const App: React.FC = () => {
   return (
     <Router>
-      <AppContent />
+      <ToastProvider>
+        <AppContent />
+      </ToastProvider>
     </Router>
   );
 };

@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Salon, BusinessSegment } from '../../types';
 import { api } from '../../lib/api';
 import { supabase } from '../../lib/supabase';
+import { useToast } from '../../contexts/ToastContext';
 
 interface BusinessSetupProps {
   salon: Salon | undefined;
@@ -13,7 +14,9 @@ interface BusinessSetupProps {
 
 const BusinessSetup: React.FC<BusinessSetupProps> = ({ salon, userId, onSave }) => {
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const [formData, setFormData] = useState<Salon | null>(null);
+  const [ownerName, setOwnerName] = useState('');
   const [mpConfig, setMpConfig] = useState({ publicKey: '', accessToken: '' });
   const [newGalleryUrl, setNewGalleryUrl] = useState('');
   const [isLoading, setIsLoading] = useState(true);
@@ -53,7 +56,7 @@ const BusinessSetup: React.FC<BusinessSetupProps> = ({ salon, userId, onSave }) 
       const data = await response.json();
 
       if (data.erro) {
-        alert("CEP não encontrado.");
+        showToast("CEP não encontrado.", 'error');
         setCepLoading(false);
         return;
       }
@@ -70,7 +73,7 @@ const BusinessSetup: React.FC<BusinessSetupProps> = ({ salon, userId, onSave }) 
 
     } catch (error) {
       console.error("Erro ao buscar CEP:", error);
-      alert("Erro ao buscar endereço.");
+      showToast("Erro ao buscar endereço.", 'error');
     } finally {
       setCepLoading(false);
     }
@@ -88,9 +91,13 @@ const BusinessSetup: React.FC<BusinessSetupProps> = ({ salon, userId, onSave }) 
         try {
           const { data: proData } = await supabase
             .from('professionals')
-            .select('salon_id')
+            .select('salon_id, name')
             .eq('user_id', userId)
             .maybeSingle();
+
+          if (proData) {
+            setOwnerName(proData.name || '');
+          }
 
           if (proData?.salon_id) {
             const allSalons = await api.salons.getAll();
@@ -210,6 +217,10 @@ const BusinessSetup: React.FC<BusinessSetupProps> = ({ salon, userId, onSave }) 
 
   const handleSave = async () => {
     if (!formData) return;
+    if (!userId) {
+      showToast("Usuário não identificado. Faça login novamente.", "error");
+      return;
+    }
 
     // Combina endereço
     const fullAddress = `${street}, ${number} - ${district}, ${formData.cidade}`;
@@ -241,6 +252,12 @@ const BusinessSetup: React.FC<BusinessSetupProps> = ({ salon, userId, onSave }) 
       if (finalData.id) {
         // Update existing
         const updated = await api.salons.update(finalData.id, finalData);
+
+        // Sincroniza o nome do proprietário também
+        if (userId) {
+          await supabase.from('professionals').update({ name: ownerName }).eq('user_id', userId);
+        }
+
         onSave(updated);
       } else {
         // Create new
@@ -251,12 +268,15 @@ const BusinessSetup: React.FC<BusinessSetupProps> = ({ salon, userId, onSave }) 
         if (userId) {
           const { data: pro } = await supabase.from('professionals').select('id').eq('user_id', userId).maybeSingle();
           if (pro) {
-            await supabase.from('professionals').update({ salon_id: created.id }).eq('user_id', userId);
+            await supabase.from('professionals').update({
+              salon_id: created.id,
+              name: ownerName
+            }).eq('user_id', userId);
           } else {
             await api.professionals.create({
               salon_id: created.id,
               user_id: userId,
-              name: formData.nome || 'Proprietário',
+              name: ownerName || formData.nome || 'Proprietário',
               role: 'owner',
               status: 'active',
               comissao: 100,
@@ -270,11 +290,11 @@ const BusinessSetup: React.FC<BusinessSetupProps> = ({ salon, userId, onSave }) 
         onSave(created);
       }
 
-      alert("Configurações da Unidade atualizadas com sucesso!");
+      showToast("Configurações da Unidade atualizadas com sucesso!", 'success');
       navigate('/pro');
     } catch (error: any) {
       console.error(error);
-      alert("Erro ao salvar: " + error.message);
+      showToast("Erro ao salvar: " + error.message, 'error');
     }
   };
 
@@ -304,7 +324,7 @@ const BusinessSetup: React.FC<BusinessSetupProps> = ({ salon, userId, onSave }) 
         setFormData({ ...formData, [field]: publicUrl });
       }
     } catch (err: any) {
-      alert("Erro no upload: " + err.message);
+      showToast("Erro no upload: " + err.message, 'error');
     }
   };
 
@@ -321,7 +341,7 @@ const BusinessSetup: React.FC<BusinessSetupProps> = ({ salon, userId, onSave }) 
   };
 
   return (
-    <div className="flex-1 bg-background-dark min-h-screen">
+    <div className="flex-1 bg-background-dark overflow-y-auto h-full">
       <header className="p-6 pt-16 flex items-center justify-between sticky top-0 bg-background-dark/95 backdrop-blur-xl z-50 border-b border-white/5">
         <button onClick={() => navigate(-1)} className="text-white size-10 flex items-center justify-center rounded-full border border-white/5 active:scale-95 transition-all">
           <span className="material-symbols-outlined">arrow_back</span>
@@ -330,22 +350,27 @@ const BusinessSetup: React.FC<BusinessSetupProps> = ({ salon, userId, onSave }) 
         <button onClick={handleSave} className="text-primary font-black text-[10px] uppercase tracking-[0.2em] bg-primary/10 px-4 py-2 rounded-xl border border-primary/20 shadow-lg active:scale-95 transition-all">Salvar</button>
       </header>
 
-      <main className="p-6 space-y-12 pb-40 no-scrollbar overflow-y-auto max-w-[450px] mx-auto animate-fade-in">
+      <main className="p-6 space-y-12 pb-40 max-w-[450px] mx-auto animate-fade-in">
 
         {/* IDENTIDADE VISUAL */}
         <section className="space-y-6">
           <h3 className="text-[10px] font-black text-primary uppercase tracking-[0.4em] ml-1">Branding Elite</h3>
           <div className="bg-surface-dark border border-white/5 rounded-[40px] p-8 space-y-8 shadow-2xl">
             <div className="space-y-2">
-              <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">Nome Luxuoso</label>
-              <input type="text" value={formData.nome} onChange={(e) => setFormData({ ...formData, nome: e.target.value })} className="w-full bg-background-dark border border-white/10 rounded-2xl p-5 text-white outline-none focus:border-primary shadow-inner" />
+              <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">Nome da Unidade</label>
+              <input type="text" value={formData.nome || ''} onChange={(e) => setFormData({ ...formData, nome: e.target.value })} className="w-full bg-background-dark border border-white/10 rounded-2xl p-5 text-white outline-none focus:border-primary shadow-inner" />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">Proprietário (Responsável)</label>
+              <input type="text" value={ownerName} onChange={(e) => setOwnerName(e.target.value)} className="w-full bg-background-dark border border-white/10 rounded-2xl p-5 text-white outline-none focus:border-primary shadow-inner" />
             </div>
 
             <div className="space-y-2">
               <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">Slug da Unidade</label>
               <div className="flex items-center gap-2 bg-background-dark border border-white/10 rounded-2xl px-6 py-5 shadow-inner">
                 <span className="text-slate-600 text-[10px]">aura.sh/</span>
-                <input type="text" value={formData.slug_publico} onChange={(e) => setFormData({ ...formData, slug_publico: e.target.value })} className="flex-1 bg-transparent text-primary text-xs font-bold outline-none" />
+                <input type="text" value={formData.slug_publico || ''} onChange={(e) => setFormData({ ...formData, slug_publico: e.target.value })} className="flex-1 bg-transparent text-primary text-xs font-bold outline-none" />
               </div>
             </div>
 
@@ -471,7 +496,7 @@ const BusinessSetup: React.FC<BusinessSetupProps> = ({ salon, userId, onSave }) 
 
             <div className="space-y-2">
               <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">Cidade / UF</label>
-              <input type="text" value={formData.cidade} onChange={(e) => setFormData({ ...formData, cidade: e.target.value })} className="w-full bg-background-dark border border-white/10 rounded-2xl p-5 text-white outline-none shadow-inner" />
+              <input type="text" value={formData.cidade || ''} onChange={(e) => setFormData({ ...formData, cidade: e.target.value })} className="w-full bg-background-dark border border-white/10 rounded-2xl p-5 text-white outline-none shadow-inner" />
             </div>
 
             <div className="space-y-4 pt-4 border-t border-white/5">
@@ -494,7 +519,7 @@ const BusinessSetup: React.FC<BusinessSetupProps> = ({ salon, userId, onSave }) 
                       if (match) {
                         updateLocation('lat', match[1]);
                         updateLocation('lng', match[2]);
-                        alert("📍 Localização importada com sucesso!");
+                        showToast("📍 Localização importada com sucesso!", 'success');
                       }
                     }}
                   />
@@ -508,9 +533,9 @@ const BusinessSetup: React.FC<BusinessSetupProps> = ({ salon, userId, onSave }) 
                   if (coords) {
                     updateLocation('lat', coords.lat);
                     updateLocation('lng', coords.lng);
-                    alert("📍 Coordenadas detectadas via endereço!");
+                    showToast("📍 Coordenadas detectadas via endereço!", 'success');
                   } else {
-                    alert("❌ Não foi possível geolocalizar este endereço.");
+                    showToast("❌ Não foi possível geolocalizar este endereço.", 'error');
                   }
                 }}
                 className="w-full mt-2 py-3 rounded-xl bg-surface-dark border border-white/5 text-slate-400 text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all"
@@ -525,7 +550,7 @@ const BusinessSetup: React.FC<BusinessSetupProps> = ({ salon, userId, onSave }) 
                 <input
                   type="number"
                   step="any"
-                  value={formData.location?.lat || 0}
+                  value={formData.location?.lat ?? 0}
                   onChange={(e) => updateLocation('lat', parseFloat(e.target.value))}
                   className="w-full bg-background-dark border border-white/10 rounded-2xl p-4 text-white text-xs outline-none shadow-inner font-mono text-center"
                 />
@@ -535,7 +560,7 @@ const BusinessSetup: React.FC<BusinessSetupProps> = ({ salon, userId, onSave }) 
                 <input
                   type="number"
                   step="any"
-                  value={formData.location?.lng || 0}
+                  value={formData.location?.lng ?? 0}
                   onChange={(e) => updateLocation('lng', parseFloat(e.target.value))}
                   className="w-full bg-background-dark border border-white/10 rounded-2xl p-4 text-white text-xs outline-none shadow-inner font-mono text-center"
                 />

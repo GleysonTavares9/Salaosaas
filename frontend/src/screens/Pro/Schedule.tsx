@@ -4,6 +4,7 @@ import { Appointment, Service, Professional } from '../../types';
 import { api } from '../../lib/api';
 import { supabase } from '../../lib/supabase';
 import Calendar from '../../components/Calendar';
+import { useToast } from '../../contexts/ToastContext';
 
 interface ScheduleProps {
   appointments: Appointment[];
@@ -13,6 +14,7 @@ interface ScheduleProps {
 
 const Schedule: React.FC<ScheduleProps> = ({ appointments: initialAppointments, salon: initialSalon, onUpdateStatus }) => {
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const [activeTab, setActiveTab] = useState<'grid' | 'list'>('grid');
   const [showCalendar, setShowCalendar] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
@@ -193,7 +195,7 @@ const Schedule: React.FC<ScheduleProps> = ({ appointments: initialAppointments, 
         setAppointments(prev => prev.filter(a => a.id !== id));
       }
     } catch (error) {
-      alert("Erro ao processar ação: " + error);
+      showToast("Erro ao processar ação: " + error, 'error');
     } finally {
       setConfirmModal({ ...confirmModal, show: false });
     }
@@ -266,7 +268,7 @@ const Schedule: React.FC<ScheduleProps> = ({ appointments: initialAppointments, 
   const handleCreateAppointment = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newAppt.serviceId || !newAppt.professionalId || !newAppt.clientName) {
-      alert("Preencha todos os campos");
+      showToast("Preencha todos os campos do agendamento.", 'info');
       return;
     }
 
@@ -287,7 +289,7 @@ const Schedule: React.FC<ScheduleProps> = ({ appointments: initialAppointments, 
     });
 
     if (isConflict) {
-      alert("Este profissional já possui um agendamento que sobrepõe este horário.");
+      showToast("Este profissional já possui um agendamento que sobrepõe este horário.", 'error');
       return;
     }
 
@@ -316,7 +318,7 @@ const Schedule: React.FC<ScheduleProps> = ({ appointments: initialAppointments, 
       fetchData();
     } catch (error) {
       console.error("Erro completo:", error);
-      alert("Erro ao criar agendamento: Verifique se a tabela 'appointments' existe no seu Supabase.");
+      showToast("Erro ao criar agendamento. Verifique sua conexão.", 'error');
     }
   };
 
@@ -329,7 +331,7 @@ const Schedule: React.FC<ScheduleProps> = ({ appointments: initialAppointments, 
   }
 
   return (
-    <div className="flex-1 bg-background-dark min-h-screen pb-32 relative">
+    <div className="flex-1 bg-background-dark h-full overflow-y-auto pb-32 relative">
       <header className="sticky top-0 z-[100] bg-background-dark/95 backdrop-blur-xl px-6 pt-12 pb-6 border-b border-white/5">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-4">
@@ -390,7 +392,7 @@ const Schedule: React.FC<ScheduleProps> = ({ appointments: initialAppointments, 
         </div>
       </div>
 
-      <main className="px-4 py-8 animate-fade-in no-scrollbar">
+      <main className="px-4 py-8 animate-fade-in">
         {activeTab === 'grid' ? (
           <div
             className="relative bg-surface-dark/30 rounded-[40px] border border-white/5 overflow-hidden flex flex-col"

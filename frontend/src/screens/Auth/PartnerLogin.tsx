@@ -13,6 +13,10 @@ const PartnerLogin: React.FC<PartnerLoginProps> = ({ onLogin }) => {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [loginRole, setLoginRole] = useState<ViewRole>('pro');
+  const [showPassword, setShowPassword] = useState(false);
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [redirectInfo, setRedirectInfo] = useState<{ role: string, message: string } | null>(null);
 
@@ -74,6 +78,22 @@ const PartnerLogin: React.FC<PartnerLoginProps> = ({ onLogin }) => {
     }
   };
 
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setErrorMessage(null);
+    setSuccessMessage(null);
+    try {
+      await api.auth.resetPassword(resetEmail.trim());
+      setSuccessMessage("E-mail de recuperação enviado! Verifique sua caixa de entrada.");
+    } catch (error: any) {
+      console.error("Reset Error:", error);
+      setErrorMessage(error.message || "Erro ao solicitar recuperação.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   if (redirectInfo) {
     return (
       <div className="fixed inset-0 z-[9999] bg-background-dark/95 backdrop-blur-xl flex flex-col items-center justify-center p-8 animate-fade-in text-center">
@@ -90,7 +110,7 @@ const PartnerLogin: React.FC<PartnerLoginProps> = ({ onLogin }) => {
   }
 
   return (
-    <div className="relative flex-1 flex flex-col min-h-screen bg-background-dark overflow-hidden">
+    <div className="relative flex-1 flex flex-col h-full bg-background-dark overflow-y-auto no-scrollbar">
       <div className="absolute inset-0 z-0">
         <img
           src="https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=1200"
@@ -109,7 +129,7 @@ const PartnerLogin: React.FC<PartnerLoginProps> = ({ onLogin }) => {
         </div>
       </header>
 
-      <main className="relative z-10 flex-1 flex flex-col justify-center px-8 pb-20">
+      <main className="relative z-10 flex-1 flex flex-col justify-center px-8 pb-32">
         <div className="space-y-2 mb-10 text-center">
           <h1 className="text-5xl font-display font-black text-white italic tracking-tighter leading-none">Aura <br /> <span className="text-primary text-4xl uppercase">Management.</span></h1>
           <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.3em] mt-4">Gestão inteligente para artistas.</p>
@@ -121,63 +141,130 @@ const PartnerLogin: React.FC<PartnerLoginProps> = ({ onLogin }) => {
           </div>
         )}
 
-        <div className="flex bg-surface-dark p-1.5 rounded-2xl border border-white/5 mb-10 shadow-2xl">
-          <button
-            type="button"
-            onClick={() => setLoginRole('pro')}
-            className={`flex-1 py-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${loginRole === 'pro' ? 'bg-primary text-background-dark shadow-xl' : 'text-slate-500'}`}
-          >
-            Barbeiro
-          </button>
-          <button
-            type="button"
-            onClick={() => setLoginRole('admin')}
-            className={`flex-1 py-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${loginRole === 'admin' ? 'bg-primary text-background-dark shadow-xl' : 'text-slate-500'}`}
-          >
-            Gestor
-          </button>
-        </div>
-
-        <form onSubmit={handleLogin} className="space-y-6">
-          <div className="space-y-2">
-            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">E-mail</label>
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="seu@email.com"
-              className="w-full bg-surface-dark border border-white/5 rounded-2xl py-5 px-6 text-white text-sm outline-none focus:border-primary/50 transition-all shadow-inner"
-            />
+        {successMessage && (
+          <div className="bg-emerald-500/10 border border-emerald-500/20 p-5 rounded-[24px] text-emerald-500 text-[10px] font-black uppercase tracking-widest text-center animate-fade-in mb-8">
+            {successMessage}
           </div>
+        )}
 
-          <div className="space-y-2">
-            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Senha</label>
-            <input
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              className="w-full bg-surface-dark border border-white/5 rounded-2xl py-5 px-6 text-white text-sm outline-none focus:border-primary/50 transition-all shadow-inner"
-            />
-          </div>
+        {!isForgotPassword ? (
+          <>
+            <div className="flex bg-surface-dark p-1.5 rounded-2xl border border-white/5 mb-10 shadow-2xl">
+              <button
+                type="button"
+                onClick={() => setLoginRole('pro')}
+                className={`flex-1 py-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${loginRole === 'pro' ? 'bg-primary text-background-dark shadow-xl' : 'text-slate-500'}`}
+              >
+                Barbeiro
+              </button>
+              <button
+                type="button"
+                onClick={() => setLoginRole('admin')}
+                className={`flex-1 py-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${loginRole === 'admin' ? 'bg-primary text-background-dark shadow-xl' : 'text-slate-500'}`}
+              >
+                Gestor
+              </button>
+            </div>
 
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="w-full gold-gradient text-background-dark font-black py-5 rounded-2xl shadow-2xl uppercase tracking-[0.3em] text-[11px] flex items-center justify-center gap-3 active:scale-95 transition-all mt-4"
-          >
-            {isLoading ? (
-              <div className="size-5 border-2 border-background-dark/30 border-t-background-dark rounded-full animate-spin"></div>
-            ) : (
-              <>
-                Acessar Portal
-                <span className="material-symbols-outlined font-black">login</span>
-              </>
-            )}
-          </button>
-        </form>
+            <form onSubmit={handleLogin} className="space-y-6">
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">E-mail</label>
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="seu@email.com"
+                  className="w-full bg-surface-dark border border-white/5 rounded-2xl py-5 px-6 text-white text-sm outline-none focus:border-primary/50 transition-all shadow-inner"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex justify-between items-center ml-1">
+                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Senha</label>
+                  <button
+                    type="button"
+                    onClick={() => setIsForgotPassword(true)}
+                    className="text-[9px] font-black text-primary uppercase tracking-widest hover:underline"
+                  >
+                    Esqueceu a senha?
+                  </button>
+                </div>
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="w-full bg-surface-dark border border-white/5 rounded-2xl py-5 px-6 text-white text-sm outline-none focus:border-primary/50 transition-all shadow-inner"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-500"
+                  >
+                    <span className="material-symbols-outlined">
+                      {showPassword ? 'visibility' : 'visibility_off'}
+                    </span>
+                  </button>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="w-full gold-gradient text-background-dark font-black py-5 rounded-2xl shadow-2xl uppercase tracking-[0.3em] text-[11px] flex items-center justify-center gap-3 active:scale-95 transition-all mt-4"
+              >
+                {isLoading ? (
+                  <div className="size-5 border-2 border-background-dark/30 border-t-background-dark rounded-full animate-spin"></div>
+                ) : (
+                  <>
+                    Acessar Portal
+                    <span className="material-symbols-outlined font-black">login</span>
+                  </>
+                )}
+              </button>
+            </form>
+          </>
+        ) : (
+          <form onSubmit={handleResetPassword} className="space-y-6 animate-fade-in">
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">E-mail para Recuperação</label>
+              <input
+                type="email"
+                required
+                value={resetEmail}
+                onChange={(e) => setResetEmail(e.target.value)}
+                placeholder="seu@email.com"
+                className="w-full bg-surface-dark border border-white/5 rounded-2xl py-5 px-6 text-white text-sm outline-none focus:border-primary/50 transition-all shadow-inner"
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full gold-gradient text-background-dark font-black py-5 rounded-2xl shadow-2xl uppercase tracking-[0.3em] text-[11px] flex items-center justify-center gap-3 active:scale-95 transition-all mt-4"
+            >
+              {isLoading ? (
+                <div className="size-5 border-2 border-background-dark/30 border-t-background-dark rounded-full animate-spin"></div>
+              ) : (
+                <>
+                  Enviar Instruções
+                  <span className="material-symbols-outlined font-black">mail</span>
+                </>
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setIsForgotPassword(false)}
+              className="w-full py-4 text-[9px] font-black text-slate-500 uppercase tracking-widest"
+            >
+              Voltar para o Login
+            </button>
+          </form>
+        )}
 
         <div className="mt-12 text-center">
           {loginRole === 'admin' ? (

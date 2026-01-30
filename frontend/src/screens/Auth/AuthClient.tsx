@@ -3,14 +3,10 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../lib/api';
 import { supabase } from '../../lib/supabase';
+import { useToast } from '../../contexts/ToastContext';
 
 interface AuthClientProps {
   onLogin: (role: 'client', userId: string) => void;
-}
-
-interface Notification {
-  type: 'success' | 'info' | 'error';
-  message: string;
 }
 
 const AuthClient: React.FC<AuthClientProps> = ({ onLogin }) => {
@@ -19,13 +15,18 @@ const AuthClient: React.FC<AuthClientProps> = ({ onLogin }) => {
   const [isRecovering, setIsRecovering] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [notification, setNotification] = useState<Notification | null>(null);
+  const { showToast } = useToast();
+
+  // Estado para o Overlay de Redirecionamento
+  const [redirectInfo, setRedirectInfo] = useState<{ role: string, message: string } | null>(null);
 
   // Form State
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // Verificação de Sessão Existente (Para quando o usuário já está logado ou dá F5)
   React.useEffect(() => {
@@ -48,11 +49,6 @@ const AuthClient: React.FC<AuthClientProps> = ({ onLogin }) => {
       }
     });
   }, [navigate]);
-
-  const showNotification = (message: string, type: 'success' | 'info' | 'error' = 'info') => {
-    setNotification({ message, type });
-    setTimeout(() => setNotification(null), 5000); // Auto hide after 5s
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -101,7 +97,7 @@ const AuthClient: React.FC<AuthClientProps> = ({ onLogin }) => {
 
         if (authRes.user) {
           // Mostra mensagem de sucesso e muda para a aba de login
-          showNotification("✨ Cadastro realizado com sucesso! Bem-vindo à Aura. Por favor, faça login para acessar.", 'success');
+          showToast("✨ Cadastro realizado com sucesso! Bem-vindo à Aura. Por favor, faça login para acessar.", 'success');
           setIsLogin(true);
           setIsLoading(false);
           return;
@@ -110,13 +106,14 @@ const AuthClient: React.FC<AuthClientProps> = ({ onLogin }) => {
 
     } catch (error: any) {
       console.error("Login Error:", error);
-      if (error.message?.includes('Email not confirmed') || error.status === 400) {
-        setErrorMessage("E-mail não confirmado. Verifique sua caixa de entrada (e spam) para ativar a conta.");
+      const msg = error.message || "";
 
-      } else if (error.message?.includes('Invalid login credentials')) {
-        setErrorMessage("Login falhou. Se acabou de se cadastrar, confirme seu e-mail antes de entrar.");
+      if (msg.includes('Invalid login credentials')) {
+        setErrorMessage("E-mail ou senha incorretos. Verifique seus dados.");
+      } else if (msg.includes('Email not confirmed') || error.status === 400) {
+        setErrorMessage("E-mail não confirmado. Verifique sua caixa de entrada (e spam) para ativar a conta.");
       } else {
-        setErrorMessage(error.message || "Erro na autenticação.");
+        setErrorMessage(msg || "Erro na autenticação.");
       }
     } finally {
       setIsLoading(false);
@@ -129,10 +126,19 @@ const AuthClient: React.FC<AuthClientProps> = ({ onLogin }) => {
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email);
       if (error) throw error;
-      showNotification(`Enviamos um link de recuperação para: ${email}`, 'success');
+      showToast(`Enviamos um link de recuperação para: ${email}`, 'success');
       setTimeout(() => setIsRecovering(false), 2000);
     } catch (error: any) {
-      setErrorMessage("Erro na recuperação: " + (error.message || error));
+      console.error("Recovery Error:", error);
+      const msg = error.message || "";
+
+      if (msg.includes('Email not confirmed')) {
+        setErrorMessage("E-mail não confirmado. Você precisa confirmar seu e-mail antes de recuperar a senha.");
+      } else if (msg.includes('rate limit exceeded') || msg.includes('Too Many Requests')) {
+        setErrorMessage("⏰ Calma lá! Curto-circuito de segurança.\n\nEnviamos muitos e-mails recentemente. Por segurança, aguarde alguns minutos ou cerca de 1 hora antes de tentar novamente.");
+      } else {
+        setErrorMessage("Erro na recuperação: " + (msg || error));
+      }
     } finally {
       setIsLoading(false);
     }
@@ -141,15 +147,6 @@ const AuthClient: React.FC<AuthClientProps> = ({ onLogin }) => {
   if (isRecovering) {
     return (
       <div className="flex-1 bg-background-dark min-h-screen flex flex-col p-8 relative">
-        {notification && (
-          <div className={`fixed top-4 left-4 right-4 z-[100] p-4 rounded-2xl shadow-2xl animate-fade-in border ${notification.type === 'success' ? 'bg-green-500/10 border-green-500/20 text-green-500' :
-            notification.type === 'error' ? 'bg-red-500/10 border-red-500/20 text-red-500' :
-              'bg-primary/10 border-primary/20 text-primary'
-            }`}>
-            <p className="text-[10px] font-black uppercase tracking-widest text-center">{notification.message}</p>
-          </div>
-        )}
-
         <header className="pt-8 pb-8 flex items-center justify-between">
           <button onClick={() => setIsRecovering(false)} className="size-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-white">
             <span className="material-symbols-outlined">arrow_back</span>
@@ -184,9 +181,7 @@ const AuthClient: React.FC<AuthClientProps> = ({ onLogin }) => {
     );
   }
 
-  // Estado para o Overlay de Redirecionamento
-  const [redirectInfo, setRedirectInfo] = useState<{ role: string, message: string } | null>(null);
-
+  // No longer needed here as it's defined at the top
   if (redirectInfo) {
     return (
       <div className="fixed inset-0 z-[9999] bg-background-dark/95 backdrop-blur-xl flex flex-col items-center justify-center p-8 animate-fade-in text-center">
@@ -207,24 +202,7 @@ const AuthClient: React.FC<AuthClientProps> = ({ onLogin }) => {
   }
 
   return (
-    <div className="flex-1 bg-background-dark min-h-screen flex flex-col p-8 overflow-y-auto no-scrollbar relative">
-
-      {/* Notifications Toast */}
-      {notification && (
-        <div className={`fixed top-4 left-4 right-4 z-[100] p-4 rounded-2xl shadow-2xl animate-fade-in border ${notification.type === 'success' ? 'bg-green-500/10 border-green-500/20 text-green-500' :
-          notification.type === 'error' ? 'bg-red-500/10 border-red-500/20 text-red-500' :
-            'bg-primary/10 border-primary/20 text-primary'
-          }`}>
-          <div className="flex items-center gap-3">
-            <span className="material-symbols-outlined text-lg">
-              {notification.type === 'success' ? 'check_circle' : notification.type === 'error' ? 'error' : 'info'}
-            </span>
-            <p className="text-[10px] font-black uppercase tracking-widest flex-1">{notification.message}</p>
-            <button onClick={() => setNotification(null)} className="opacity-50 hover:opacity-100"><span className="material-symbols-outlined text-sm">close</span></button>
-          </div>
-        </div>
-      )}
-
+    <div className="flex-1 bg-background-dark h-full flex flex-col p-8 overflow-y-auto no-scrollbar relative">
       <header className="pt-8 pb-6 flex items-center justify-between">
         <button onClick={() => navigate('/')} className="size-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-white active:scale-90 transition-transform shadow-xl">
           <span className="material-symbols-outlined">close</span>
@@ -284,12 +262,48 @@ const AuthClient: React.FC<AuthClientProps> = ({ onLogin }) => {
               <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Senha</label>
               {isLogin && <button type="button" onClick={() => setIsRecovering(true)} className="text-[9px] font-black text-primary uppercase tracking-widest">Esqueceu?</button>}
             </div>
-            <input type="password" required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="w-full bg-surface-dark border border-white/5 rounded-2xl py-5 px-6 text-white text-sm outline-none focus:border-primary/50 transition-all shadow-inner" />
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                className="w-full bg-surface-dark border border-white/5 rounded-2xl py-5 px-6 text-white text-sm outline-none focus:border-primary/50 transition-all shadow-inner"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-500"
+              >
+                <span className="material-symbols-outlined">
+                  {showPassword ? 'visibility' : 'visibility_off'}
+                </span>
+              </button>
+            </div>
           </div>
           {!isLogin && (
             <div className="space-y-1.5 animate-fade-in">
               <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Confirmar Senha</label>
-              <input type="password" required value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="••••••••" className={`w-full bg-surface-dark border rounded-2xl py-5 px-6 text-white text-sm outline-none transition-all shadow-inner ${confirmPassword && password !== confirmPassword ? 'border-danger/50' : 'border-white/5 focus:border-primary/50'}`} />
+              <div className="relative">
+                <input
+                  type={showConfirmPassword ? "text" : "password"}
+                  required
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className={`w-full bg-surface-dark border rounded-2xl py-5 px-6 text-white text-sm outline-none transition-all shadow-inner ${confirmPassword && password !== confirmPassword ? 'border-danger/50' : 'border-white/5 focus:border-primary/50'}`}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-500"
+                >
+                  <span className="material-symbols-outlined">
+                    {showConfirmPassword ? 'visibility' : 'visibility_off'}
+                  </span>
+                </button>
+              </div>
             </div>
           )}
           <button type="submit" disabled={isLoading} className="w-full gold-gradient text-background-dark font-black py-5 rounded-2xl shadow-2xl uppercase tracking-[0.3em] text-[11px] flex items-center justify-center gap-3 active:scale-95 transition-all mt-4 border border-white/10">
@@ -315,6 +329,4 @@ const AuthClient: React.FC<AuthClientProps> = ({ onLogin }) => {
   );
 };
 
-
 export default AuthClient;
-

@@ -3,11 +3,14 @@ import React, { useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { getBeautyAdvice } from '../lib/ai.ts';
 
+import { api } from '../lib/api';
+
 const AIConcierge: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState('');
   const [response, setResponse] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [contextData, setContextData] = useState<{ services: any[]; products: any[] }>({ services: [], products: [] });
   const location = useLocation();
 
   const hiddenPaths = ['/checkout', '/select-service', '/choose-time', '/evaluate', '/pro', '/login', '/register'];
@@ -16,6 +19,26 @@ const AIConcierge: React.FC = () => {
   const isChatPage = location.pathname.includes('/chat/') || location.pathname.includes('/messages');
   const shouldHide = hiddenPaths.some(path => location.pathname.includes(path));
 
+  // Carregar dados do catálogo ao abrir o chat para dar contexto à IA
+  React.useEffect(() => {
+    if (isOpen && contextData.services.length === 0) {
+      const fetchData = async () => {
+        try {
+          // Busca todos os serviços e produtos para contexto global
+          // (Em um app real multi-tenant, filtraríamos pelo salão atual se isSalonPage)
+          const [services, products] = await Promise.all([
+            api.services.getAll().catch(err => { console.warn("Erro ao buscar serviços para IA", err); return []; }),
+            api.products.getAll().catch(err => { console.warn("Erro ao buscar produtos para IA", err); return []; })
+          ]);
+          setContextData({ services, products });
+        } catch (e) {
+          console.error("Falha ao carregar contexto da IA", e);
+        }
+      };
+      fetchData();
+    }
+  }, [isOpen]);
+
   if (shouldHide) return null;
 
   const handleAsk = async (e: React.FormEvent) => {
@@ -23,7 +46,10 @@ const AIConcierge: React.FC = () => {
     if (!input.trim()) return;
     setLoading(true);
     setResponse(null);
-    const result = await getBeautyAdvice(input);
+
+    // Passamos o contexto do banco de dados para a IA
+    const result = await getBeautyAdvice(input, contextData);
+
     setResponse(result || null);
     setLoading(false);
   };

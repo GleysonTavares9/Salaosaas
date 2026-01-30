@@ -2,6 +2,7 @@ import { supabase } from './supabase';
 import { Salon, Service, Product, Professional, Appointment, ChatMessage, Conversation } from '../types';
 
 export const api = {
+    supabase,
     // --- Salões ---
     salons: {
         async getAll() {
@@ -32,8 +33,16 @@ export const api = {
         },
         async update(id: string, updates: Partial<Salon>) {
             const { data, error } = await supabase.from('salons').update(updates).eq('id', id).select().single();
-            if (error) throw error;
+            if (error) {
+                console.error(`API Error updating salon:`, error.message);
+                throw error;
+            }
             return data as Salon;
+        },
+        async registerNewSalon(params: any) {
+            const { data, error } = await supabase.rpc('register_new_salon_and_owner', params);
+            if (error) throw error;
+            return data as string; // Retorna o ID do salão
         }
     },
 
@@ -66,6 +75,11 @@ export const api = {
             const { data, error } = await supabase.from('services').insert(service).select().single();
             if (error) throw error;
             return data as Service;
+        },
+        async getAll() {
+            const { data, error } = await supabase.from('services').select('*, salons(nome)');
+            if (error) throw error;
+            return data as any[];
         }
     },
 
@@ -90,6 +104,15 @@ export const api = {
             const { data, error } = await supabase.rpc('decrement_stock', { p_id: productId, p_qty: quantity });
             if (error) throw error;
             return data;
+        },
+        async update(id: string, updates: Partial<Product>) {
+            const { data, error } = await supabase.from('products').update(updates).eq('id', id).select().single();
+            if (error) throw error;
+            return data as Product;
+        },
+        async delete(id: string) {
+            const { error } = await supabase.from('products').delete().eq('id', id);
+            if (error) throw error;
         }
     },
 
@@ -105,10 +128,33 @@ export const api = {
             if (error) throw error;
             return data as Professional;
         },
-        async update(id: string, updates: Partial<Professional>) {
-            const { data, error } = await supabase.from('professionals').update(updates).eq('id', id).select().single();
-            if (error) throw error;
-            return data as Professional;
+        async update(id: string, updates: Partial<Professional>, salonId?: string) {
+            // Removemos campos que não devem ser atualizados manualmente
+            const { id: _, created_at: __, ...validUpdates } = updates as any;
+
+            let query = supabase.from('professionals').update(validUpdates).eq('id', id);
+            if (salonId) query = query.eq('salon_id', salonId);
+
+            const { data, error } = await query.select();
+
+            if (error) {
+                console.error(`Erro na API ao atualizar profissional (${id}):`, error);
+                throw error;
+            }
+
+            if (!data || data.length === 0) {
+                // Tentativa de cura: Se falhou com filtro de salon_id, tenta apenas por ID
+                // O banco de dados (RLS) ainda vai proteger se o usuário não tiver permissão
+                if (salonId) {
+                    console.warn(`Update com salon_id ${salonId} não afetou linhas. Tentando recovery por ID.`);
+                    const retry = await supabase.from('professionals').update(validUpdates).eq('id', id).select();
+                    if (retry.data && retry.data.length > 0) return retry.data[0] as Professional;
+                }
+
+                console.error(`Falha no update RLS: Registro ${id} não afetado.`);
+                throw new Error(`Não foi possível salvar: Profissional não encontrado ou permissão negada.`);
+            }
+            return data[0] as Professional;
         },
         async delete(id: string) {
             const { error } = await supabase.from('professionals').delete().eq('id', id);
@@ -217,10 +263,10 @@ export const api = {
 
     // --- Avaliações ---
     reviews: {
-        async create(review: { appointment_id?: string; salon_id: string; client_id: string; rating: number; comment?: string }) {
+        async create(review: { appointment_id?: string; salon_id: string; client_id: string; professional_id?: string; rating: number; comment?: string }) {
             const { data, error } = await supabase.from('reviews').insert(review).select().single();
             if (error) throw error;
-            await this.updateSalonRatingIncremental(review.salon_id, review.rating, 'add');
+            await this.updateSalonRating(review.salon_id);
             return data;
         },
         async getBySalon(salonId: string) {
@@ -243,29 +289,35 @@ export const api = {
             }));
         },
         async delete(reviewId: string, salonId: string) {
-            const { data: review } = await supabase.from('reviews').select('rating').eq('id', reviewId).single();
             const { error } = await supabase.from('reviews').delete().eq('id', reviewId);
             if (error) throw error;
-            if (review) {
-                await this.updateSalonRatingIncremental(salonId, review.rating, 'subtract');
-            }
+            await this.updateSalonRating(salonId);
         },
-        async updateSalonRatingIncremental(salonId: string, ratingValue: number, action: 'add' | 'subtract') {
-            const { data: salon } = await supabase.from('salons').select('rating, reviews').eq('id', salonId).single();
-            if (!salon) return;
-            const currentRating = Number(salon.rating) || 5.0;
-            const currentCount = Number(salon.reviews) || 0;
-            let newCount = action === 'add' ? currentCount + 1 : Math.max(0, currentCount - 1);
-            let newRating = 5.0;
-            if (newCount > 0) {
-                const currentSum = currentRating * currentCount;
-                const newSum = action === 'add' ? currentSum + ratingValue : currentSum - ratingValue;
-                newRating = Math.round((newSum / newCount) * 10) / 10;
+        async updateSalonRating(salonId: string) {
+            // Conta TODAS as avaliações no banco para ser o mais fiel possível
+            const { data: reviews, error: reviewsError } = await supabase
+                .from('reviews')
+                .select('rating')
+                .eq('salon_id', salonId);
+
+            if (reviewsError) throw reviewsError;
+
+            const count = reviews?.length || 0;
+            const avgRating = count > 0
+                ? Math.round((reviews.reduce((sum, r) => sum + r.rating, 0) / count) * 10) / 10
+                : 0.0; // Agora volta para 0 se não houver reviews
+
+            const { error: updateError } = await supabase
+                .from('salons')
+                .update({
+                    rating: avgRating,
+                    reviews: count
+                })
+                .eq('id', salonId);
+
+            if (updateError) {
+                console.error("Falha ao atualizar contador no salão:", updateError);
             }
-            await supabase.from('salons').update({
-                rating: Math.max(0, Math.min(5, newRating)),
-                reviews: newCount
-            }).eq('id', salonId);
         }
     },
 
@@ -325,6 +377,16 @@ export const api = {
         },
         async signOut() {
             const { error } = await supabase.auth.signOut();
+            if (error) throw error;
+        },
+        async resetPassword(email: string) {
+            const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                redirectTo: `${window.location.origin}/#/reset-password`,
+            });
+            if (error) throw error;
+        },
+        async updatePassword(newPassword: string) {
+            const { error } = await supabase.auth.updateUser({ password: newPassword });
             if (error) throw error;
         }
     }

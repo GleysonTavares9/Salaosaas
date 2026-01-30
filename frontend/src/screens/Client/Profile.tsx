@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import { api } from '../../lib/api';
 import { Professional } from '../../types';
+import { useToast } from '../../contexts/ToastContext';
 
 interface ProfileProps {
   onLogout: () => void;
@@ -13,6 +14,7 @@ interface ProfileProps {
 const Profile: React.FC<ProfileProps> = ({ onLogout }) => {
 
   const navigate = useNavigate();
+  const { showToast } = useToast();
 
   const [userData, setUserData] = useState<{ id: string, name: string, email: string, role: string, avatar_url?: string, phone?: string } | null>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -123,10 +125,10 @@ const Profile: React.FC<ProfileProps> = ({ onLogout }) => {
       // 4. Atualiza o estado local
       setUserData(prev => prev ? { ...prev, full_name: editName, phone: editPhone, name: editName } : null);
       setIsEditing(false);
-      alert("✨ Sua Aura foi atualizada com sucesso!");
+      showToast("✨ Sua Aura foi atualizada com sucesso!", 'success');
     } catch (error: any) {
       console.error("Erro ao salvar perfil:", error);
-      alert("Erro ao atualizar: " + (error.message || 'Erro desconhecido'));
+      showToast("Erro ao atualizar perfil.", 'error');
     } finally {
       setIsSaving(false);
     }
@@ -144,7 +146,7 @@ const Profile: React.FC<ProfileProps> = ({ onLogout }) => {
       setUserData(prev => prev ? { ...prev, avatar_url: publicUrl } : null);
     } catch (error: any) {
       console.error("Erro no upload:", error);
-      alert("Erro ao enviar foto. Tente novamente.");
+      showToast("Erro ao enviar foto. Tente novamente.", 'error');
     }
   };
 
@@ -189,9 +191,9 @@ const Profile: React.FC<ProfileProps> = ({ onLogout }) => {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      alert("Download iniciado com sucesso.");
+      showToast("Download iniciado com sucesso.", 'success');
     } catch (err: any) {
-      alert("Erro ao exportar dados: " + err.message);
+      showToast("Erro ao exportar dados.", 'error');
     }
   };
 
@@ -203,15 +205,15 @@ const Profile: React.FC<ProfileProps> = ({ onLogout }) => {
       await supabase.auth.updateUser({
         data: { deletion_requested: true, deletion_requested_at: new Date().toISOString() }
       });
-      alert("Solicitação recebida. Sua conta será desativada em breve.");
+      showToast("Solicitação recebida. Sua conta será desativada em breve.", 'info');
       onLogout();
     } catch (err: any) {
-      alert("Erro ao solicitar exclusão: " + err.message);
+      showToast("Erro ao solicitar exclusão.", 'error');
     }
   };
 
   return (
-    <div className="flex-1 bg-background-dark min-h-screen">
+    <div className="flex-1 bg-background-dark h-full overflow-y-auto pb-32">
       {/* ... Header ... */}
       <header className="p-8 pt-20 flex flex-col items-center gap-6 bg-gradient-to-b from-primary/20 via-primary/5 to-transparent">
         <div className="relative group">

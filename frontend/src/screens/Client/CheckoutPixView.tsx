@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../../lib/api';
+import { useToast } from '../../contexts/ToastContext';
 
 interface CheckoutPixViewProps {
     lastOrder: any;
@@ -44,12 +45,13 @@ const CheckoutPixView: React.FC<CheckoutPixViewProps> = ({
     isProcessing,
     setIsProcessing
 }) => {
+    const { showToast } = useToast();
     const [timeLeft, setTimeLeft] = useState(30 * 60);
     const [imgError, setImgError] = useState(false);
 
     useEffect(() => {
         if (timeLeft === 0) {
-            alert('O código PIX expirou. Por favor, gere um novo código.');
+            showToast('O código PIX expirou. Por favor, gere um novo código.', 'info');
             onBack();
             return;
         }
@@ -79,11 +81,11 @@ const CheckoutPixView: React.FC<CheckoutPixViewProps> = ({
                 });
                 onSuccess(newAppt);
             } else {
-                alert(`Status atual: ${data.status_detail || data.status}. Se você já pagou, aguarde alguns segundos e tente novamente.`);
+                showToast(`Status: ${data.status_detail || data.status}. Aguarde alguns instantes se já pagou.`, 'info');
             }
         } catch (err) {
             console.error("Erro ao verificar PIX:", err);
-            alert("Erro ao verificar status. Tente novamente.");
+            showToast("Erro ao verificar status. Tente novamente.", 'error');
         } finally {
             setIsProcessing(false);
         }
@@ -176,7 +178,7 @@ const CheckoutPixView: React.FC<CheckoutPixViewProps> = ({
                             onClick={() => {
                                 if (lastOrder?.pixData?.copyPaste) {
                                     navigator.clipboard.writeText(lastOrder.pixData.copyPaste);
-                                    alert('Chave Pix copiada!');
+                                    showToast('✨ Chave Pix copiada com sucesso!', 'success');
                                 }
                             }}
                             className="size-8 rounded-lg gold-gradient flex items-center justify-center text-background-dark active:scale-90 transition-all shrink-0 shadow-lg"

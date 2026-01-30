@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Appointment, ViewRole, Salon } from '../../types';
 import { supabase } from '../../lib/supabase';
 import { api } from '../../lib/api';
+import { useToast } from '../../contexts/ToastContext';
 
 interface AdminBookingsProps {
   appointments: Appointment[];
@@ -16,6 +17,7 @@ interface AdminBookingsProps {
 
 const AdminBookings: React.FC<AdminBookingsProps> = ({ appointments, role, salon, userId, onUpdateStatus, onUpdateAppointment, onDeleteAppointment }) => {
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const [filter, setFilter] = useState('all');
   const [enrichedAppointments, setEnrichedAppointments] = useState<Appointment[]>([]);
   const [showRescheduleModal, setShowRescheduleModal] = useState(false);
@@ -30,17 +32,6 @@ const AdminBookings: React.FC<AdminBookingsProps> = ({ appointments, role, salon
     message: string;
     onConfirm: () => void;
   }>({ show: false, title: '', message: '', onConfirm: () => { } });
-
-  const [notification, setNotification] = useState<{
-    show: boolean;
-    type: 'success' | 'error';
-    message: string;
-  }>({ show: false, type: 'success', message: '' });
-
-  const showNotification = (type: 'success' | 'error', message: string) => {
-    setNotification({ show: true, type, message });
-    setTimeout(() => setNotification({ show: false, type: 'success', message: '' }), 3000);
-  };
 
   // Buscar dados completos dos clientes (OTIMIZADO - uma única query)
   useEffect(() => {
@@ -194,10 +185,10 @@ const AdminBookings: React.FC<AdminBookingsProps> = ({ appointments, role, salon
           status: 'confirmed'
         });
       }
-      showNotification('success', 'Agendamento remarcado com sucesso!');
+      showToast('Agendamento remarcado com sucesso!', 'success');
       setShowRescheduleModal(false);
     } catch (error: any) {
-      showNotification('error', 'Erro ao remarcar');
+      showToast('Erro ao remarcar agendamento.', 'error');
     }
   };
 
@@ -212,7 +203,7 @@ const AdminBookings: React.FC<AdminBookingsProps> = ({ appointments, role, salon
         message: `Deseja cancelar o agendamento de ${appt.clientName}?`,
         onConfirm: async () => {
           onUpdateStatus(id, 'canceled');
-          showNotification('success', 'Agendamento cancelado.');
+          showToast('Agendamento cancelado.', 'success');
           setConfirmDialog({ show: false, title: '', message: '', onConfirm: () => { } });
         }
       });
@@ -223,7 +214,7 @@ const AdminBookings: React.FC<AdminBookingsProps> = ({ appointments, role, salon
         message: 'Esta ação não pode ser desfeita. Excluir agora?',
         onConfirm: () => {
           onDeleteAppointment?.(id);
-          showNotification('success', 'Agendamento removido.');
+          showToast('Agendamento removido permanentemente.', 'success');
           setConfirmDialog({ show: false, title: '', message: '', onConfirm: () => { } });
         }
       });
@@ -245,7 +236,7 @@ const AdminBookings: React.FC<AdminBookingsProps> = ({ appointments, role, salon
       message: 'Deseja marcar este serviço como concluído?',
       onConfirm: async () => {
         onUpdateStatus(id, 'completed');
-        showNotification('success', 'Atendimento finalizado com sucesso!');
+        showToast('Atendimento finalizado com sucesso!', 'success');
         setConfirmDialog({ show: false, title: '', message: '', onConfirm: () => { } });
       }
     });
@@ -253,14 +244,14 @@ const AdminBookings: React.FC<AdminBookingsProps> = ({ appointments, role, salon
 
 
   return (
-    <div className="flex-1 bg-background-dark min-h-screen">
+    <div className="flex-1 bg-background-dark overflow-y-auto h-full">
       <header className="sticky top-0 z-50 bg-background-dark/95 backdrop-blur-xl px-6 pt-12 pb-6 border-b border-white/5">
         <div className="flex items-center gap-4 mb-6">
           <button onClick={() => navigate('/pro')} className="size-10 rounded-full border border-white/10 flex items-center justify-center text-white">
             <span className="material-symbols-outlined">arrow_back</span>
           </button>
           <div className="flex-1">
-            <h1 className="text-xl font-display font-black text-white italic tracking-tight">{role === 'admin' ? 'Faturamento & Agenda' : 'Meus Atendimentos'}</h1>
+            <h1 className="text-xl font-display font-black text-white italic tracking-tighter uppercase leading-none">{role === 'admin' ? 'Faturamento & Agenda' : 'Meus Atendimentos'}</h1>
             <p className="text-primary text-[8px] font-black uppercase tracking-[0.2em] mt-1">Gestão de Sessões em Tempo Real</p>
           </div>
           <button
@@ -285,11 +276,11 @@ const AdminBookings: React.FC<AdminBookingsProps> = ({ appointments, role, salon
       </header>
 
 
-      <main className="px-6 py-8 space-y-6 pb-40 animate-fade-in">
+      <main className="px-6 py-8 space-y-6 pb-40 animate-fade-in mx-auto">
         {filteredAppts.map(appt => (
-          <div key={appt.id} className={`bg-surface-dark/80 rounded-[28px] border p-6 shadow-2xl relative overflow-hidden transition-all ${appt.status === 'canceled' ? 'opacity-50 grayscale border-white/5' :
+          <div key={appt.id} className={`bg-surface-dark/60 rounded-[32px] border p-5 shadow-2xl relative overflow-hidden transition-all ${appt.status === 'canceled' ? 'opacity-50 grayscale border-white/5' :
             appt.status === 'completed' ? 'border-emerald-500/20' :
-              'border-white/10'
+              'border-white/10 hover:border-primary/20'
             }`}>
 
             {/* Header com Status e Valor */}
@@ -304,19 +295,21 @@ const AdminBookings: React.FC<AdminBookingsProps> = ({ appointments, role, salon
                     {appt.status}
                   </span>
                 </div>
-                <h3 className="text-xl font-display font-black text-white italic tracking-tight mb-1">{appt.clientName || "Cliente Aura"}</h3>
+                <h3 className="text-xl font-display font-black text-white italic tracking-tighter mb-1 uppercase leading-tight">{appt.clientName || "Cliente Aura"}</h3>
                 <div className="flex items-center gap-2">
-                  <p className="text-xs font-bold text-primary uppercase tracking-wider">{appt.serviceName}</p>
-                  <span className="text-slate-500">•</span>
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                  <p className="text-[10px] font-black text-primary uppercase tracking-widest">{appt.serviceName}</p>
+                  <span className="text-slate-700">•</span>
+                  <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">
                     {appt.professionalName || "Sem Profissional"}
                   </p>
                 </div>
               </div>
               <div className="text-right">
-                <p className="text-2xl font-display font-black text-primary mb-1">R$ {appt.valor}</p>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">{appt.date}</p>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">{appt.time}</p>
+                <p className="text-2xl font-display font-black text-primary mb-1 italic">R$ {appt.valor}</p>
+                <div className="flex flex-col items-end gap-0.5 opacity-60">
+                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{appt.date}</p>
+                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{appt.time}</p>
+                </div>
               </div>
             </div>
 
@@ -331,14 +324,14 @@ const AdminBookings: React.FC<AdminBookingsProps> = ({ appointments, role, salon
                 onClick={async () => {
                   try {
                     if (!userId) {
-                      alert("Erro: ID do usuário pro não encontrado.");
+                      showToast("Erro: Usuário não identificado para chat.", 'error');
                       return;
                     }
                     // Buscar ou criar conversa real (ajustado para o novo schema)
                     const conv = await api.chat.startConversation(userId, appt.client_id);
                     navigate(`/chat/${conv.id}`);
                   } catch (error: any) {
-                    showNotification('error', 'Falha ao iniciar chat.');
+                    showToast('Falha ao iniciar chat.', 'error');
                   }
                 }}
                 className="flex items-center justify-center gap-2 bg-white/5 border border-white/10 rounded-2xl py-3.5 text-[10px] font-black text-white uppercase tracking-widest hover:bg-white/10 active:scale-95 transition-all"
@@ -417,7 +410,7 @@ const AdminBookings: React.FC<AdminBookingsProps> = ({ appointments, role, salon
       {/* Modal de Remarcação */}
       {showRescheduleModal && selectedAppt && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-md px-4 sm:px-6 animate-fade-in">
-          <div className="bg-surface-dark border border-white/10 rounded-[40px] p-6 sm:p-8 w-full max-w-sm shadow-2xl animate-scale-in max-h-[90vh] overflow-y-auto no-scrollbar">
+          <div className="bg-surface-dark border border-white/10 rounded-[40px] p-6 sm:p-8 w-full max-w-sm shadow-2xl animate-scale-in max-h-[90vh] overflow-y-auto">
             <div className="text-center mb-6">
               <h2 className="text-2xl font-display font-black text-white italic tracking-tighter mb-1">Remarcar Sessão</h2>
               <p className="text-[10px] text-primary uppercase font-black tracking-widest">{selectedAppt.clientName}</p>
@@ -487,17 +480,6 @@ const AdminBookings: React.FC<AdminBookingsProps> = ({ appointments, role, salon
               </button>
             </div>
           </div>
-        </div>
-      )}
-
-      {/* Notificação Toast */}
-      {notification.show && (
-        <div className={`fixed bottom-24 left-6 right-6 z-[200] p-5 rounded-[24px] shadow-2xl animate-slide-up flex items-center gap-4 border ${notification.type === 'success' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-red-500/10 border-red-500/20 text-red-400'
-          }`}>
-          <span className="material-symbols-outlined text-xl">
-            {notification.type === 'success' ? 'check_circle' : 'error'}
-          </span>
-          <p className="text-[10px] font-black uppercase tracking-widest flex-1">{notification.message}</p>
         </div>
       )}
 

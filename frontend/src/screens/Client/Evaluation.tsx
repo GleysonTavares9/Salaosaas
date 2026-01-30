@@ -3,10 +3,12 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { api } from '../../lib/api';
 import { supabase } from '../../lib/supabase';
+import { useToast } from '../../contexts/ToastContext';
 
 const Evaluation: React.FC = () => {
   const { id } = useParams(); // appointment ID
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const [rating, setRating] = useState(0);
   const [hover, setHover] = useState(0);
   const [comment, setComment] = useState('');
@@ -28,7 +30,7 @@ const Evaluation: React.FC = () => {
         setAppointment(data);
       } catch (error) {
         console.error('Error fetching appointment:', error);
-        alert('Erro ao carregar agendamento');
+        showToast('Erro ao carregar agendamento.', 'error');
         navigate('/my-appointments');
       }
     };
@@ -37,8 +39,8 @@ const Evaluation: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (rating === 0) return alert("Por favor, selecione uma nota.");
-    if (!appointment) return alert("Agendamento não encontrado");
+    if (rating === 0) return showToast("Por favor, selecione uma nota de 1 a 5 estrelas.", 'info');
+    if (!appointment) return showToast("Agendamento não encontrado para esta avaliação.", 'error');
 
     setIsSubmitting(true);
 
@@ -59,7 +61,7 @@ const Evaluation: React.FC = () => {
       setTimeout(() => navigate('/my-appointments'), 2000);
     } catch (error) {
       console.error('Error submitting review:', error);
-      alert('Erro ao enviar avaliação. Tente novamente.');
+      showToast('Erro ao enviar avaliação. Tente novamente mais tarde.', 'error');
     } finally {
       setIsSubmitting(false);
     }

@@ -41,7 +41,7 @@ const ProductShowcase: React.FC<ProductShowcaseProps> = ({ bookingDraft, setBook
           setCoords({ lat: position.coords.latitude, lng: position.coords.longitude });
         },
         () => {
-          console.log("Using default location");
+          // Mantém localização padrão
         }
       );
     }

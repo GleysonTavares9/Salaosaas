@@ -5,6 +5,7 @@ import { api } from '../../lib/api';
 import { supabase } from '../../lib/supabase';
 import { initMercadoPago, Payment } from '@mercadopago/sdk-react';
 import CheckoutPixView from './CheckoutPixView';
+import { useToast } from '../../contexts/ToastContext';
 
 interface CheckoutProps {
   bookingDraft: any;
@@ -21,24 +22,31 @@ const WhatsAppIcon = ({ className }: { className?: string }) => (
     viewBox="0 0 24 24"
     fill="currentColor"
     xmlns="http://www.w3.org/2000/svg"
-    style={{ aspectRatio: '1/1' }}
   >
-    <path d="M12.037 3C6.411 3 1.84 7.585 1.84 13.23c0 1.804.47 3.56 1.362 5.097L2 22l3.811-1.002c1.488.812 3.167 1.24 4.885 1.242h.004c5.624 0 10.196-4.585 10.198-10.231 0-2.735-1.064-5.308-2.996-7.243C16.071 3.829 13.5 2.768 12.037 3zm0 1.902c2.196 0 4.261.859 5.814 2.417 1.554 1.558 2.409 3.63 2.409 5.8 0 4.524-3.66 8.205-8.156 8.205-1.442-.001-2.858-.386-4.1-1.115l-.295-.174-2.535.666.677-2.479-.191-.305c-.801-1.277-1.224-2.753-1.224-4.276 0-4.525 3.661-8.204 8.156-8.204zm3.604 5.921c-.197-.1-.197-.1-.591-.3s-1.182-.592-1.38-.692-.394-.1-.591.2-.788.989-.985 1.187s-.394.2-.788 0-1.677-.618-2.268-1.336c-.591-.718-1.084-1.583-1.182-1.781s-.099-.346.1-.445c.184-.091.394-.445.591-.643s.296-.297.394-.495.049-.395-.05-.593-.788-1.879-.985-2.275c-.197-.396-.394-.346-.542-.346s-.345-.049-.591-.049-.64.099-.985.495c-.345.395-1.33 1.335-1.33 3.264s1.379 3.758 1.576 4.055 2.71 4.153 6.553 5.835c.915.4 1.63.639 2.187.816.924.293 1.765.251 2.429.152.74-.11 2.268-.923 2.583-1.815.315-.89.315-1.653.222-1.812-.094-.158-.345-.256-.739-.452z" />
+    <path
+      fillRule="evenodd"
+      clipRule="evenodd"
+      d="M18.894 5.106A9.957 9.957 0 0011.967 2.158c-5.484 0-9.946 4.462-9.946 9.946 0 1.758.46 3.475 1.337 4.996L2.152 22l5.093-1.336a9.92 9.92 0 004.721 1.192h.004c5.485 0 9.948-4.462 9.948-9.946 0-2.656-1.034-5.155-2.913-7.034h-.005.005zm-6.927 15.08h-.004a8.261 8.261 0 01-4.212-1.155l-.302-.18-3.132.822.836-3.055-.196-.312a8.235 8.235 0 01-1.264-4.402c0-4.55 3.702-8.252 8.252-8.252 2.204 0 4.276.859 5.834 2.417a8.22 8.22 0 012.42 5.835c-.002 4.55-3.704 8.251-8.253 8.251.021.03-.01.03 0 0zm4.52-6.183c-.247-.124-1.465-.723-1.692-.806-.227-.082-.392-.123-.557.124-.165.247-.64.805-.783.97-.144.165-.289.186-.536.062-.248-.124-1.045-.385-1.99-1.229-.738-.658-1.237-1.47-1.382-1.717-.144-.248-.015-.382.109-.505.111-.111.247-.29.371-.433.124-.145.165-.248.248-.413.082-.165.041-.31-.02-.433s-.557-1.342-.763-1.837c-.2-.486-.403-.42-.557-.428h-.474c-.165 0-.433.062-.66.31-.227.247-.866.846-.866 2.064 0 1.218.887 2.395 1.01 2.56.124.165 1.745 2.665 4.227 3.738 1.487.643 2.046.685 2.768.571.815-.129 1.55-.63 1.777-1.239.227-.609.227-1.135.159-1.239-.068-.103-.248-.165-.495-.29l.001.001z"
+    />
   </svg>
 );
 
 const Checkout: React.FC<CheckoutProps> = ({ bookingDraft, salons, onConfirm, setBookingDraft }) => {
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const [step, setStep] = useState<CheckoutStep>('summary');
-  const [paymentMethod, setPaymentMethod] = useState<'card' | 'pix'>('card');
   const [isProcessing, setIsProcessing] = useState(false);
-  const [cardData, setCardData] = useState({ number: '', name: '', expiry: '', cvv: '' });
   const [userId, setUserId] = useState<string | null>(null);
   const [userEmail, setUserEmail] = useState<string>(''); // E-mail capturado
   const [mpReady, setMpReady] = useState(false);
   const [activeSalon, setActiveSalon] = useState<Salon | undefined>(salons.find(s => s.id === bookingDraft.salonId));
   const [lastOrder, setLastOrder] = useState<any>(null);
   const [isPix, setIsPix] = useState(false);
+  // Mantemos o state para compatibilidade, mas não usaremos para renderização condicional estrita de abas
+  const [activeItemTab, setActiveItemTab] = useState<'services' | 'products'>(
+    (bookingDraft.services?.length > 0 && bookingDraft.products?.length === 0) ? 'products' : 'services'
+  );
+  const [availableProducts, setAvailableProducts] = useState<Product[]>([]);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
@@ -49,8 +57,15 @@ const Checkout: React.FC<CheckoutProps> = ({ bookingDraft, salons, onConfirm, se
     });
   }, []);
 
+  // Validação robusta para garantir que a chave MP é válida e não um e-mail ou lixo
+  const isMpEnabled = React.useMemo(() => {
+    const key = activeSalon?.mp_public_key;
+    // Chave deve existir, não ter '@' (comum em erros de user colocando email), e ter tamanho razoável
+    return !!(key && typeof key === 'string' && !key.includes('@') && key.length > 10);
+  }, [activeSalon?.mp_public_key]);
+
   useEffect(() => {
-    if (activeSalon?.mp_public_key) {
+    if (isMpEnabled && activeSalon?.mp_public_key) {
       try {
         initMercadoPago(activeSalon.mp_public_key, { locale: 'pt-BR' });
         setMpReady(true);
@@ -61,7 +76,7 @@ const Checkout: React.FC<CheckoutProps> = ({ bookingDraft, salons, onConfirm, se
     } else {
       setMpReady(false);
     }
-  }, [activeSalon?.mp_public_key]);
+  }, [isMpEnabled, activeSalon?.mp_public_key]);
 
   useEffect(() => {
     // Se não encontrou nas props, busca direto da API para garantir dados (telefone, endereço)
@@ -75,6 +90,15 @@ const Checkout: React.FC<CheckoutProps> = ({ bookingDraft, salons, onConfirm, se
       if (s) setActiveSalon(s);
     }
   }, [bookingDraft.salonId, salons, activeSalon]);
+
+  // Fetch available products
+  useEffect(() => {
+    if (bookingDraft.salonId) {
+      api.products.getBySalon(bookingDraft.salonId)
+        .then(data => setAvailableProducts(data))
+        .catch(err => console.error('Erro ao buscar produtos:', err));
+    }
+  }, [bookingDraft.salonId]);
 
   // Use activeSalon ao invés de buscar toda vez
   const salonInfo = activeSalon;
@@ -98,6 +122,14 @@ const Checkout: React.FC<CheckoutProps> = ({ bookingDraft, salons, onConfirm, se
     }
   };
 
+  const addProduct = (product: Product) => {
+    const isAlreadyAdded = products.some((p: Product) => p.id === product.id);
+    if (!isAlreadyAdded) {
+      setBookingDraft({ ...bookingDraft, products: [...products, product] });
+      showToast('Produto adicionado!', 'success');
+    }
+  };
+
   const handleFinalConfirm = async (paymentDataOrMethodId?: any) => {
     if (!userId) return;
 
@@ -106,7 +138,7 @@ const Checkout: React.FC<CheckoutProps> = ({ bookingDraft, salons, onConfirm, se
 
     // Validate total is a valid number
     if (isNaN(total) || total <= 0) {
-      alert('Erro: Valor total inválido. Por favor, adicione serviços ou produtos.');
+      showToast('Erro: Valor total inválido. Por favor, adicione serviços ou produtos.', 'error');
       return;
     }
 
@@ -167,7 +199,7 @@ const Checkout: React.FC<CheckoutProps> = ({ bookingDraft, salons, onConfirm, se
 
         } catch (paymentError: any) {
           console.error("Falha no pagamento MP:", paymentError);
-          alert(`Pagamento não processado: ${paymentError.message}`);
+          showToast(`Pagamento não processado: ${paymentError.message}`, 'error');
           setIsProcessing(false);
           return;
         }
@@ -181,6 +213,16 @@ const Checkout: React.FC<CheckoutProps> = ({ bookingDraft, salons, onConfirm, se
         return;
       }
 
+      // --- CORREÇÃO DE INTEGRIDADE: Garantir que o Profile existe ---
+      // Evita erro 23503 (Foreign Key Violation) se o perfil não tiver sido criado na auth
+      try {
+        await api.profiles.update(userId, {
+          email: userEmail,
+          updated_at: new Date().toISOString()
+        });
+      } catch (e) {
+        console.warn("Tentativa de autocorreção de perfil:", e);
+      }
 
       const newAppt = await api.appointments.create({
         salon_id: bookingDraft.salonId || '',
@@ -203,7 +245,7 @@ const Checkout: React.FC<CheckoutProps> = ({ bookingDraft, salons, onConfirm, se
       setBookingDraft({ services: [], products: [] });
     } catch (error: any) {
       console.error('Erro ao criar agendamento:', error);
-      alert("Erro ao finalizar reserva: " + (error.message || 'Erro desconhecido'));
+      showToast("Erro ao finalizar reserva: " + (error.message || 'Erro desconhecido'), 'error');
     } finally {
       setIsProcessing(false);
     }
@@ -262,80 +304,242 @@ const Checkout: React.FC<CheckoutProps> = ({ bookingDraft, salons, onConfirm, se
 
   return (
     <div className="flex-1 flex flex-col h-full bg-background-dark relative overflow-hidden">
-      <header className="px-6 pt-12 pb-4 bg-background-dark/95 backdrop-blur-xl border-b border-white/5 z-50 shrink-0 flex items-center justify-between">
-        <button onClick={() => step === 'payment_detail' ? setStep('summary') : navigate(-1)} className="size-10 rounded-xl border border-white/10 flex items-center justify-center text-white active:scale-90 transition-transform">
-          <span className="material-symbols-outlined">arrow_back</span>
+      <header className="px-6 pt-12 pb-6 bg-background-dark/95 backdrop-blur-xl border-b border-white/5 z-50 shrink-0 flex items-center justify-between relative">
+        <button onClick={() => step === 'payment_detail' ? setStep('summary') : navigate(-1)} className="size-12 rounded-2xl bg-black/40 backdrop-blur-md border border-white/10 flex items-center justify-center text-white active:scale-95 transition-all">
+          <span className="material-symbols-outlined text-xl">arrow_back</span>
         </button>
-        <h1 className="font-display text-lg font-black text-white italic tracking-tighter uppercase">Confirmação</h1>
-        <div className="size-10 flex items-center justify-center text-primary">
-          <span className="material-symbols-outlined fill-1">verified_user</span>
+        <h1 className="absolute left-1/2 -translate-x-1/2 font-display text-xs font-black text-white italic tracking-[0.3em] uppercase opacity-90">Confirmação</h1>
+        <div className="size-12 flex items-center justify-center text-primary group">
+          <span className="material-symbols-outlined text-xl font-black group-hover:scale-110 transition-transform">verified_user</span>
         </div>
       </header>
 
-      <main className="flex-1 overflow-y-auto px-6 pt-8 pb-[280px] no-scrollbar">
+      <main className="flex-1 overflow-y-auto no-scrollbar">
         {step === 'summary' && (
-          <div className="animate-fade-in space-y-8">
-            <section className="bg-surface-dark border border-white/5 rounded-[40px] p-8 space-y-8 shadow-2xl relative overflow-hidden">
-              <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
-                <span className="material-symbols-outlined text-8xl">receipt_long</span>
-              </div>
-              <div className="flex items-center gap-5 border-b border-white/5 pb-6">
-                <div className="size-14 rounded-2xl gold-gradient flex items-center justify-center text-background-dark shadow-lg">
-                  <span className="material-symbols-outlined font-black">location_on</span>
-                </div>
-                <div className="min-w-0">
-                  <p className="text-[8px] font-black text-primary uppercase tracking-[0.3em] mb-1">Destino Aura</p>
-                  <h3 className="text-white font-display font-black text-lg italic truncate leading-none mb-1">{bookingDraft.salonName}</h3>
-                  <p className="text-slate-500 text-[8px] font-bold uppercase truncate tracking-tight">{salonInfo?.endereco}</p>
-                </div>
-              </div>
+          <div className="px-6 pt-6 pb-[500px] space-y-6">
 
-              <div className="space-y-6 py-2">
-                {services.length > 0 && (
-                  <div className="space-y-4">
-                    <p className="text-[8px] font-black text-slate-600 uppercase tracking-widest px-1">Seus Rituais</p>
-                    {services.map((s: Service) => (
-                      <div key={s.id} className="flex justify-between items-start gap-3 group animate-fade-in">
-                        <div className="flex flex-col flex-1 min-w-0">
-                          <span className="text-white text-xs font-black italic tracking-tight break-words">{s.name}</span>
-                          <span className="text-primary text-[8px] font-black uppercase mt-1">🗓️ {bookingDraft.date} • {bookingDraft.time}</span>
-                        </div>
-                        <div className="flex items-center gap-3 shrink-0">
-                          <span className="text-white text-xs font-black font-display italic">R$ {s.price.toFixed(2)}</span>
-                          <button onClick={() => removeItem(s.id, 'service')} className="size-8 rounded-lg bg-red-500/10 text-red-500 flex items-center justify-center hover:bg-red-500 transition-colors hover:text-white">
-                            <span className="material-symbols-outlined text-sm">close</span>
-                          </button>
-                        </div>
+            {/* 1. SERVIÇOS SELECIONADOS */}
+            {services.length > 0 && (
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 mb-2 px-1">
+                  <span className="material-symbols-outlined text-primary text-sm">spa</span>
+                  <p className="text-[9px] font-black text-white uppercase tracking-widest">Rituais Escolhidos</p>
+                </div>
+                {services.map((s: Service) => (
+                  <div key={s.id} className="bg-[#121417]/60 border border-primary/20 rounded-[32px] p-5 flex items-start gap-4 shadow-2xl backdrop-blur-md relative overflow-hidden group">
+                    <div className="relative shrink-0">
+                      <img src={s.image} className="size-16 rounded-2xl object-cover shadow-xl" alt={s.name} />
+                      <div className="absolute inset-0 rounded-2xl ring-1 ring-white/10 ring-inset"></div>
+                    </div>
+
+                    <div className="flex-1 min-w-0 py-1">
+                      <h4 className="text-white font-black text-sm italic font-display uppercase tracking-widest leading-tight line-clamp-2 mb-2">{s.name}</h4>
+                      <div className="flex items-center gap-2 opacity-40">
+                        <span className="text-[7px] text-white font-black uppercase tracking-widest">{s.duration_min} MIN</span>
+                        <span className="text-white">•</span>
+                        <span className="text-[7px] text-white font-black uppercase tracking-widest">SERVIÇO</span>
                       </div>
-                    ))}
-                  </div>
-                )}
+                      <div className="mt-3">
+                        <span className="text-primary font-display font-black text-xl italic tracking-tight">R$ {s.price.toFixed(2)}</span>
+                      </div>
+                    </div>
 
-                {products.length > 0 && (
-                  <div className={`space-y-4 ${services.length > 0 ? 'pt-6 border-t border-white/5' : ''}`}>
-                    <p className="text-[8px] font-black text-slate-600 uppercase tracking-widest px-1">Boutique & Insumos</p>
-                    {products.map((p: Product) => (
-                      <div key={p.id} className="flex justify-between items-center gap-4 animate-fade-in">
-                        <div className="flex items-center gap-4 min-w-0">
-                          <img src={p.image} className="size-12 rounded-2xl object-cover border border-white/10 shadow-lg" alt={p.name} />
-                          <div className="min-w-0">
-                            <span className="text-white text-xs font-black italic truncate block">{p.name}</span>
-                            <span className="text-slate-500 text-[8px] font-black uppercase mt-0.5">Retirada na Unidade</span>
+                    <button
+                      onClick={() => removeItem(s.id, 'service')}
+                      className="size-10 rounded-full bg-red-500/10 border border-red-500/20 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all active:scale-90 shrink-0"
+                    >
+                      <span className="material-symbols-outlined text-lg">close</span>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* 2. CARD DE UPSELL (Se não tiver produtos) */}
+            {availableProducts.length > 0 && products.length === 0 && (
+              <div className="relative">
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10 bg-primary px-4 py-1.5 rounded-full shadow-lg animate-bounce">
+                  <span className="text-[7px] text-background-dark font-black uppercase tracking-[0.2em] flex items-center gap-1">
+                    <span className="material-symbols-outlined text-xs">local_fire_department</span>
+                    Oferta Especial
+                  </span>
+                </div>
+
+                <div className="bg-gradient-to-br from-primary/30 via-primary/20 to-primary/10 border-2 border-primary/50 rounded-[32px] p-6 shadow-2xl backdrop-blur-md relative overflow-hidden animate-pulse-slow">
+                  <div className="absolute top-0 right-0 opacity-5">
+                    <span className="material-symbols-outlined text-9xl text-primary">shopping_bag</span>
+                  </div>
+
+                  <div className="relative z-10 space-y-4">
+                    <div className="text-center space-y-2">
+                      <div className="flex items-center justify-center gap-2">
+                        <span className="material-symbols-outlined text-primary text-2xl">auto_awesome</span>
+                        <h3 className="text-white font-display font-black text-lg italic tracking-tight">Complete Seu Ritual</h3>
+                        <span className="material-symbols-outlined text-primary text-2xl">auto_awesome</span>
+                      </div>
+                      <p className="text-slate-300 text-xs font-bold leading-relaxed">Potencialize os resultados com produtos profissionais</p>
+                    </div>
+
+                    <div className="relative">
+                      <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-hide -mx-2 px-2">
+                        {availableProducts.slice(0, 3).map((product, index) => (
+                          <div
+                            key={product.id}
+                            className="min-w-[280px] snap-center bg-background-dark/60 border border-primary/30 rounded-[24px] p-4 flex items-center gap-4 relative"
+                          >
+                            {index === 0 && (
+                              <div className="absolute -top-2 -right-2 bg-primary size-8 rounded-full flex items-center justify-center shadow-lg z-10">
+                                <span className="material-symbols-outlined text-background-dark text-sm font-black">star</span>
+                              </div>
+                            )}
+
+                            <div className="relative shrink-0">
+                              <img src={product.image} className="size-20 rounded-2xl object-cover shadow-2xl" alt={product.name} />
+                              <div className="absolute inset-0 rounded-2xl ring-1 ring-white/10 ring-inset"></div>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <h4 className="text-white font-black text-sm italic font-display uppercase tracking-widest leading-tight line-clamp-2 mb-1">{product.name}</h4>
+                              <p className="text-[7px] text-slate-500 font-black uppercase tracking-widest mb-2">{product.category}</p>
+                              <div className="flex items-center gap-2">
+                                <span className="text-primary font-display font-black text-xl italic tracking-tight">R$ {product.price.toFixed(2)}</span>
+                              </div>
+                            </div>
+                            <button
+                              onClick={() => addProduct(product)}
+                              className="size-8 rounded-full bg-primary text-background-dark flex items-center justify-center shadow-lg active:scale-90 transition-transform"
+                            >
+                              <span className="material-symbols-outlined text-sm font-black">add</span>
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 3. PRODUTOS DISPONÍVEIS E SELECIONADOS */}
+            {availableProducts.length > 0 && (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between px-1">
+                  <h3 className="text-[10px] font-black text-primary uppercase tracking-[0.3em]">
+                    {products.length > 0 ? 'Produtos Adicionados' : 'Produtos Disponíveis'}
+                  </h3>
+                </div>
+
+                {/* Lista de Produtos Selecionados */}
+                {products.map((p: Product) => (
+                  <div key={p.id} className="bg-[#121417]/60 border border-primary/20 rounded-[32px] p-5 flex items-start gap-4 shadow-2xl backdrop-blur-md relative overflow-hidden group">
+                    <div className="absolute top-3 right-14 bg-emerald-500/20 border border-emerald-500/30 px-2 py-1 rounded-lg">
+                      <span className="text-[6px] text-emerald-400 font-black uppercase tracking-widest">Adicionado</span>
+                    </div>
+                    <div className="relative shrink-0">
+                      <img src={p.image} className="size-16 rounded-2xl object-cover shadow-xl" alt={p.name} />
+                      <div className="absolute inset-0 rounded-2xl ring-1 ring-white/10 ring-inset"></div>
+                    </div>
+                    <div className="flex-1 min-w-0 py-1">
+                      <h4 className="text-white font-black text-sm italic font-display uppercase tracking-widest leading-tight line-clamp-2 mb-2">{p.name}</h4>
+                      <span className="text-primary font-display font-black text-xl italic tracking-tight">R$ {p.price.toFixed(2)}</span>
+                    </div>
+                    <button
+                      onClick={() => removeItem(p.id, 'product')}
+                      className="size-10 rounded-full bg-red-500/10 border border-red-500/20 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all active:scale-90 shrink-0"
+                    >
+                      <span className="material-symbols-outlined text-lg">close</span>
+                    </button>
+                  </div>
+                ))}
+
+                {/* Lista de Outros Produtos Disponíveis */}
+                {availableProducts
+                  .filter(p => !products.some((selected: Product) => selected.id === p.id))
+                  .map((p: Product) => (
+                    <div key={p.id} className="bg-[#121417]/60 border border-white/5 rounded-[32px] p-5 flex items-start gap-4 shadow-2xl backdrop-blur-md relative overflow-hidden group hover:border-primary/20 transition-all">
+                      <div className="relative shrink-0">
+                        <img src={p.image} className="size-16 rounded-2xl object-cover shadow-xl group-hover:scale-105 transition-transform" alt={p.name} />
+                        <div className="absolute inset-0 rounded-2xl ring-1 ring-white/10 ring-inset"></div>
+                      </div>
+                      <div className="flex-1 min-w-0 py-1">
+                        <h4 className="text-white font-black text-sm italic font-display uppercase tracking-widest leading-tight line-clamp-2 mb-2">{p.name}</h4>
+                        <span className="text-primary font-display font-black text-xl italic tracking-tight">R$ {p.price.toFixed(2)}</span>
+                      </div>
+                      <button
+                        onClick={() => addProduct(p)}
+                        className="size-10 rounded-full bg-primary/10 border border-primary/20 text-primary flex items-center justify-center hover:bg-primary hover:text-background-dark transition-all active:scale-90 shrink-0 group-hover:scale-110"
+                      >
+                        <span className="material-symbols-outlined text-lg font-black">add</span>
+                      </button>
+                    </div>
+                  ))
+                }
+              </div>
+            )}
+
+            {/* 4. CARD DE RESUMO COMPLETO */}
+            <section className="bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20 rounded-[40px] p-6 space-y-5 shadow-2xl backdrop-blur-md relative overflow-hidden">
+              <div className="absolute top-0 right-0 opacity-5 pointer-events-none">
+                <span className="material-symbols-outlined text-9xl text-primary">receipt_long</span>
+              </div>
+
+              <div className="relative z-10">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="size-10 rounded-xl gold-gradient flex items-center justify-center shadow-lg">
+                    <span className="material-symbols-outlined text-background-dark text-lg font-black">checklist</span>
+                  </div>
+                  <h3 className="text-white font-display font-black text-base italic uppercase tracking-tight">Resumo da Reserva</h3>
+                </div>
+
+                {/* Detalhes do Agendamento */}
+                {(bookingDraft.date || bookingDraft.time || bookingDraft.professionalName) && (
+                  <div className="bg-background-dark/60 border border-primary/30 rounded-[24px] p-5 mb-5">
+                    <p className="text-[8px] font-black text-primary uppercase tracking-widest mb-3">Detalhes do Agendamento</p>
+                    <div className="space-y-3">
+                      {bookingDraft.date && (
+                        <div className="flex items-center gap-3">
+                          <span className="material-symbols-outlined text-primary text-lg">calendar_today</span>
+                          <div>
+                            <p className="text-[7px] text-slate-500 font-black uppercase tracking-widest">Data</p>
+                            <p className="text-white text-xs font-bold">{new Date(bookingDraft.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
                           </div>
                         </div>
-                        <div className="flex items-center gap-4 shrink-0">
-                          <span className="text-white text-xs font-black font-display italic">R$ {p.price.toFixed(2)}</span>
-                          <button onClick={() => removeItem(p.id, 'product')} className="size-8 rounded-lg bg-red-500/10 text-red-500 flex items-center justify-center hover:bg-red-500 transition-colors hover:text-white">
-                            <span className="material-symbols-outlined text-sm">close</span>
-                          </button>
+                      )}
+                      {bookingDraft.time && (
+                        <div className="flex items-center gap-3">
+                          <span className="material-symbols-outlined text-primary text-lg">schedule</span>
+                          <div>
+                            <p className="text-[7px] text-slate-500 font-black uppercase tracking-widest">Horário</p>
+                            <p className="text-white text-xs font-bold">{bookingDraft.time}</p>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      )}
+                      {bookingDraft.professionalName && (
+                        <div className="flex items-center gap-3">
+                          <span className="material-symbols-outlined text-primary text-lg">person</span>
+                          <div>
+                            <p className="text-[7px] text-slate-500 font-black uppercase tracking-widest">Profissional</p>
+                            <p className="text-white text-xs font-bold">{bookingDraft.professionalName}</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
+
+                {/* Resumo de Itens (Totais) */}
+                <div className="space-y-2 pt-2">
+                  <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-1 px-1">Itens Adicionados</p>
+                  <div className="flex justify-between items-center text-[10px] text-slate-400 bg-background-dark/40 p-3 rounded-xl border border-white/5">
+                    <span>{services.length} Serviço(s)</span>
+                  </div>
+                  <div className="flex justify-between items-center text-[10px] text-slate-400 bg-background-dark/40 p-3 rounded-xl border border-white/5">
+                    <span>{products.length} Produto(s)</span>
+                  </div>
+                </div>
               </div>
             </section>
 
+            {/* 5. TOTAIS E PAGAMENTO */}
             <section className="bg-surface-dark/40 rounded-[40px] p-8 border border-white/5 space-y-4 shadow-inner relative">
               <div className="flex justify-between items-center text-[10px] font-black text-slate-500 uppercase tracking-widest">
                 <span>Subtotal</span>
@@ -352,13 +556,13 @@ const Checkout: React.FC<CheckoutProps> = ({ bookingDraft, salons, onConfirm, se
             </section>
 
             <section className="space-y-4">
-              <div className="bg-primary/10 border border-primary/20 p-4 rounded-3xl flex items-center gap-4">
-                <div className="size-10 rounded-full bg-primary text-background-dark flex items-center justify-center">
-                  <span className="material-symbols-outlined font-black">lock</span>
+              <div className="bg-primary/5 border border-white/5 p-6 rounded-[32px] flex items-center gap-5 backdrop-blur-sm">
+                <div className="size-12 rounded-2xl bg-primary/10 border border-primary/20 text-primary flex items-center justify-center shrink-0">
+                  <span className="material-symbols-outlined font-black">shield_with_heart</span>
                 </div>
-                <div>
-                  <p className="text-[10px] font-black text-primary uppercase tracking-widest">Ambiente Seguro</p>
-                  <p className="text-[9px] text-slate-400 font-bold">Escolha Pix ou Cartão na próxima etapa.</p>
+                <div className="flex-1">
+                  <p className="text-[9px] font-black text-white uppercase tracking-[0.2em] mb-1">Compromisso Aura</p>
+                  <p className="text-[8px] text-slate-500 font-bold uppercase tracking-widest leading-relaxed">Sua reserva é garantida com os mais altos padrões de segurança.</p>
                 </div>
               </div>
             </section>
@@ -425,29 +629,29 @@ const Checkout: React.FC<CheckoutProps> = ({ bookingDraft, salons, onConfirm, se
             setIsProcessing={setIsProcessing}
           />
         )}
-
-        {step === 'success' && (
-          <div className="absolute inset-0 z-[99999] bg-background-dark flex flex-col items-center justify-center p-10 text-center animate-fade-in shadow-[inset_0_0_100px_rgba(0,0,0,0.8)]">
-            <div className="size-32 rounded-full gold-gradient flex items-center justify-center mb-10 shadow-[0_25px_60px_rgba(193,165,113,0.4)] animate-bounce relative">
-              <span className="material-symbols-outlined text-6xl text-background-dark font-black">verified</span>
-              <div className="absolute -inset-4 border border-primary/20 rounded-full animate-ping"></div>
-            </div>
-            <h2 className="text-5xl font-display font-black text-white italic mb-4 uppercase tracking-tighter leading-[0.9]">Sua Aura <br /> Brilha!</h2>
-            <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.4em] mb-12 max-w-[280px] leading-relaxed">Reserva confirmada em<br /><span className="text-white">{lastOrder?.salonName || bookingDraft.salonName}</span>.</p>
-
-            <div className="w-full space-y-5 px-4 max-w-sm">
-              <button
-                onClick={handleWhatsAppConfirmation}
-                className="w-full gold-gradient text-background-dark py-6 rounded-[32px] font-black uppercase text-[11px] tracking-[0.4em] flex items-center justify-center gap-3 shadow-[0_20px_40px_rgba(193,165,113,0.3)] active:scale-95 transition-all"
-              >
-                <WhatsAppIcon className="size-5" /> NOTIFICAR UNIDADE
-              </button>
-              <button onClick={() => navigate('/my-appointments')} className="w-full bg-white/5 border border-white/10 text-white/60 py-6 rounded-[32px] font-black uppercase text-[10px] tracking-[0.3em] hover:bg-white/10 active:scale-95 transition-all">MEUS AGENDAMENTOS</button>
-              <button onClick={() => navigate('/explore')} className="w-full text-slate-700 font-black uppercase text-[9px] tracking-[0.3em] py-4 active:opacity-50 transition-opacity">Início da Aura</button>
-            </div>
-          </div>
-        )}
       </main>
+
+      {step === 'success' && (
+        <div className="absolute inset-0 z-[99999] bg-background-dark flex flex-col items-center justify-center p-10 text-center animate-fade-in shadow-[inset_0_0_100px_rgba(0,0,0,0.8)]">
+          <div className="size-32 rounded-full gold-gradient flex items-center justify-center mb-10 shadow-[0_25px_60px_rgba(193,165,113,0.4)] animate-bounce relative">
+            <span className="material-symbols-outlined text-6xl text-background-dark font-black">verified</span>
+            <div className="absolute -inset-4 border border-primary/20 rounded-full animate-ping"></div>
+          </div>
+          <h2 className="text-5xl font-display font-black text-white italic mb-4 uppercase tracking-tighter leading-[0.9]">Sua Aura <br /> Brilha!</h2>
+          <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.4em] mb-12 max-w-[280px] leading-relaxed">Reserva confirmada em<br /><span className="text-white">{lastOrder?.salonName || bookingDraft.salonName}</span>.</p>
+
+          <div className="w-full space-y-5 px-4 max-w-sm">
+            <button
+              onClick={handleWhatsAppConfirmation}
+              className="w-full gold-gradient text-background-dark py-6 rounded-[32px] font-black uppercase text-[11px] tracking-[0.4em] flex items-center justify-center gap-3 shadow-[0_20px_40px_rgba(193,165,113,0.3)] active:scale-95 transition-all"
+            >
+              <WhatsAppIcon className="size-7" /> NOTIFICAR ESTABELECIMENTO
+            </button>
+            <button onClick={() => navigate('/my-appointments')} className="w-full bg-white/5 border border-white/10 text-white/60 py-6 rounded-[32px] font-black uppercase text-[10px] tracking-[0.3em] hover:bg-white/10 active:scale-95 transition-all shadow-lg">MEUS AGENDAMENTOS</button>
+            <button onClick={() => navigate('/explore')} className="w-full text-slate-700 font-black uppercase text-[9px] tracking-[0.4em] py-4 active:opacity-50 transition-opacity">Voltar para o Início</button>
+          </div>
+        </div>
+      )}
 
       {step !== 'success' && (
         <footer className="fixed bottom-0 left-0 right-0 z-50 flex justify-center pointer-events-none p-4 md:p-8">
@@ -468,12 +672,15 @@ const Checkout: React.FC<CheckoutProps> = ({ bookingDraft, salons, onConfirm, se
               <button
                 onClick={() => {
                   if (step === 'summary') {
-                    if (salonInfo?.mp_public_key && !salonInfo?.paga_no_local) {
+                    // Se o salão tem MP configurado E VÁLIDO, permite escolher pagamento online
+                    if (isMpEnabled) {
                       setStep('payment_detail');
                     } else {
-                      handleFinalConfirm(); // Agendamento direto se for pagamento no local ou se não tiver MP
+                      // Se não tem MP ou a chave é inválida, finaliza direto (Pagar no Local)
+                      handleFinalConfirm();
                     }
                   } else {
+                    // No passo payment_detail, o botão finaliza (usado no modo simulação ou fallback)
                     if (!mpReady) {
                       handleFinalConfirm();
                     }
@@ -483,7 +690,7 @@ const Checkout: React.FC<CheckoutProps> = ({ bookingDraft, salons, onConfirm, se
                 className={`w-full gold-gradient text-background-dark font-black py-7 rounded-[36px] shadow-[0_30px_70px_rgba(193,165,113,0.3)] uppercase tracking-[0.4em] text-[12px] flex items-center justify-center gap-4 active:scale-95 transition-all border border-white/20`}
               >
                 {isProcessing ? <div className="size-7 border-3 border-background-dark/20 border-t-background-dark rounded-full animate-spin"></div> : (
-                  <> {step === 'summary' ? (salonInfo?.mp_public_key && !salonInfo?.paga_no_local ? 'ESCOLHER PAGAMENTO' : 'CONFIRMAR AGENDAMENTO') : 'FINALIZAR'} <span className="material-symbols-outlined font-black">arrow_forward</span> </>
+                  <> {step === 'summary' ? (isMpEnabled ? 'ESCOLHER FORMA DE PAGAMENTO' : 'RESERVAR E PAGAR NO LOCAL') : 'FINALIZAR RESERVA'} <span className="material-symbols-outlined font-black">arrow_forward</span> </>
                 )}
               </button>
             )}
@@ -553,68 +760,18 @@ const MPPaymentWrapper: React.FC<{ total: number, handleFinalConfirm: (param: an
             text-shadow: none !important;
         }
 
-        /* 2. TEXTOS GERAIS */
-        .mp-payment-brick *, .mp-payment-brick__label { 
-            color: white !important; 
-        }
-        
-        /* 3. Itens Normais */
-        .mp-payment-brick__payment-method-item {
-             background-color: transparent !important;
-             border: 1px solid rgba(255,255,255,0.08) !important;
-             border-radius: 12px !important;
-             margin-bottom: 8px !important;
-        }
-
-        /* 4. Item SELECIONADO */
-        .mp-payment-brick__payment-method-item--selected,
-        [class*="payment-method-item--selected"] {
-            background-color: rgba(193, 165, 113, 0.1) !important; /* #c1a571 */
-            background: linear-gradient(90deg, rgba(193, 165, 113, 0.15) 0%, rgba(193, 165, 113, 0.05) 100%) !important;
+        /* Removendo qualquer azul remanescente - NUCLEAR OPTION */
+        .mp-payment-brick *[style*="#009ee3"], 
+        .mp-payment-brick *[style*="rgb(0, 158, 227)"],
+        .svelte-1mcg7o8 {
+            color: #c1a571 !important;
             border-color: #c1a571 !important;
+            background-color: transparent !important;
         }
-        
-        /* 5. Botão PAGAR - FORÇA BRUTA */
-        button,
-        .mp-payment-brick__button-container button,
-        .mp-payment-brick__button,
-        button.mp-payment-brick__button {
-            background: linear-gradient(135deg, #c1a571 0%, #ecd3a5 50%, #c1a571 100%) !important;
-            color: #08090a !important; 
-            font-weight: 900 !important;
-            letter-spacing: 0.1em !important;
-            border: none !important;
-            box-shadow: 0 10px 40px rgba(193, 165, 113, 0.25) !important;
-            border-radius: 20px !important;
-            height: 56px !important;
-            opacity: 1 !important;
-        }
-
-        /* Inputs */
-        .mp-payment-brick__input {
-            border-radius: 12px !important;
-            background-color: #1A1B25 !important;
-            border: 1px solid rgba(255,255,255,0.1) !important;
-        }
-        .mp-payment-brick__input:focus {
-            border-color: #c1a571 !important;
-            box-shadow: 0 0 0 1px #c1a571 !important;
-        }
-        
-        /* Fix label input */
-        label { color: #aaa !important; margin-bottom: 4px !important; display: block !important; }
-        
-        /* Radio Buttons */
-        input[type='radio'] { accent-color: #c1a571 !important; }
-
-        /* Headers OFF */
-        .mp-payment-brick__header, .mp-payment-brick__title, .mp-payment-brick__subtitle { display: none !important; }
       `}</style>
       <Payment
         initialization={initialization}
         customization={customization}
-        onReady={() => console.log('Payment Brick Ready')}
-        onError={(error) => console.error('Payment Brick Error:', error)}
         onSubmit={handleFinalConfirm}
       />
     </div>

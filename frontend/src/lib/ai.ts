@@ -1,19 +1,27 @@
-import { GoogleGenAI } from "@google/genai";
+import { supabase } from './supabase';
 
-export async function getBeautyAdvice(prompt: string) {
+interface ContextData {
+  services: any[];
+  products: any[];
+}
+
+export async function getBeautyAdvice(prompt: string, context?: ContextData) {
   try {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-    const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
-      contents: `Você é o Localizador de Serviços da Luxe Aura. 
-      Sua missão é ajudar o cliente a encontrar o serviço ideal no catálogo.
-      Se o cliente perguntar sobre um problema (ex: cabelo seco), sugira um serviço (ex: Hidratação Profunda ou Ritual Glow).
-      Baseie-se em: ${prompt}. Seja extremamente breve, direto e refinado.`,
+    console.log("Chamando AI via Edge Function...");
+
+    const { data, error } = await supabase.functions.invoke('beauty-advisor', {
+      body: { prompt, context }
     });
-    
-    return response.text;
+
+    if (error) {
+      console.error("Erro na Edge Function:", error);
+      throw error;
+    }
+
+    return data.response;
   } catch (error) {
-    console.error("Gemini AI Error:", error);
-    return "Não consegui consultar o catálogo agora. Que tal explorar a aba de serviços?";
+    console.error("AI Error:", error);
+    // Fallback amigável
+    return "No momento, minha conexão inteligente está passando por uma manutenção. Por favor, tente novamente em alguns instantes. (Verifique se a função 'beauty-advisor' foi implantada no Supabase).";
   }
 }

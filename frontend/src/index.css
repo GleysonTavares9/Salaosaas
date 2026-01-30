@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -25,6 +24,7 @@
     body {
       background: radial-gradient(circle at top right, #1a1c22 0%, #0c0d10 100%);
     }
+
     body::before {
       content: "";
       position: fixed;
@@ -39,22 +39,25 @@
   }
 
   #root {
-    min-height: 100vh;
-    min-height: 100dvh;
+    height: 100vh;
+    height: 100dvh;
     width: 100%;
     margin: 0 auto;
     display: flex;
     flex-direction: column;
     position: relative;
     background: #08090a;
+    overflow: hidden;
   }
 
-  /* No Desktop, o app foca no centro se for telas de formulário, mas permite expansão em listas */
+  /* No Desktop, o app foca no centro para manter a experiência mobile */
   @media (min-width: 1024px) {
     #root {
-      box-shadow: 0 0 100px rgba(0,0,0,0.8);
-      border-left: 1px solid rgba(255,255,255,0.05);
-      border-right: 1px solid rgba(255,255,255,0.05);
+      max-width: 450px;
+      height: 100vh;
+      box-shadow: 0 0 100px rgba(0, 0, 0, 0.8);
+      border-left: 1px solid rgba(255, 255, 255, 0.05);
+      border-right: 1px solid rgba(255, 255, 255, 0.05);
     }
   }
 }
@@ -68,35 +71,48 @@
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
-  
+
   .no-scrollbar::-webkit-scrollbar {
     display: none;
   }
 
   .scroll-container {
     @apply flex-1 overflow-y-auto no-scrollbar;
-    padding-bottom: 180px; /* Espaço extra para não cobrir conteúdo com footer flutuante */
+    padding-bottom: 180px;
+    /* Espaço extra para não cobrir conteúdo com footer flutuante */
     overscroll-behavior-y: contain;
     -webkit-overflow-scrolling: touch;
   }
 
-  /* Rodapé Flutuante com Margens Laterais Premium */
-  .fixed-floating-footer {
-    @apply absolute bottom-0 left-0 right-0 z-[100] pointer-events-none;
-    padding: 1.5rem 2rem; 
-    padding-bottom: calc(1.5rem + var(--sab));
-    background: linear-gradient(to top, #08090a 0%, #08090a 60%, transparent 100%);
+  /* Utilitário Global para Limitar Elementos Fixos ao Frame do App */
+  .mobile-constrained {
+    @apply fixed left-0 right-0 mx-auto w-full;
+    max-width: 100%;
   }
 
-  .fixed-floating-footer > button, 
-  .fixed-floating-footer > div {
-    @apply pointer-events-auto;
+  @media (min-width: 1024px) {
+    .mobile-constrained {
+      max-width: 450px;
+    }
+  }
+
+  /* Rodapé Flutuante Premium */
+  .fixed-floating-footer {
+    @apply mobile-constrained bottom-0 z-[100] px-6 pb-8 pt-12;
+    background: linear-gradient(to top, #0c0d10 0%, #0c0d10 60%, transparent 100%);
   }
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .animate-fade-in {
@@ -107,18 +123,21 @@
 .direct-image-link {
   @apply cursor-zoom-in active:scale-[0.98] transition-transform;
 }
+
 /* Leaflet Overrides */
 .leaflet-container {
   font-family: inherit !important;
 }
 
 .leaflet-popup-content-wrapper {
-  background: #1a1c22 !important;
+  background: rgba(26, 28, 34, 0.9) !important;
+  backdrop-filter: blur(10px);
   color: white !important;
-  border-radius: 20px !important;
-  border: 1px solid rgba(193, 165, 113, 0.3) !important;
+  border-radius: 24px !important;
+  border: 2px solid rgba(193, 165, 113, 0.6) !important;
   padding: 0 !important;
   overflow: hidden;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8) !important;
 }
 
 .leaflet-popup-content {
@@ -132,11 +151,40 @@
 
 .leaflet-bar {
   border: none !important;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.5) !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5) !important;
 }
 
 .leaflet-bar a {
   background-color: #1a1c22 !important;
   color: #c1a571 !important;
-  border-bottom: 1px solid rgba(255,255,255,0.1) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Animação de pulse lento para upsell */
+@keyframes pulse-slow {
+
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.95;
+    transform: scale(1.01);
+  }
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 3s ease-in-out infinite;
+}
+
+/* Esconder scrollbar mas manter funcionalidade */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }
