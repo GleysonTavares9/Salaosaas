@@ -10,6 +10,7 @@ import { supabase } from './lib/supabase.ts';
 import { SplashScreen } from '@capacitor/splash-screen';
 
 // Screens
+import QuickSchedule from './screens/Public/QuickSchedule.tsx';
 import Landing from './screens/Public/Landing.tsx';
 import Discovery from './screens/Client/Discovery.tsx';
 import SalonPage from './screens/Client/SalonPage.tsx';
@@ -322,6 +323,7 @@ const AppContent: React.FC = () => {
 
       <div className={`flex-1 flex flex-col min-h-0 ${shouldShowNav ? 'pb-24' : ''}`}>
         <Routes>
+          <Route path="/q/:slug" element={<QuickSchedule />} />
           <Route path="/" element={<Landing salons={salons} />} />
           <Route path="/explore" element={<Discovery salons={salons} role={role} />} />
           <Route path="/gallery" element={<Gallery />} />
