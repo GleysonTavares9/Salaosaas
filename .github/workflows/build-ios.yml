@@ -1,0 +1,75 @@
+name: Build iOS .ipa
+
+on:
+  workflow_dispatch:
+    inputs:
+      export_method:
+        description: 'Export method (app-store, ad-hoc, development)'
+        default: 'ad-hoc'
+
+jobs:
+  build:
+    runs-on: macos-latest
+    env:
+      NODE_VERSION: 18
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install npm dependencies
+        run: |
+          cd frontend
+          npm ci
+
+      - name: Install CocoaPods (system)
+        run: |
+          sudo gem install cocoapods -v 1.13.6 || true
+
+      - name: Add/sync iOS platform
+        working-directory: frontend
+        run: |
+          set -e
+          npm run build || true
+          npx cap add ios || true
+          npx cap sync ios
+
+      - name: Install pods
+        working-directory: frontend/ios/App
+        run: |
+          pod install --repo-update
+
+      - name: Build and archive
+        working-directory: frontend
+        env:
+          EXPORT_METHOD: ${{ github.event.inputs.export_method }}
+        run: |
+          set -e
+          IOS_APP_DIR=ios/App
+          SCHEME="App"
+          ARCHIVE_PATH="$IOS_APP_DIR/build/$SCHEME.xcarchive"
+          IPA_OUTPUT_DIR="$IOS_APP_DIR/build/ipa"
+          mkdir -p "$IOS_APP_DIR/build"
+          xcodebuild -workspace "$IOS_APP_DIR/App.xcworkspace" -scheme "$SCHEME" -configuration Release -sdk iphoneos -allowProvisioningUpdates archive -archivePath "$ARCHIVE_PATH"
+          cat > exportOptions.plist <<EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key>
+            <string>${EXPORT_METHOD}</string>
+            <key>signingStyle</key>
+            <string>automatic</string>
+          </dict>
+          </plist>
+          EOF
+          xcodebuild -exportArchive -archivePath "$ARCHIVE_PATH" -exportOptionsPlist exportOptions.plist -exportPath "$IPA_OUTPUT_DIR" -allowProvisioningUpdates
+
+      - name: Upload .ipa artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-ipa
+          path: frontend/ios/App/build/ipa/*.ipa
