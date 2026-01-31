@@ -161,6 +161,33 @@ const Dashboard: React.FC<DashboardProps> = ({ role, salon, appointments, userId
       </header>
 
       <main className="p-6 space-y-8 pb-32 safe-area-bottom animate-fade-in">
+
+        {/* Link Compartilhável do Bot */}
+        {salon?.slug_publico && (
+          <div className="bg-gradient-to-r from-indigo-900/40 to-purple-900/40 border border-indigo-500/30 p-5 rounded-[32px] flex items-center justify-between shadow-xl relative overflow-hidden group">
+            <div className="absolute inset-0 bg-indigo-500/5 group-hover:bg-indigo-500/10 transition-colors"></div>
+            <div className="relative z-10">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="bg-indigo-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest">Novo</span>
+                <h3 className="text-white font-black text-sm tracking-tight">Agendamento Inteligente 🤖</h3>
+              </div>
+              <p className="text-[10px] text-indigo-200 font-medium">Link do Robô para enviar aos clientes.</p>
+            </div>
+            <button
+              onClick={() => {
+                const link = `${window.location.origin}/#/q/${salon.slug_publico}`;
+                navigator.clipboard.writeText(link);
+                // Usar toast customizado se possivel, ou alert simples
+                alert('Link do Robô copiado! Envie para seus clientes: ' + link);
+              }}
+              className="relative z-10 bg-indigo-500 text-white px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg active:scale-95 transition-all flex items-center gap-2 hover:bg-indigo-400"
+            >
+              <span className="material-symbols-outlined text-base">content_copy</span>
+              Copiar
+            </button>
+          </div>
+        )}
+
         <section className="p-8 bg-surface-dark rounded-[40px] border border-white/5 shadow-2xl overflow-hidden relative group">
           <div className="flex justify-between items-start mb-6">
             <div>

@@ -10,7 +10,7 @@ import { supabase } from './lib/supabase.ts';
 import { SplashScreen } from '@capacitor/splash-screen';
 
 // Screens
-import QuickSchedule from './screens/Public/QuickSchedule.tsx';
+import QuickSchedule from './screens/Public/QuickSchedule';
 import Landing from './screens/Public/Landing.tsx';
 import Discovery from './screens/Client/Discovery.tsx';
 import SalonPage from './screens/Client/SalonPage.tsx';
@@ -271,10 +271,11 @@ const AppContent: React.FC = () => {
   const isFullView = ['/', '/login', '/login-user', '/register', '/register-user'].includes(location.pathname);
   const isChat = location.pathname.startsWith('/chat/');
   const isSalon = location.pathname.startsWith('/salon/');
+  const isQuickSchedule = location.pathname.startsWith('/q/'); // Nova rota publica
   const isGallery = location.pathname === '/gallery';
   const isBookingFlow = ['/select-service', '/choose-time', '/checkout'].includes(location.pathname);
 
-  const shouldShowNav = !isFullView && !isChat && !isSalon && !isGallery && !isBookingFlow;
+  const shouldShowNav = !isFullView && !isChat && !isSalon && !isGallery && !isBookingFlow && !isQuickSchedule;
 
   // Loading Screen
   if (isLoading) {
