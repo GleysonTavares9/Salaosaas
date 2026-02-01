@@ -287,25 +287,32 @@ const QuickSchedule: React.FC = () => {
                     {/* Elements */}
                     <div className="pb-4">
                         {step === 'SERVICES' && (
-                            <div className="mt-4 flex overflow-x-auto gap-4 pb-4 scrollbar-hide px-1">
-                                {services.map(svc => {
-                                    const isSelected = selectedServices.some(s => s.id === svc.id);
-                                    return (
-                                        <div key={svc.id} onClick={() => toggleService(svc)}
-                                            className={`shrink-0 w-44 bg-[#1c1c1f] rounded-[24px] border-2 p-3 flex flex-col gap-3 cursor-pointer transition-all active:scale-95 ${isSelected ? 'shadow-lg bg-[#c1a571]/10' : 'border-white/5'}`}
-                                            style={{ borderColor: isSelected ? auraGold : 'transparent' }}>
-                                            <div className="h-28 w-full bg-black/40 rounded-2xl overflow-hidden relative">
-                                                {svc.image ? <img src={svc.image} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-white/10 text-3xl">✂️</div>}
-                                                {isSelected && <div className="absolute top-2 right-2 rounded-full p-1" style={{ backgroundColor: auraGold }}><span className="material-symbols-outlined text-xs text-black font-black">check</span></div>}
+                            <>
+                                <div className="mt-4 flex overflow-x-auto gap-4 pb-4 scrollbar-hide px-1">
+                                    {services.map(svc => {
+                                        const isSelected = selectedServices.some(s => s.id === svc.id);
+                                        return (
+                                            <div key={svc.id} onClick={() => toggleService(svc)}
+                                                className={`shrink-0 w-44 bg-[#1c1c1f] rounded-[24px] border-2 p-3 flex flex-col gap-3 cursor-pointer transition-all active:scale-95 ${isSelected ? 'shadow-lg bg-[#c1a571]/10' : 'border-white/5'}`}
+                                                style={{ borderColor: isSelected ? auraGold : 'transparent' }}>
+                                                <div className="h-28 w-full bg-black/40 rounded-2xl overflow-hidden relative">
+                                                    {svc.image ? <img src={svc.image} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-white/10 text-3xl">✂️</div>}
+                                                    {isSelected && <div className="absolute top-2 right-2 rounded-full p-1" style={{ backgroundColor: auraGold }}><span className="material-symbols-outlined text-xs text-black font-black">check</span></div>}
+                                                </div>
+                                                <div className="px-1">
+                                                    <h3 className="font-bold text-xs truncate text-white mb-1">{svc.name}</h3>
+                                                    <p className="font-black text-sm" style={{ color: auraGold }}>R$ {svc.price}</p>
+                                                </div>
                                             </div>
-                                            <div className="px-1">
-                                                <h3 className="font-bold text-xs truncate text-white mb-1">{svc.name}</h3>
-                                                <p className="font-black text-sm" style={{ color: auraGold }}>R$ {svc.price}</p>
-                                            </div>
-                                        </div>
-                                    )
-                                })}
-                            </div>
+                                        )
+                                    })}
+                                </div>
+                                <div className="flex items-center justify-center gap-2 pb-2 opacity-40 animate-pulse">
+                                    <span className="material-symbols-outlined text-xs text-white">swipe_left</span>
+                                    <span className="text-[9px] uppercase tracking-[0.2em] text-slate-300 font-black">Deslize para ver mais</span>
+                                    <span className="material-symbols-outlined text-xs text-white">swipe_right</span>
+                                </div>
+                            </>
                         )}
 
                         {step === 'PROFESSIONAL' && (
