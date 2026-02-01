@@ -369,6 +369,7 @@ const QuickSchedule: React.FC = () => {
 
     const confirmServices = () => {
         if (selectedServices.length === 0) return;
+        setShowElements(false); // Esconde UI enquanto bot fala
         const selectedNames = selectedServices.map(s => s.name).join(', ');
         addUserMessage(selectedNames);
         addBotMessage(`Perfeito! Você escolheu: **${selectedNames}**.\n\nCom qual profissional você deseja agendar?`);
@@ -377,6 +378,7 @@ const QuickSchedule: React.FC = () => {
 
     const handleProSelect = (pro: Professional) => {
         setSelectedPro(pro);
+        setShowElements(false); // Esconde UI enquanto bot fala
         addUserMessage(pro.name);
         addBotMessage("Para quando deseja agendar?");
         setStep('DATE');
@@ -384,6 +386,7 @@ const QuickSchedule: React.FC = () => {
 
     const handleDateSelect = async (date: string, label: string) => {
         setSelectedDate(date);
+        setShowElements(false); // Esconde UI enquanto bot fala
         addUserMessage(label);
         addBotMessage(`Ótimo! Agora escolha o melhor **horário** para ${label.toLowerCase()}:`);
         setStep('TIME');
@@ -422,13 +425,29 @@ const QuickSchedule: React.FC = () => {
 
     const handleTimeSelect = (time: string) => {
         setSelectedTime(time);
+        setShowElements(false);
         addUserMessage(time);
+
         const total = selectedServices.reduce((acc, s) => acc + s.price, 0);
-        addBotMessage(`Confirma o agendamento de **${selectedServices.length} serviço(s)** com **${selectedPro?.name}** para às **${time}**?\nTotal: R$ ${total},00`);
+        const serviceNames = selectedServices.map(s => s.name).join(', ');
+
+        // Formatar data
+        const [year, month, day] = selectedDate.split('-').map(Number);
+        const dateObj = new Date(year, month - 1, day);
+        const dateFormatted = dateObj.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', weekday: 'long' });
+
+        addBotMessage(`Por favor, confira os detalhes:\n\n` +
+            `🗓️ **Data:** ${dateFormatted} às **${time}**\n` +
+            `👤 **Profissional:** ${selectedPro?.name}\n` +
+            `✂️ **Serviços:** ${serviceNames}\n` +
+            `💰 **Total:** R$ ${total},00\n\n` +
+            `Tudo certo?`);
+
         setStep('CONFIRM');
     };
 
     const finalize = async () => {
+        setShowElements(false);
         addUserMessage("Sim, confirmar!");
         addBotMessage("Finalizando seu agendamento...");
         const { data: { user } } = await supabase.auth.getUser();
@@ -602,20 +621,20 @@ const QuickSchedule: React.FC = () => {
                                             <button
                                                 key={d.dateStr}
                                                 onClick={() => handleDateSelect(d.dateStr, d.label)}
-                                                className={`shrink-0 flex flex-col items-center justify-center size-24 rounded-[28px] transition-all borderActive active:scale-95 ${isHighlight
+                                                className={`shrink-0 flex flex-col items-center justify-center w-[72px] h-[88px] rounded-[24px] transition-all borderActive active:scale-95 ${isHighlight
                                                     ? 'text-black shadow-lg shadow-[#c1a571]/20 scale-105'
                                                     : 'bg-[#121214] border border-white/10 text-slate-500 hover:border-[#c1a571]/50 hover:text-white'
                                                     }`}
                                                 style={isHighlight ? { background: `linear-gradient(135deg, ${auraGold} 0%, ${auraGoldDark} 100%)`, border: 'none' } : {}}
                                             >
-                                                <span className={`text-[9px] font-black uppercase tracking-[0.2em] mb-0.5 ${isHighlight ? 'text-black/70' : 'text-slate-500'}`}>
+                                                <span className={`text-[8px] font-black uppercase tracking-[0.2em] mb-0.5 ${isHighlight ? 'text-black/70' : 'text-slate-500'}`}>
                                                     {index === 0 ? 'HOJE' : index === 1 ? 'AMANHÃ' : d.dayShort}
                                                 </span>
-                                                <div className="flex items-baseline gap-1">
-                                                    <span className={`text-2xl font-display font-black italic tracking-tighter ${isHighlight ? 'text-black' : 'text-white'}`}>
+                                                <div className="flex items-baseline gap-0.5">
+                                                    <span className={`text-xl font-display font-black italic tracking-tighter ${isHighlight ? 'text-black' : 'text-white'}`}>
                                                         {d.dayNum}
                                                     </span>
-                                                    <span className={`text-[10px] font-black uppercase italic tracking-widest ${isHighlight ? 'text-black/80' : 'text-slate-500'}`}>
+                                                    <span className={`text-[8px] font-black uppercase italic tracking-widest ${isHighlight ? 'text-black/80' : 'text-slate-500'}`}>
                                                         {d.monthLabel}
                                                     </span>
                                                 </div>
