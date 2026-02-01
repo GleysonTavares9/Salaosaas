@@ -220,6 +220,14 @@ const AppContent: React.FC = () => {
     setRole(selectedRole);
     if (userId) setCurrentUserId(userId);
 
+    // Verifica se veio do QuickSchedule
+    const quickScheduleReturn = localStorage.getItem('quickScheduleReturn');
+    if (quickScheduleReturn) {
+      localStorage.removeItem('quickScheduleReturn');
+      navigate(quickScheduleReturn, { replace: true });
+      return;
+    }
+
     if (selectedRole === 'client') {
       const hasSalon = !!bookingDraft.salonId;
       const hasProducts = (bookingDraft.products?.length || 0) > 0;
@@ -228,7 +236,7 @@ const AppContent: React.FC = () => {
       if (hasProducts && !hasServices) {
         navigate('/checkout');
       } else if (hasServices) {
-        navigate('/select-service');
+        navigate('/choose-time');
       } else {
         navigate('/explore');
       }

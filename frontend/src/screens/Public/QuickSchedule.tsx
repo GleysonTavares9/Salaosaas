@@ -191,6 +191,13 @@ const QuickSchedule: React.FC = () => {
             });
     }, [slug]);
 
+    // Salva a URL atual para retornar após login
+    useEffect(() => {
+        if (slug) {
+            localStorage.setItem('quickScheduleReturn', `/q/${slug}`);
+        }
+    }, [slug]);
+
     useEffect(() => {
         setTimeout(() => scrollRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
     }, [messages, step]);

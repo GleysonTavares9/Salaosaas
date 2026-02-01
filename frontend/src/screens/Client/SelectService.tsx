@@ -86,25 +86,6 @@ const SelectService: React.FC<SelectServiceProps> = ({ bookingDraft, setBookingD
         <h1 className="font-display text-base font-black text-white italic tracking-tighter uppercase">Itens da Reserva</h1>
         <div className="size-10"></div>
       </header>
-
-      {/* TABS DE SELEÇÃO */}
-      <nav className="bg-background-dark/95 px-6 pt-4 flex gap-8 border-b border-white/5 shrink-0 z-40">
-        <button
-          onClick={() => setActiveTab('services')}
-          className={`pb-4 text-[9px] font-black uppercase tracking-[0.2em] relative transition-all ${activeTab === 'services' ? 'text-primary' : 'text-slate-500'}`}
-        >
-          Rituais & Serviços
-          {activeTab === 'services' && <div className="absolute bottom-0 left-0 right-0 h-0.5 gold-gradient rounded-full"></div>}
-        </button>
-        <button
-          onClick={() => setActiveTab('products')}
-          className={`pb-4 text-[9px] font-black uppercase tracking-[0.2em] relative transition-all ${activeTab === 'products' ? 'text-primary' : 'text-slate-500'}`}
-        >
-          Home Care & Produtos
-          {activeTab === 'products' && <div className="absolute bottom-0 left-0 right-0 h-0.5 gold-gradient rounded-full"></div>}
-        </button>
-      </nav>
-
       <main className="flex-1 overflow-y-auto no-scrollbar px-6 pt-6">
         {isLoading ? (
           <div className="py-20 text-center">
