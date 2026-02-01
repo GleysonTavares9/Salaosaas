@@ -14,6 +14,52 @@ interface Message {
     sender: 'bot' | 'user';
 }
 
+// Dourado Aura Color (Based on official #ecd3a5 and #c1a571)
+const auraGold = "#ecd3a5";
+const auraGoldDark = "#c1a571";
+
+const renderText = (text: string) => <span dangerouslySetInnerHTML={{ __html: text.replace(/\*\*(.*?)\*\*/g, `<b style="color: ${auraGold}">$1</b>`).replace(/\n/g, '<br/>') }} />;
+
+const TypewriterText = React.memo(({ text }: { text: string }) => {
+    const [displayedText, setDisplayedText] = useState('');
+    const [currentIndex, setCurrentIndex] = useState(0);
+
+    useEffect(() => {
+        if (currentIndex < text.length) {
+            const char = text[currentIndex];
+
+            // Cálculo de atraso "Humano"
+            let nextDelay = 35; // Base: 35ms por letra
+
+            if (char === '.' || char === '!' || char === '?') nextDelay = 700; // Fim de frase: Pausa longa
+            else if (char === ',') nextDelay = 300; // Vírgula: Pausa média
+            else if (char === '\n') nextDelay = 500; // Quebra de linha: Pausa
+
+            // Adiciona um pouco de aleatoriedade (5-15ms) para não ser perfeito
+            const variance = Math.floor(Math.random() * 15);
+
+            const timeout = setTimeout(() => {
+                setDisplayedText(prev => prev + char);
+                setCurrentIndex(prev => prev + 1);
+            }, nextDelay + variance);
+
+            return () => clearTimeout(timeout);
+        }
+    }, [currentIndex, text]);
+
+    return renderText(displayedText);
+});
+
+const TypingIndicator = () => (
+    <div className="flex justify-start animate-fade-in">
+        <div className="bg-[#1c1c1f] px-5 py-4 rounded-[24px] rounded-tl-sm border border-[#c1a571]/20 shadow-[#c1a571]/5 flex gap-1 items-center">
+            <div className="w-1.5 h-1.5 bg-[#ecd3a5] rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+            <div className="w-1.5 h-1.5 bg-[#ecd3a5] rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+            <div className="w-1.5 h-1.5 bg-[#ecd3a5] rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+        </div>
+    </div>
+);
+
 const QuickSchedule: React.FC = () => {
     const { slug } = useParams<{ slug: string }>();
     const navigate = useNavigate();
@@ -43,9 +89,6 @@ const QuickSchedule: React.FC = () => {
     const scrollRef = useRef<HTMLDivElement>(null);
     const initialized = useRef(false);
 
-    // Dourado Aura Color (Based on official #ecd3a5 and #c1a571)
-    const auraGold = "#ecd3a5";
-    const auraGoldDark = "#c1a571";
 
     useEffect(() => {
         if (!slug || initialized.current) return;
@@ -112,47 +155,6 @@ const QuickSchedule: React.FC = () => {
 
     const addUserMessage = (text: string) => setMessages(prev => [...prev, { id: `${Date.now()}-${Math.random()}`, text, sender: 'user' }]);
 
-    const renderText = (text: string) => <span dangerouslySetInnerHTML={{ __html: text.replace(/\*\*(.*?)\*\*/g, `<b style="color: ${auraGold}">$1</b>`).replace(/\n/g, '<br/>') }} />;
-
-    const TypewriterText: React.FC<{ text: string }> = ({ text }) => {
-        const [displayedText, setDisplayedText] = useState('');
-        const [currentIndex, setCurrentIndex] = useState(0);
-
-        useEffect(() => {
-            if (currentIndex < text.length) {
-                const char = text[currentIndex];
-
-                // Cálculo de atraso "Humano"
-                let nextDelay = 35; // Base: 35ms por letra
-
-                if (char === '.' || char === '!' || char === '?') nextDelay = 700; // Fim de frase: Pausa longa
-                else if (char === ',') nextDelay = 300; // Vírgula: Pausa média
-                else if (char === '\n') nextDelay = 500; // Quebra de linha: Pausa
-
-                // Adiciona um pouco de aleatoriedade (5-15ms) para não ser perfeito
-                const variance = Math.floor(Math.random() * 15);
-
-                const timeout = setTimeout(() => {
-                    setDisplayedText(prev => prev + char);
-                    setCurrentIndex(prev => prev + 1);
-                }, nextDelay + variance);
-
-                return () => clearTimeout(timeout);
-            }
-        }, [currentIndex, text]);
-
-        return renderText(displayedText);
-    };
-
-    const TypingIndicator = () => (
-        <div className="flex justify-start animate-fade-in">
-            <div className="bg-[#1c1c1f] px-5 py-4 rounded-[24px] rounded-tl-sm border border-[#c1a571]/20 shadow-[#c1a571]/5 flex gap-1 items-center">
-                <div className="w-1.5 h-1.5 bg-[#ecd3a5] rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                <div className="w-1.5 h-1.5 bg-[#ecd3a5] rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                <div className="w-1.5 h-1.5 bg-[#ecd3a5] rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
-            </div>
-        </div>
-    );
 
     const handleSend = async () => {
         if (!inputValue.trim()) return;
