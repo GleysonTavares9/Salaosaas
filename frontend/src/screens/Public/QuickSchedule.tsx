@@ -146,9 +146,9 @@ const QuickSchedule: React.FC = () => {
                 if (!data) throw new Error("Unidade não encontrada.");
                 setSalon(data);
                 setStep('WELCOME');
-                addBotMessage(`Olá! Bem-vindo ao *${data.nome}*. ✨`);
+                addBotMessage(`Bem-vindo ao ${data.nome}.`);
                 setTimeout(() => {
-                    addBotMessage("Vamos realizar seu agendamento. Digite seu **celular** para começar.");
+                    addBotMessage("Informe seu celular para começar.");
                     setStep('PHONE');
                 }, 600);
                 api.services.getBySalon(data.id).then(setServices);
@@ -234,8 +234,8 @@ const QuickSchedule: React.FC = () => {
                     setUserData(prev => ({ ...prev, email: profile.email, name: profile.full_name }));
                     const firstName = (profile.full_name || 'Usuário').split(' ')[0];
                     setTimeout(() => {
-                        addBotMessage(`Olá **${firstName}**! Que bom te ver. ✨`);
-                        addBotMessage("Digite sua **senha** para entrar:");
+                        addBotMessage(`Olá ${firstName}.`);
+                        addBotMessage("Informe sua senha:");
                         setStep('PASSWORD');
                     }, 400);
                 } else if (isEmail) {
@@ -261,8 +261,8 @@ const QuickSchedule: React.FC = () => {
                 if (secondProfile) {
                     setUserData(prev => ({ ...prev, name: secondProfile.full_name }));
                     setTimeout(() => {
-                        addBotMessage(`Ah, agora encontrei você! ✨`);
-                        addBotMessage("Digite sua **senha**:");
+                        addBotMessage("Perfil encontrado.");
+                        addBotMessage("Informe sua senha:");
                         setStep('PASSWORD');
                     }, 400);
                 } else {
@@ -276,11 +276,11 @@ const QuickSchedule: React.FC = () => {
             case 'PASSWORD':
                 const { error: loginError } = await supabase.auth.signInWithPassword({ email: userData.email, password: text });
                 if (loginError) {
-                    addBotMessage("Senha incorreta. Tente novamente ou peça ajuda ao suporte.");
+                    addBotMessage("Senha incorreta. Tente novamente.");
                 } else {
-                    addBotMessage(`Excelente, **${(userData.name || '').split(' ')[0] || 'que bom te ver'}**! Vamos aos rituais de hoje.`);
+                    addBotMessage(`Olá ${(userData.name || '').split(' ')[0]}.`);
                     setTimeout(() => {
-                        addBotMessage("Selecione os serviços abaixo:");
+                        addBotMessage("Escolha os serviços:");
                         setStep('SERVICES');
                     }, 400);
                 }
@@ -289,7 +289,7 @@ const QuickSchedule: React.FC = () => {
             case 'REGISTER_NAME':
                 setUserData(prev => ({ ...prev, name: text }));
                 // Como já temos o e-mail do AUTH_CHECK, pedimos a senha
-                addBotMessage(`Prazer, **${text.split(' ')[0]}**! Agora para finalizar, crie uma **senha**:`);
+                addBotMessage(`Prazer, ${text.split(' ')[0]}! Agora crie uma senha:`);
                 setStep('REGISTER_PASSWORD');
                 break;
 
@@ -312,16 +312,16 @@ const QuickSchedule: React.FC = () => {
                     // Se o erro for de usuário já cadastrado, capturamos e redirecionamos para senha
                     if (signUpError.message.toLowerCase().includes('already registered') || signUpError.status === 422) {
                         addBotMessage("Identifiquei que você já possui cadastro com este e-mail.");
-                        addBotMessage("Por favor, digite sua **senha** para entrar:");
+                        addBotMessage("Por favor, digite sua senha para entrar:");
                         setStep('PASSWORD');
                     } else {
                         addBotMessage("Ops! " + signUpError.message);
                     }
                 } else {
                     setUserData(prev => ({ ...prev, password: text }));
-                    addBotMessage("Conta criada com sucesso! ✨🚀");
+                    addBotMessage("Conta criada com sucesso!");
                     setTimeout(() => {
-                        addBotMessage("Agora, selecione os serviços desejados:");
+                        addBotMessage("Agora, escolha os serviços desejados:");
                         setStep('SERVICES');
                     }, 600);
                 }
@@ -340,21 +340,21 @@ const QuickSchedule: React.FC = () => {
     const confirmServices = () => {
         if (selectedServices.length === 0) return;
         addUserMessage(selectedServices.map(s => s.name).join(', '));
-        addBotMessage("Com qual profissional você deseja agendar?");
+        addBotMessage("Escolha o profissional:");
         setStep('PROFESSIONAL');
     };
 
     const handleProSelect = (pro: Professional) => {
         setSelectedPro(pro);
         addUserMessage(pro.name);
-        addBotMessage("Para quando deseja agendar?");
+        addBotMessage("Escolha a data:");
         setStep('DATE');
     };
 
     const handleDateSelect = async (date: string, label: string) => {
         setSelectedDate(date);
         addUserMessage(label);
-        addBotMessage(`Ótimo! Agora escolha o melhor **horário** para ${label.toLowerCase()}:`);
+        addBotMessage(`Escolha o horário para ${label.toLowerCase()}:`);
         setStep('TIME');
 
         if (!selectedPro) return;
@@ -391,32 +391,13 @@ const QuickSchedule: React.FC = () => {
         setSelectedTime(time);
         addUserMessage(time);
         const total = selectedServices.reduce((acc, s) => acc + s.price, 0);
-        addBotMessage(`Confirma o agendamento de **${selectedServices.length} serviço(s)** com **${selectedPro?.name}** para às **${time}**?\nTotal: R$ ${total},00`);
+        addBotMessage(`Agendar ${selectedServices.length} serviço(s) com ${selectedPro?.name} às ${time} por R$ ${total}? Confirmar?`);
         setStep('CONFIRM');
     };
 
     const finalize = async () => {
-        addUserMessage("Sim, confirmar!");
-
-        // Verificar se tem Checkout (Pagamento Online) habilitado
-        const isMpEnabled = !!(salon?.mp_public_key && salon.mp_public_key.length > 10 && !salon.mp_public_key.includes('@'));
-
-        if (isMpEnabled) {
-            setBookingDraft({
-                salonId: salon?.id,
-                salonName: salon?.nome,
-                services: selectedServices,
-                products: [],
-                date: selectedDate,
-                time: selectedTime,
-                professionalId: selectedPro?.id,
-                professionalName: selectedPro?.name
-            });
-            setStep('CHECKOUT');
-            return;
-        }
-
-        addBotMessage("Finalizando seu agendamento...");
+        addUserMessage("Confirmar");
+        addBotMessage("Finalizando...");
         const { data: { user } } = await supabase.auth.getUser();
         if (!user || !selectedPro || !salon) return;
         try {
@@ -428,14 +409,14 @@ const QuickSchedule: React.FC = () => {
                 duration_min: selectedServices.reduce((acc, s) => acc + (s.duration_min || 60), 0)
             } as any);
             setStep('SUCCESS');
-            addBotMessage("✅ **Agendamento Confirmado!**\nEstamos te esperando!");
+            addBotMessage("Agendamento confirmado.");
         } catch (e: any) { addBotMessage("Erro: " + e.message); }
     };
 
     const handleWhatsAppNotification = () => {
         if (!salon || !selectedPro) return;
-        const servicesText = selectedServices.map(s => `• *${s.name}*`).join('\n');
-        const text = `Olá! Acabei de realizar um agendamento via *Luxe Concierge*.\n\n🏛️ *Local:* ${salon.nome}\n✂️ *Rituais:*\n${servicesText}\n📅 *Data:* ${selectedDate}\n⏰ *Hora:* ${selectedTime}\n👤 *Profissional:* ${selectedPro.name}\n\n_Aguardo o atendimento!_ ✨`;
+        const servicesText = selectedServices.map(s => `• ${s.name}`).join('\n');
+        const text = `Olá. Realizei um agendamento.\n\nLocal: ${salon.nome}\nRituais:\n${servicesText}\nData: ${selectedDate}\nHora: ${selectedTime}\nProfissional: ${selectedPro.name}`;
         const phoneNumber = salon.telefone?.replace(/\D/g, '') || '55';
         window.open(`https://wa.me/${phoneNumber}?text=${encodeURIComponent(text)}`, '_blank');
     };
@@ -560,38 +541,38 @@ const QuickSchedule: React.FC = () => {
                                 {...dateDrag}
                                 className="mt-4 flex overflow-x-auto gap-3 pb-4 scrollbar-hide px-1 cursor-grab active:cursor-grabbing select-none"
                             >
-                                {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13].map(offset => {
-                                    const d = new Date();
-                                    d.setDate(d.getDate() + offset);
+                                {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
+                                    .map(offset => {
+                                        const d = new Date();
+                                        d.setDate(d.getDate() + offset);
 
-                                    const dateStr = `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getDate().toString().padStart(2, '0')}`;
-                                    const dayName = d.toLocaleDateString('pt-BR', { weekday: 'long' }).toLowerCase();
-                                    const dayShort = d.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '').toUpperCase();
-                                    const dayNum = d.getDate();
-                                    const monthLabel = d.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '').toUpperCase();
+                                        const dateStr = `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getDate().toString().padStart(2, '0')}`;
+                                        const dayName = d.toLocaleDateString('pt-BR', { weekday: 'long' }).toLowerCase();
+                                        const dayShort = d.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '').toUpperCase();
+                                        const dayNum = d.getDate();
+                                        const monthLabel = d.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '').toUpperCase();
 
-                                    const key = DAY_KEY_MAP[dayName] || dayName;
-                                    const isClosed = salon?.horario_funcionamento?.[key]?.closed;
-                                    const label = offset === 0 ? 'Hoje' : offset === 1 ? 'Amanhã' : `${dayShort}, ${dayNum} ${monthLabel}`;
+                                        const key = DAY_KEY_MAP[dayName] || dayName;
+                                        const isClosed = salon?.horario_funcionamento?.[key]?.closed;
+                                        const label = offset === 0 ? 'Hoje' : offset === 1 ? 'Amanhã' : `${dayShort}, ${dayNum} ${monthLabel}`;
 
-                                    return (
+                                        return { dateStr, dayShort, dayNum, monthLabel, isClosed, label };
+                                    })
+                                    .filter(d => !d.isClosed) // Remove dias fechados do fluxo do bot
+                                    .map(d => (
                                         <button
-                                            key={dateStr}
-                                            onClick={() => !isClosed && handleDateSelect(dateStr, label)}
-                                            disabled={isClosed}
-                                            className={`shrink-0 flex flex-col items-center justify-center w-20 h-24 rounded-[24px] transition-all border ${isClosed
-                                                ? 'bg-red-500/5 border-red-500/10 opacity-40 cursor-not-allowed'
-                                                : 'bg-[#1c1c1f] border-white/5 active:scale-95 hover:border-primary/30'
-                                                }`}
+                                            key={d.dateStr}
+                                            onClick={() => handleDateSelect(d.dateStr, d.label)}
+                                            className="shrink-0 flex flex-col items-center justify-center w-20 h-24 rounded-[24px] transition-all border bg-[#1c1c1f] border-white/5 active:scale-95 hover:border-primary/30"
                                         >
-                                            <span className={`text-[8px] font-black uppercase tracking-widest mb-1 ${isClosed ? 'text-red-400' : 'text-slate-500'}`}>
-                                                {isClosed ? 'FECHADO' : dayShort}
+                                            <span className="text-[8px] font-black uppercase tracking-widest mb-1 text-slate-500">
+                                                {d.dayShort}
                                             </span>
-                                            <span className={`text-xl font-display font-black italic ${isClosed ? 'text-slate-600' : 'text-white'}`}>{dayNum}</span>
-                                            <span className={`text-[8px] font-black uppercase tracking-widest mt-1 ${isClosed ? 'text-slate-700' : 'text-primary'}`}>{monthLabel}</span>
+                                            <span className="text-xl font-display font-black italic text-white">{d.dayNum}</span>
+                                            <span className="text-[8px] font-black uppercase tracking-widest mt-1 text-primary">{d.monthLabel}</span>
                                         </button>
-                                    );
-                                })}
+                                    ))
+                                }
                             </div>
                         )}
 

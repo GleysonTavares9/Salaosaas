@@ -100,13 +100,13 @@ const AIConcierge: React.FC = () => {
               {loading ? (
                 <div className="flex flex-col items-center gap-3">
                   <div className="size-5 border-2 border-primary/20 border-t-primary rounded-full animate-spin"></div>
-                  <p className="text-[7px] text-slate-600 font-black uppercase tracking-[0.4em] animate-pulse">Processando...</p>
+                  <p className="text-[7px] text-slate-600 font-black uppercase tracking-[0.4em] animate-pulse">Aura IA</p>
                 </div>
               ) : response ? (
-                <p className="text-white text-xs leading-relaxed italic px-2">"{response}"</p>
+                <p className="text-white text-xs leading-relaxed italic px-2">{response}</p>
               ) : (
                 <p className="text-slate-500 text-[9px] font-black uppercase tracking-[0.2em] leading-relaxed opacity-80">
-                  Como posso ajudar a planejar sua próxima experiência de beleza?
+                  Como posso ajudar?
                 </p>
               )}
             </div>
@@ -117,7 +117,7 @@ const AIConcierge: React.FC = () => {
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Ex: Qual o melhor ritual para brilho?"
+                placeholder="Dúvida?"
                 className="flex-1 bg-surface-dark border border-white/5 rounded-xl py-3.5 px-5 text-white text-[11px] outline-none focus:border-primary/40 transition-all placeholder:text-slate-700 shadow-inner"
               />
               <button type="submit" className="size-11 gold-gradient rounded-xl flex items-center justify-center text-background-dark shadow-2xl active:scale-90 transition-transform disabled:opacity-50">
