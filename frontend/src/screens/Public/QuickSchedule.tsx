@@ -146,9 +146,10 @@ const QuickSchedule: React.FC = () => {
                 if (!data) throw new Error("Unidade não encontrada.");
                 setSalon(data);
                 setStep('WELCOME');
-                addBotMessage(`Bem-vindo ao ${data.nome}.`);
+                setStep('WELCOME');
+                addBotMessage(`Olá! Bem-vindo ao *${data.nome}*. ✨`);
                 setTimeout(() => {
-                    addBotMessage("Informe seu celular para começar.");
+                    addBotMessage("Vamos realizar seu agendamento. Digite seu **celular** para começar.");
                     setStep('PHONE');
                 }, 600);
                 api.services.getBySalon(data.id).then(setServices);
@@ -234,8 +235,8 @@ const QuickSchedule: React.FC = () => {
                     setUserData(prev => ({ ...prev, email: profile.email, name: profile.full_name }));
                     const firstName = (profile.full_name || 'Usuário').split(' ')[0];
                     setTimeout(() => {
-                        addBotMessage(`Olá ${firstName}.`);
-                        addBotMessage("Informe sua senha:");
+                        addBotMessage(`Olá **${firstName}**! Que bom te ver. ✨`);
+                        addBotMessage("Digite sua **senha** para entrar:");
                         setStep('PASSWORD');
                     }, 400);
                 } else if (isEmail) {
@@ -261,8 +262,8 @@ const QuickSchedule: React.FC = () => {
                 if (secondProfile) {
                     setUserData(prev => ({ ...prev, name: secondProfile.full_name }));
                     setTimeout(() => {
-                        addBotMessage("Perfil encontrado.");
-                        addBotMessage("Informe sua senha:");
+                        addBotMessage(`Ah, agora encontrei você! ✨`);
+                        addBotMessage("Digite sua **senha**:");
                         setStep('PASSWORD');
                     }, 400);
                 } else {
@@ -276,11 +277,11 @@ const QuickSchedule: React.FC = () => {
             case 'PASSWORD':
                 const { error: loginError } = await supabase.auth.signInWithPassword({ email: userData.email, password: text });
                 if (loginError) {
-                    addBotMessage("Senha incorreta. Tente novamente.");
+                    addBotMessage("Senha incorreta. Tente novamente ou peça ajuda ao suporte.");
                 } else {
-                    addBotMessage(`Olá ${(userData.name || '').split(' ')[0]}.`);
+                    addBotMessage(`Excelente, **${(userData.name || '').split(' ')[0] || 'que bom te ver'}**! Vamos aos rituais de hoje.`);
                     setTimeout(() => {
-                        addBotMessage("Escolha os serviços:");
+                        addBotMessage("Selecione os serviços abaixo:");
                         setStep('SERVICES');
                     }, 400);
                 }
@@ -289,7 +290,7 @@ const QuickSchedule: React.FC = () => {
             case 'REGISTER_NAME':
                 setUserData(prev => ({ ...prev, name: text }));
                 // Como já temos o e-mail do AUTH_CHECK, pedimos a senha
-                addBotMessage(`Prazer, ${text.split(' ')[0]}! Agora crie uma senha:`);
+                addBotMessage(`Prazer, **${text.split(' ')[0]}**! Agora para finalizar, crie uma **senha**:`);
                 setStep('REGISTER_PASSWORD');
                 break;
 
@@ -319,9 +320,9 @@ const QuickSchedule: React.FC = () => {
                     }
                 } else {
                     setUserData(prev => ({ ...prev, password: text }));
-                    addBotMessage("Conta criada com sucesso!");
+                    addBotMessage("Conta criada com sucesso! ✨🚀");
                     setTimeout(() => {
-                        addBotMessage("Agora, escolha os serviços desejados:");
+                        addBotMessage("Agora, selecione os serviços desejados:");
                         setStep('SERVICES');
                     }, 600);
                 }
@@ -339,22 +340,23 @@ const QuickSchedule: React.FC = () => {
 
     const confirmServices = () => {
         if (selectedServices.length === 0) return;
-        addUserMessage(selectedServices.map(s => s.name).join(', '));
-        addBotMessage("Escolha o profissional:");
+        const selectedNames = selectedServices.map(s => s.name).join(', ');
+        addUserMessage(selectedNames);
+        addBotMessage(`Perfeito! Você escolheu: **${selectedNames}**.\n\nCom qual profissional você deseja agendar?`);
         setStep('PROFESSIONAL');
     };
 
     const handleProSelect = (pro: Professional) => {
         setSelectedPro(pro);
         addUserMessage(pro.name);
-        addBotMessage("Escolha a data:");
+        addBotMessage("Para quando deseja agendar?");
         setStep('DATE');
     };
 
     const handleDateSelect = async (date: string, label: string) => {
         setSelectedDate(date);
         addUserMessage(label);
-        addBotMessage(`Escolha o horário para ${label.toLowerCase()}:`);
+        addBotMessage(`Ótimo! Agora escolha o melhor **horário** para ${label.toLowerCase()}:`);
         setStep('TIME');
 
         if (!selectedPro) return;
@@ -391,13 +393,13 @@ const QuickSchedule: React.FC = () => {
         setSelectedTime(time);
         addUserMessage(time);
         const total = selectedServices.reduce((acc, s) => acc + s.price, 0);
-        addBotMessage(`Agendar ${selectedServices.length} serviço(s) com ${selectedPro?.name} às ${time} por R$ ${total}? Confirmar?`);
+        addBotMessage(`Confirma o agendamento de **${selectedServices.length} serviço(s)** com **${selectedPro?.name}** para às **${time}**?\nTotal: R$ ${total},00`);
         setStep('CONFIRM');
     };
 
     const finalize = async () => {
-        addUserMessage("Confirmar");
-        addBotMessage("Finalizando...");
+        addUserMessage("Sim, confirmar!");
+        addBotMessage("Finalizando seu agendamento...");
         const { data: { user } } = await supabase.auth.getUser();
         if (!user || !selectedPro || !salon) return;
         try {
@@ -409,14 +411,14 @@ const QuickSchedule: React.FC = () => {
                 duration_min: selectedServices.reduce((acc, s) => acc + (s.duration_min || 60), 0)
             } as any);
             setStep('SUCCESS');
-            addBotMessage("Agendamento confirmado.");
+            addBotMessage("✅ **Agendamento Confirmado!**\nEstamos te esperando!");
         } catch (e: any) { addBotMessage("Erro: " + e.message); }
     };
 
     const handleWhatsAppNotification = () => {
         if (!salon || !selectedPro) return;
-        const servicesText = selectedServices.map(s => `• ${s.name}`).join('\n');
-        const text = `Olá. Realizei um agendamento.\n\nLocal: ${salon.nome}\nRituais:\n${servicesText}\nData: ${selectedDate}\nHora: ${selectedTime}\nProfissional: ${selectedPro.name}`;
+        const servicesText = selectedServices.map(s => `• *${s.name}*`).join('\n');
+        const text = `Olá! Acabei de realizar um agendamento via *Luxe Concierge*.\n\n🏛️ *Local:* ${salon.nome}\n✂️ *Rituais:*\n${servicesText}\n📅 *Data:* ${selectedDate}\n⏰ *Hora:* ${selectedTime}\n👤 *Profissional:* ${selectedPro.name}\n\n_Aguardo o atendimento!_ ✨`;
         const phoneNumber = salon.telefone?.replace(/\D/g, '') || '55';
         window.open(`https://wa.me/${phoneNumber}?text=${encodeURIComponent(text)}`, '_blank');
     };
