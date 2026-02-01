@@ -94,10 +94,23 @@ const QuickSchedule: React.FC = () => {
 
         useEffect(() => {
             if (currentIndex < text.length) {
+                const char = text[currentIndex];
+
+                // Cálculo de atraso "Humano"
+                let nextDelay = 35; // Base: 35ms por letra
+
+                if (char === '.' || char === '!' || char === '?') nextDelay = 700; // Fim de frase: Pausa longa
+                else if (char === ',') nextDelay = 300; // Vírgula: Pausa média
+                else if (char === '\n') nextDelay = 500; // Quebra de linha: Pausa
+
+                // Adiciona um pouco de aleatoriedade (5-15ms) para não ser perfeito
+                const variance = Math.floor(Math.random() * 15);
+
                 const timeout = setTimeout(() => {
-                    setDisplayedText(prev => prev + text[currentIndex]);
+                    setDisplayedText(prev => prev + char);
                     setCurrentIndex(prev => prev + 1);
-                }, 15); // Velocidade da digitação
+                }, nextDelay + variance);
+
                 return () => clearTimeout(timeout);
             }
         }, [currentIndex, text]);
