@@ -6,7 +6,7 @@ import { supabase } from '../../lib/supabase';
 import { Salon, Service, Professional, Appointment } from '../../types';
 import Checkout from '../Client/Checkout';
 
-type Step = 'LOADING' | 'WELCOME' | 'PHONE' | 'AUTH_CHECK' | 'PASSWORD' | 'REGISTER_NAME' | 'REGISTER_EMAIL' | 'REGISTER_PASSWORD' | 'SERVICES' | 'PROFESSIONAL' | 'TIME' | 'CONFIRM' | 'CHECKOUT' | 'SUCCESS';
+type Step = 'LOADING' | 'WELCOME' | 'PHONE' | 'AUTH_CHECK' | 'PASSWORD' | 'REGISTER_NAME' | 'REGISTER_EMAIL' | 'REGISTER_PASSWORD' | 'SERVICES' | 'PROFESSIONAL' | 'DATE' | 'TIME' | 'CONFIRM' | 'CHECKOUT' | 'SUCCESS';
 
 interface Message {
     id: string;
@@ -85,6 +85,7 @@ const QuickSchedule: React.FC = () => {
     const [isTyping, setIsTyping] = useState(false);
     const [botQueue, setBotQueue] = useState<React.ReactNode[]>([]);
     const [isProcessingQueue, setIsProcessingQueue] = useState(false);
+    const [showElements, setShowElements] = useState(false);
 
     const scrollRef = useRef<HTMLDivElement>(null);
     const initialized = useRef(false);
@@ -148,6 +149,11 @@ const QuickSchedule: React.FC = () => {
                 }
 
                 setIsProcessingQueue(false);
+
+                // Se a fila acabou, espera um pouco e mostra os botões/elementos
+                if (botQueue.length === 0) {
+                    setShowElements(true);
+                }
             };
             processNext();
         }
@@ -161,6 +167,7 @@ const QuickSchedule: React.FC = () => {
         const text = inputValue.trim();
         setInputValue('');
         addUserMessage(text);
+        setShowElements(false); // Esconde elementos ao enviar nova mensagem
 
         switch (step) {
             case 'PHONE':
@@ -287,27 +294,31 @@ const QuickSchedule: React.FC = () => {
         setStep('PROFESSIONAL');
     };
 
-    const handleProSelect = async (pro: Professional) => {
+    const handleProSelect = (pro: Professional) => {
         setSelectedPro(pro);
         addUserMessage(pro.name);
         addBotMessage("Para quando deseja agendar?");
+        setStep('DATE');
+    };
 
-        const today = new Date();
-        // Data formatada localmente YYYY-MM-DD para evitar erro de fuso UTC
-        const localDateStr = `${today.getFullYear()}-${(today.getMonth() + 1).toString().padStart(2, '0')}-${today.getDate().toString().padStart(2, '0')}`;
-        // Minutos passados desde o início do dia no relógio do usuário
-        const nowMin = today.getHours() * 60 + today.getMinutes() + 10;
-
-        setSelectedDate(localDateStr);
+    const handleDateSelect = async (date: string, label: string) => {
+        setSelectedDate(date);
+        addUserMessage(label);
+        addBotMessage(`Ótimo! Agora escolha o melhor **horário** para ${label.toLowerCase()}:`);
         setStep('TIME');
+
+        if (!selectedPro) return;
 
         // 1. Calcular Duração Total
         const totalDuration = selectedServices.reduce((acc, s) => acc + (s.duration_min || 30), 0);
 
-        // 2. Buscar agendamentos e calcular slots via RPC (Otimizado com Timezone Local)
+        // 2. Calcular agora em minutos (para o caso de ser HOJE)
+        const today = new Date();
+        const nowMin = today.getHours() * 60 + today.getMinutes() + 10;
+
         const { data, error: rpcError } = await supabase.rpc('get_available_slots_rpc', {
-            p_pro_id: pro.id,
-            p_date: localDateStr,
+            p_pro_id: selectedPro.id,
+            p_date: date,
             p_duration_min: totalDuration,
             p_client_now_min: nowMin
         });
@@ -319,10 +330,10 @@ const QuickSchedule: React.FC = () => {
         }
 
         const slots = data?.slots || [];
-
         setAvailableSlots(slots);
+
         if (slots.length === 0) {
-            addBotMessage("Nenhum horário disponível para a duração total dos serviços selecionados hoje. 😕");
+            addBotMessage("Poxa, não encontrei horários disponíveis para este dia. 😕");
         }
     };
 
@@ -440,7 +451,7 @@ const QuickSchedule: React.FC = () => {
 
                     {/* Elements */}
                     <div className="pb-4">
-                        {step === 'SERVICES' && (
+                        {showElements && step === 'SERVICES' && (
                             <>
                                 <div className="mt-4 flex overflow-x-auto gap-4 pb-4 scrollbar-hide px-1">
                                     {services.map(svc => {
@@ -469,31 +480,80 @@ const QuickSchedule: React.FC = () => {
                             </>
                         )}
 
-                        {step === 'PROFESSIONAL' && (
+                        {showElements && step === 'PROFESSIONAL' && (
                             <div className="mt-4 flex overflow-x-auto gap-5 pb-4 scrollbar-hide px-1">
-                                {professionals.map(pro => (
+                                {professionals.filter(p => !selectedPro || p.id === selectedPro.id).map(pro => (
                                     <div key={pro.id} onClick={() => handleProSelect(pro)} className="shrink-0 flex flex-col items-center gap-3 cursor-pointer active:scale-95 transition-transform p-1">
-                                        <div className="relative">
-                                            <img src={pro.image || `https://i.pravatar.cc/150?u=${pro.id}`} className="w-16 h-16 rounded-full border-2 object-cover" style={{ borderColor: 'rgba(255,255,255,0.05)' }} />
+                                        <div className={`size-20 rounded-[28px] p-1 border-2 transition-all ${selectedPro?.id === pro.id ? 'shadow-xl' : 'border-white/5'}`} style={{ borderColor: selectedPro?.id === pro.id ? auraGold : 'transparent' }}>
+                                            <img src={pro.image || 'https://via.placeholder.com/80'} className="w-full h-full rounded-[22px] object-cover" />
                                         </div>
-                                        <span className="text-xs font-bold text-white text-center truncate max-w-[90px]">{pro.name}</span>
+                                        <div className="text-center">
+                                            <p className="text-[10px] font-black text-white uppercase tracking-widest">{pro.name.split(' ')[0]}</p>
+                                            <p className="text-[7px] font-bold text-slate-500 uppercase tracking-tighter mt-1">{pro.role}</p>
+                                        </div>
                                     </div>
                                 ))}
                             </div>
                         )}
 
-                        {step === 'TIME' && (
-                            <div className="mt-4 grid grid-cols-4 gap-3">
+                        {showElements && step === 'DATE' && (
+                            <div className="mt-4 flex overflow-x-auto gap-3 pb-4 scrollbar-hide px-1">
+                                {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13].map(offset => {
+                                    const d = new Date();
+                                    d.setDate(d.getDate() + offset);
+
+                                    const dateStr = `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getDate().toString().padStart(2, '0')}`;
+                                    const dayName = d.toLocaleDateString('pt-BR', { weekday: 'long' }).toLowerCase();
+                                    const dayShort = d.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '').toUpperCase();
+                                    const dayNum = d.getDate();
+                                    const monthLabel = d.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '').toUpperCase();
+
+                                    // Tradução para o padrão do objeto operating_hours
+                                    const dayKeyMap: { [key: string]: string } = {
+                                        'segunda-feira': 'segunda',
+                                        'terça-feira': 'terca',
+                                        'quarta-feira': 'quarta',
+                                        'quinta-feira': 'quinta',
+                                        'sexta-feira': 'sexta',
+                                        'sábado': 'sabado',
+                                        'domingo': 'domingo'
+                                    };
+
+                                    const key = dayKeyMap[dayName] || dayName;
+                                    const isClosed = salon?.horario_funcionamento?.[key]?.closed;
+
+                                    if (isClosed) return null;
+
+                                    const label = offset === 0 ? 'Hoje' : offset === 1 ? 'Amanhã' : `${dayShort}, ${dayNum} ${monthLabel}`;
+
+                                    return (
+                                        <button key={dateStr} onClick={() => handleDateSelect(dateStr, label)} className="shrink-0 flex flex-col items-center justify-center w-20 h-24 bg-[#1c1c1f] border border-white/5 rounded-[24px] transition-all active:scale-95 hover:border-primary/30">
+                                            <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-1">{dayShort}</span>
+                                            <span className="text-xl font-display font-black text-white italic">{dayNum}</span>
+                                            <span className="text-[8px] font-black text-primary uppercase tracking-widest mt-1">{monthLabel}</span>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        )}
+
+                        {showElements && step === 'TIME' && (
+                            <div className="mt-4 grid grid-cols-4 gap-3 px-1">
                                 {availableSlots.map(slot => (
-                                    <button key={slot} onClick={() => handleTimeSelect(slot)} className="py-3.5 bg-[#1c1c1f] border border-white/5 rounded-2xl text-xs font-bold text-slate-300 hover:text-black transition-all active:scale-90" style={{ '--hover-bg': auraGold } as any} onMouseEnter={e => e.currentTarget.style.backgroundColor = auraGold} onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}>
+                                    <button key={slot} onClick={() => handleTimeSelect(slot)} className="py-3.5 bg-[#1c1c1f] border border-white/5 rounded-2xl text-[10px] font-black text-slate-400 hover:text-black hover:bg-[#ecd3a5] transition-all active:scale-95 uppercase tracking-widest">
                                         {slot}
                                     </button>
                                 ))}
+                                {availableSlots.length === 0 && (
+                                    <div className="col-span-4 p-8 text-center bg-white/5 rounded-3xl border border-white/5">
+                                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Sem horários para esta data</p>
+                                    </div>
+                                )}
                             </div>
                         )}
 
                         {step === 'SUCCESS' && (
-                            <div className="mt-6 space-y-3 animate-fade-in">
+                            <div className="mt-6 space-y-3 animate-fade-in px-1">
                                 <button onClick={handleWhatsAppNotification} className="w-full bg-[#25D366] text-white font-black py-4 rounded-2xl uppercase text-[10px] tracking-widest flex items-center justify-center gap-2 shadow-lg shadow-green-500/20 active:scale-95 transition-all">
                                     <svg className="size-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.025 3.23l-.693 2.536 2.603-.683c.894.49 1.83.749 2.828.75h.003c3.181 0 5.77-2.587 5.77-5.767 0-3.18-2.585-5.766-5.768-5.766zm3.321 8.201c-.137.385-.689.702-1.032.744-.312.039-.718.063-1.15-.078-.291-.096-.649-.221-1.115-.421-1.99-.854-3.268-2.885-3.367-3.018-.098-.133-.715-.951-.715-1.815a1.86 1.86 0 0 1 .59-1.402c.191-.184.412-.231.547-.231.134 0 .268.001.385.006.12.005.281-.045.44.331.166.388.564 1.369.613 1.468.049.1.082.216.016.348-.063.133-.122.216-.245.351-.122.134-.257.299-.366.402-.121.116-.247.243-.106.485.14.241.624 1.031 1.341 1.67.925.823 1.701 1.077 1.943 1.197.242.12.385.101.528-.063.142-.164.613-.715.777-.951.164-.236.327-.197.551-.115.222.083 1.411.666 1.652.784s.403.177.461.278c.058.1.058.58-.137.965z" /></svg>
                                     Notificar no WhatsApp
@@ -515,7 +575,7 @@ const QuickSchedule: React.FC = () => {
                             <span className="material-symbols-outlined text-sm">arrow_forward</span>
                         </button>
                     )}
-                    {step === 'CONFIRM' && (
+                    {showElements && (step === 'TIME' || step === 'CONFIRM') && (
                         <button onClick={finalize} className="w-full bg-emerald-500 text-white font-black py-4 rounded-2xl shadow-xl uppercase text-xs tracking-[0.2em] active:scale-95 transition-all">
                             CONFIRMAR AGENDAMENTO
                         </button>
@@ -534,7 +594,7 @@ const QuickSchedule: React.FC = () => {
                             </button>
                         </div>
                     )}
-                    {['WELCOME', 'LOADING', 'PROFESSIONAL', 'TIME', 'SUCCESS'].includes(step) && <div className="h-4 w-full flex items-center justify-center"><div className="w-12 h-1 bg-white/5 rounded-full"></div></div>}
+                    {['WELCOME', 'LOADING', 'PROFESSIONAL', 'DATE', 'TIME', 'SUCCESS'].includes(step) && <div className="h-4 w-full flex items-center justify-center"><div className="w-12 h-1 bg-white/5 rounded-full"></div></div>}
                 </div>
             </div>
         </div>
