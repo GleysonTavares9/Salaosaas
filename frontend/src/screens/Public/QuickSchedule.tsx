@@ -18,13 +18,20 @@ const auraGold = "#ecd3a5";
 const auraGoldDark = "#c1a571";
 
 const DAY_KEY_MAP: { [key: string]: string } = {
-    'segunda-feira': 'segunda',
-    'terça-feira': 'terca',
-    'quarta-feira': 'quarta',
-    'quinta-feira': 'quinta',
-    'sexta-feira': 'sexta',
-    'sábado': 'sabado',
-    'domingo': 'domingo'
+    'segunda-feira': 'monday',
+    'terça-feira': 'tuesday',
+    'quarta-feira': 'wednesday',
+    'quinta-feira': 'thursday',
+    'sexta-feira': 'friday',
+    'sábado': 'saturday',
+    'domingo': 'sunday',
+    'monday': 'monday',
+    'tuesday': 'tuesday',
+    'wednesday': 'wednesday',
+    'thursday': 'thursday',
+    'friday': 'friday',
+    'saturday': 'saturday',
+    'sunday': 'sunday'
 };
 
 const renderText = (text: string) => <span dangerouslySetInnerHTML={{ __html: text.replace(/\*\*(.*?)\*\*/g, `<b style="color: ${auraGold}">$1</b>`).replace(/\n/g, '<br/>') }} />;
@@ -103,6 +110,28 @@ const QuickSchedule: React.FC = () => {
 
     const scrollRef = useRef<HTMLDivElement>(null);
     const initialized = useRef(false);
+
+    const checkIsClosed = (salonData: Salon | null, d: Date): boolean => {
+        if (!salonData?.horario_funcionamento) return false;
+
+        const dayNamePT = d.toLocaleDateString('pt-BR', { weekday: 'long' }).toLowerCase(); // segunda-feira
+        const dayNameEN = d.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase(); // monday
+
+        // Tenta várias chaves possíveis que podem estar no JSON
+        const keys = [
+            dayNameEN, // monday
+            dayNamePT, // segunda-feira
+            dayNamePT.replace('-feira', ''), // segunda
+            dayNamePT.replace('-feira', '').normalize("NFD").replace(/[\u0300-\u036f]/g, "") // terca
+        ];
+
+        for (const key of keys) {
+            if (salonData.horario_funcionamento[key]) {
+                return salonData.horario_funcionamento[key].closed === true;
+            }
+        }
+        return false;
+    };
 
     const setupDragScroll = (ref: React.RefObject<HTMLDivElement>) => {
         let isDown = false;
@@ -368,24 +397,26 @@ const QuickSchedule: React.FC = () => {
         const today = new Date();
         const nowMin = today.getHours() * 60 + today.getMinutes() + 10;
 
-        const { data, error: rpcError } = await supabase.rpc('get_available_slots_rpc', {
-            p_pro_id: selectedPro.id,
-            p_date: date,
-            p_duration_min: totalDuration,
-            p_client_now_min: nowMin
-        });
+        try {
+            const { data, error: rpcError } = await supabase.rpc('get_available_slots_rpc', {
+                p_pro_id: selectedPro.id,
+                p_date: date,
+                p_duration_min: totalDuration,
+                p_client_now_min: nowMin
+            });
 
-        if (rpcError) {
-            console.error("RPC Error:", rpcError);
-            addBotMessage("Erro ao consultar agenda. Tente novamente.");
-            return;
-        }
+            if (rpcError) throw rpcError;
 
-        const slots = data?.slots || [];
-        setAvailableSlots(slots);
+            const slots = data?.slots || [];
+            setAvailableSlots(slots);
 
-        if (slots.length === 0) {
-            addBotMessage("Poxa, não encontrei horários disponíveis para este dia. 😕");
+            if (slots.length === 0) {
+                addBotMessage("Poxa, não encontrei horários disponíveis para este dia. 😕");
+            }
+        } catch (err) {
+            console.error("RPC Error:", err);
+            addBotMessage("Eita, tive um probleminha ao checar a agenda deste dia. 😕 Escolha outra data ou tente novamente.");
+            // Não avança o passo se der erro, permite escolher outra data
         }
     };
 
@@ -555,7 +586,8 @@ const QuickSchedule: React.FC = () => {
                                         const monthLabel = d.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '').toUpperCase();
 
                                         const key = DAY_KEY_MAP[dayName] || dayName;
-                                        const isClosed = salon?.horario_funcionamento?.[key]?.closed;
+                                        // Usamos a função robusta checkIsClosed e também o key map como fallback
+                                        const isClosed = checkIsClosed(salon, d);
                                         const label = offset === 0 ? 'Hoje' : offset === 1 ? 'Amanhã' : `${dayShort}, ${dayNum} ${monthLabel}`;
 
                                         return { dateStr, dayShort, dayNum, monthLabel, isClosed, label };
@@ -565,13 +597,10 @@ const QuickSchedule: React.FC = () => {
                                         <button
                                             key={d.dateStr}
                                             onClick={() => handleDateSelect(d.dateStr, d.label)}
-                                            className="shrink-0 flex flex-col items-center justify-center w-20 h-24 rounded-[24px] transition-all border bg-[#1c1c1f] border-white/5 active:scale-95 hover:border-primary/30"
+                                            className="shrink-0 flex flex-col items-center justify-center w-20 h-24 rounded-[24px] transition-all border bg-[#1c1c1f] border-white/5 active:scale-95 hover:border-primary/30 group"
                                         >
-                                            <span className="text-[8px] font-black uppercase tracking-widest mb-1 text-slate-500">
-                                                {d.dayShort}
-                                            </span>
-                                            <span className="text-xl font-display font-black italic text-white">{d.dayNum}</span>
-                                            <span className="text-[8px] font-black uppercase tracking-widest mt-1 text-primary">{d.monthLabel}</span>
+                                            <span className="text-2xl font-display font-black italic text-white group-hover:text-[#ecd3a5] transition-colors">{d.dayNum}</span>
+                                            <span className="text-[9px] font-black uppercase tracking-widest mt-0.5 text-slate-500 group-hover:text-white transition-colors">/ {d.monthLabel}</span>
                                         </button>
                                     ))
                                 }
