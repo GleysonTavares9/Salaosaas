@@ -593,16 +593,35 @@ const QuickSchedule: React.FC = () => {
                                         return { dateStr, dayShort, dayNum, monthLabel, isClosed, label };
                                     })
                                     .filter(d => !d.isClosed) // Remove dias fechados do fluxo do bot
-                                    .map(d => (
-                                        <button
-                                            key={d.dateStr}
-                                            onClick={() => handleDateSelect(d.dateStr, d.label)}
-                                            className="shrink-0 flex flex-col items-center justify-center w-20 h-24 rounded-[24px] transition-all border bg-[#1c1c1f] border-white/5 active:scale-95 hover:border-primary/30 group"
-                                        >
-                                            <span className="text-2xl font-display font-black italic text-white group-hover:text-[#ecd3a5] transition-colors">{d.dayNum}</span>
-                                            <span className="text-[9px] font-black uppercase tracking-widest mt-0.5 text-slate-500 group-hover:text-white transition-colors">/ {d.monthLabel}</span>
-                                        </button>
-                                    ))
+                                    .map((d, index) => {
+                                        const isSelected = selectedDate === d.dateStr;
+                                        // O primeiro item (Hoje) ou o item selecionado ganham o destaque Aura
+                                        const isHighlight = isSelected || (index === 0 && !selectedDate);
+
+                                        return (
+                                            <button
+                                                key={d.dateStr}
+                                                onClick={() => handleDateSelect(d.dateStr, d.label)}
+                                                className={`shrink-0 flex flex-col items-center justify-center size-24 rounded-[28px] transition-all borderActive active:scale-95 ${isHighlight
+                                                    ? 'text-black shadow-lg shadow-[#c1a571]/20 scale-105'
+                                                    : 'bg-[#121214] border border-white/10 text-slate-500 hover:border-[#c1a571]/50 hover:text-white'
+                                                    }`}
+                                                style={isHighlight ? { background: `linear-gradient(135deg, ${auraGold} 0%, ${auraGoldDark} 100%)`, border: 'none' } : {}}
+                                            >
+                                                <span className={`text-[9px] font-black uppercase tracking-[0.2em] mb-0.5 ${isHighlight ? 'text-black/70' : 'text-slate-500'}`}>
+                                                    {index === 0 ? 'HOJE' : index === 1 ? 'AMANHÃ' : d.dayShort}
+                                                </span>
+                                                <div className="flex items-baseline gap-1">
+                                                    <span className={`text-2xl font-display font-black italic tracking-tighter ${isHighlight ? 'text-black' : 'text-white'}`}>
+                                                        {d.dayNum}
+                                                    </span>
+                                                    <span className={`text-[10px] font-black uppercase italic tracking-widest ${isHighlight ? 'text-black/80' : 'text-slate-500'}`}>
+                                                        {d.monthLabel}
+                                                    </span>
+                                                </div>
+                                            </button>
+                                        )
+                                    })
                                 }
                             </div>
                         )}
