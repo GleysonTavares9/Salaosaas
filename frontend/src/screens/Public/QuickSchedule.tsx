@@ -88,6 +88,23 @@ const QuickSchedule: React.FC = () => {
 
     const renderText = (text: string) => <span dangerouslySetInnerHTML={{ __html: text.replace(/\*\*(.*?)\*\*/g, `<b style="color: ${auraGold}">$1</b>`).replace(/\n/g, '<br/>') }} />;
 
+    const TypewriterText: React.FC<{ text: string }> = ({ text }) => {
+        const [displayedText, setDisplayedText] = useState('');
+        const [currentIndex, setCurrentIndex] = useState(0);
+
+        useEffect(() => {
+            if (currentIndex < text.length) {
+                const timeout = setTimeout(() => {
+                    setDisplayedText(prev => prev + text[currentIndex]);
+                    setCurrentIndex(prev => prev + 1);
+                }, 15); // Velocidade da digitação
+                return () => clearTimeout(timeout);
+            }
+        }, [currentIndex, text]);
+
+        return renderText(displayedText);
+    };
+
     const TypingIndicator = () => (
         <div className="flex justify-start animate-fade-in">
             <div className="bg-[#1c1c1f] px-5 py-4 rounded-[24px] rounded-tl-sm border border-[#c1a571]/20 shadow-[#c1a571]/5 flex gap-1 items-center">
@@ -371,7 +388,9 @@ const QuickSchedule: React.FC = () => {
                                 ? 'bg-[#1c1c1f] text-slate-100 rounded-tl-sm border border-[#c1a571]/20 shadow-[#c1a571]/5'
                                 : `text-black font-bold rounded-tr-sm`
                                 }`} style={msg.sender === 'user' ? { background: `linear-gradient(135deg, ${auraGold} 0%, ${auraGoldDark} 100%)` } : {}}>
-                                {typeof msg.text === 'string' ? renderText(msg.text) : msg.text}
+                                {typeof msg.text === 'string'
+                                    ? (msg.sender === 'bot' ? <TypewriterText text={msg.text} /> : renderText(msg.text))
+                                    : msg.text}
                             </div>
                         </div>
                     ))}
