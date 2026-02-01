@@ -102,7 +102,7 @@ const MyAppointments: React.FC<MyAppointmentsProps> = ({ appointments, onCancelA
   };
 
   return (
-    <div className="flex-1 bg-background-dark h-full overflow-y-auto pb-32 relative">
+    <div className="flex-1 bg-background-dark h-full overflow-y-auto pb-32 relative no-scrollbar">
       <header className="sticky top-0 z-50 bg-background-dark/90 backdrop-blur-md p-5 flex items-center justify-between border-b border-primary/10">
         <button onClick={() => navigate('/explore')} className="text-primary">
           <span className="material-symbols-outlined">arrow_back_ios</span>

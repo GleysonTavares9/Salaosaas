@@ -105,7 +105,7 @@ const SelectService: React.FC<SelectServiceProps> = ({ bookingDraft, setBookingD
         </button>
       </nav>
 
-      <main className="scroll-container px-6 pt-6">
+      <main className="flex-1 overflow-y-auto no-scrollbar px-6 pt-6">
         {isLoading ? (
           <div className="py-20 text-center">
             <div className="size-8 border-2 border-primary/20 border-t-primary rounded-full animate-spin mx-auto mb-4"></div>
@@ -169,7 +169,7 @@ const SelectService: React.FC<SelectServiceProps> = ({ bookingDraft, setBookingD
       </main>
 
       {itemCount > 0 && (
-        <footer className="fixed bottom-0 left-0 right-0 z-50 flex justify-center pointer-events-none p-4 md:p-8">
+        <footer className="fixed bottom-0 left-0 right-0 z-50 flex justify-center pointer-events-none p-4 md:p-8 pb-[calc(1rem+var(--sab))]">
           <div className="w-full max-w-md bg-background-dark/95 backdrop-blur-2xl border border-white/10 p-4 rounded-[28px] shadow-2xl pointer-events-auto">
             <button
               onClick={handleNext}

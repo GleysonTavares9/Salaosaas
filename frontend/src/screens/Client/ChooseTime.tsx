@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Professional } from '../../types';
 import { api } from '../../lib/api';
+import { supabase } from '../../lib/supabase';
 
 interface ChooseTimeProps {
   bookingDraft: any;
@@ -99,88 +100,33 @@ const ChooseTime: React.FC<ChooseTimeProps> = ({ bookingDraft, setBookingDraft }
       return;
     }
 
-    const generateSlots = () => {
-      const slots = [];
-
-      // Mapeamento de dia JS (0-6)
-      const dateParts = selectedDay.split('-').map(Number);
-      const dateObj = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
-      const dayKeys = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-      const currentDayKey = dayKeys[dateObj.getDay()];
-
-      // Lógica de Prioridade: Profissional > Salão
-      const currentPro = professionals.find(p => p.id === bookingDraft.professionalId);
-      const proSchedule = currentPro?.horario_funcionamento?.[currentDayKey];
-      const salonSchedule = salonData?.horario_funcionamento?.[currentDayKey];
-
-      // Se o profissional tiver horário específico e não estiver fechado, usa o dele.
-      // Caso contrário, usa o do salão.
-      // Se o profissional tiver marcado explicitamente como 'closed', respeita o fechamento dele.
-      let daySchedule = salonSchedule;
-
-      if (proSchedule) {
-        // Se o profissional definiu algo, usamos a regra dele (seja aberto ou fechado)
-        daySchedule = proSchedule;
-      }
-
-      if (!daySchedule || daySchedule.closed) {
+    const generateSlots = async () => {
+      if (!bookingDraft.professionalId || !salonData) {
         setAvailableSlots([]);
         return;
       }
 
-      const [startHour, startMin] = daySchedule.open.split(':').map(Number);
-      const [endHour, endMin] = daySchedule.close.split(':').map(Number);
-      const startLimit = startHour * 60 + startMin;
-      const endLimit = endHour * 60 + endMin;
-
-      // Lógica de "Agora" baseada estritamente no relógio local do usuário
+      // Cálculo do horário local em minutos para sincronia de fuso
       const now = new Date();
-      // Verifica se o dia selecionado (YYYY-MM-DD) bate com o dia atual local
-      const selectedDateParts = selectedDay.split('-').map(Number);
-      const isSameDay =
-        now.getFullYear() === selectedDateParts[0] &&
-        (now.getMonth() + 1) === selectedDateParts[1] &&
-        now.getDate() === selectedDateParts[2];
+      const nowMin = now.getHours() * 60 + now.getMinutes() + 10;
 
-      const nowInMinutes = now.getHours() * 60 + now.getMinutes() + 10; // Reduzido para 10min para permitir agendamentos próximos
-
-      // Converter horários existentes em minutos
-      const busyIntervals = existingAppointments.map(a => {
-        const [h, m] = a.time.split(':').map(Number);
-        const start = h * 60 + m;
-        const duration = a.duration_min || 30;
-        return { start, end: start + duration };
+      const { data, error } = await supabase.rpc('get_available_slots_rpc', {
+        p_pro_id: bookingDraft.professionalId,
+        p_date: selectedDay,
+        p_duration_min: totalDuration,
+        p_client_now_min: nowMin
       });
 
-      // Gerar slots de 30 em 30 minutos
-      for (let timeMin = startLimit; timeMin < endLimit; timeMin += 30) {
-
-        // 1. Verificação de Passado (Se for Hoje, bloqueia horas passadas)
-        if (isSameDay && timeMin < nowInMinutes) continue;
-
-        const currentTimeMin = timeMin;
-        const endTimeMin = currentTimeMin + totalDuration; // Duração do serviço impacta aqui
-
-        // 2. Verificação de Expediente (Cabe o serviço inteiro antes de fechar?)
-        if (endTimeMin > endLimit) continue; // <-- AQUI PODE ESTAR O MOTIVO DE SUMIR HORAS
-
-        // 3. Verificação de Conflito (Overbooking)
-        const isConflict = busyIntervals.some(busy => {
-          // Sobreposição: (Início1 < Fim2) && (Fim1 > Início2)
-          return (currentTimeMin < busy.end && endTimeMin > busy.start);
-        });
-
-        if (!isConflict) {
-          const h = Math.floor(currentTimeMin / 60);
-          const m = currentTimeMin % 60;
-          slots.push(`${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`);
-        }
+      if (error) {
+        console.error("Erro ao carregar slots via RPC:", error);
+        setAvailableSlots([]);
+      } else {
+        setAvailableSlots(data?.slots || []);
       }
-      setAvailableSlots(slots);
     };
 
     generateSlots();
-  }, [existingAppointments, totalDuration, bookingDraft.professionalId, salonData, selectedDay, professionals]);
+  }, [totalDuration, bookingDraft.professionalId, salonData, selectedDay]);
 
   const selectPro = (pro: Professional) => setBookingDraft({ ...bookingDraft, professionalId: pro.id, professionalName: pro.name });
   const selectTime = (time: string) => setBookingDraft({ ...bookingDraft, time, date: selectedDay });
@@ -273,7 +219,7 @@ const ChooseTime: React.FC<ChooseTimeProps> = ({ bookingDraft, setBookingDraft }
         </section>
       </main>
 
-      <footer className="fixed bottom-0 left-0 right-0 z-50 flex justify-center pointer-events-none p-4 md:p-8">
+      <footer className="fixed bottom-0 left-0 right-0 z-50 flex justify-center pointer-events-none p-4 md:p-8 pb-[calc(1rem+var(--sab))]">
         <div className="w-full max-w-md bg-background-dark/95 backdrop-blur-2xl border border-white/10 p-6 rounded-[32px] shadow-2xl pointer-events-auto">
           <button
             disabled={!canProceed}

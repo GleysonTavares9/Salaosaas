@@ -25,7 +25,8 @@ const PartnerLogin: React.FC<PartnerLoginProps> = ({ onLogin }) => {
     setIsLoading(true);
     setErrorMessage(null);
     try {
-      const data = await api.auth.signIn(email.trim(), password.trim());
+      const cleanEmail = email.trim().toLowerCase();
+      const data = await api.auth.signIn(cleanEmail, password.trim());
       const user = data.user;
 
       if (user) {

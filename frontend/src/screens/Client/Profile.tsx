@@ -213,7 +213,7 @@ const Profile: React.FC<ProfileProps> = ({ onLogout }) => {
   };
 
   return (
-    <div className="flex-1 bg-background-dark h-full overflow-y-auto pb-32">
+    <div className="flex-1 bg-background-dark h-full overflow-y-auto pb-32 no-scrollbar">
       {/* ... Header ... */}
       <header className="p-8 pt-20 flex flex-col items-center gap-6 bg-gradient-to-b from-primary/20 via-primary/5 to-transparent">
         <div className="relative group">

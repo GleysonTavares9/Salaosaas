@@ -12,7 +12,7 @@ const BottomNav: React.FC<BottomNavProps> = ({ role }) => {
 
   const isActive = (path: string) => location.pathname === path;
 
-  const navClass = "flex justify-between items-center bg-background-dark/95 backdrop-blur-2xl border-t border-white/5 px-6 pb-10 pt-4 shadow-[0_-10px_30px_rgba(0,0,0,0.5)]";
+  const navClass = "flex justify-between items-center bg-background-dark/95 backdrop-blur-2xl border-t border-white/5 px-6 pb-[calc(1.5rem+var(--sab))] pt-4 shadow-[0_-10px_30px_rgba(0,0,0,0.5)]";
 
   // Public Guest Nav
   if (!role) {

@@ -15,7 +15,7 @@ const Gallery: React.FC = () => {
   };
 
   return (
-    <div className="flex-1 bg-background-dark min-h-screen">
+    <div className="flex-1 bg-background-dark h-full overflow-y-auto no-scrollbar">
       <header className="sticky top-0 z-50 bg-background-dark/95 backdrop-blur-md p-6 flex flex-col gap-6 border-b border-white/5">
         <div className="flex items-center justify-between">
           <div>
@@ -26,15 +26,14 @@ const Gallery: React.FC = () => {
             <span className="material-symbols-outlined text-xl">close</span>
           </button>
         </div>
-        
+
         <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
           {categories.map(cat => (
-            <button 
-              key={cat} 
+            <button
+              key={cat}
               onClick={() => setFilter(cat)}
-              className={`px-5 py-2.5 rounded-xl text-[8px] font-black uppercase tracking-[0.15em] transition-all border whitespace-nowrap ${
-                filter === cat ? 'gold-gradient text-background-dark border-primary shadow-lg shadow-primary/20' : 'bg-surface-dark text-slate-500 border-white/5'
-              }`}
+              className={`px-5 py-2.5 rounded-xl text-[8px] font-black uppercase tracking-[0.15em] transition-all border whitespace-nowrap ${filter === cat ? 'gold-gradient text-background-dark border-primary shadow-lg shadow-primary/20' : 'bg-surface-dark text-slate-500 border-white/5'
+                }`}
             >
               {cat}
             </button>
@@ -45,14 +44,14 @@ const Gallery: React.FC = () => {
       <main className="p-4 grid grid-cols-2 gap-4 pb-32 animate-fade-in">
         {filteredItems.map(item => (
           <div key={item.id} className="group relative aspect-[3/4] rounded-[28px] overflow-hidden shadow-2xl transition-all active:scale-[0.97]">
-            <img 
-              src={item.url} 
-              alt={item.title} 
-              className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" 
+            <img
+              src={item.url}
+              alt={item.title}
+              className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
             />
-            
+
             {/* BOTÃO LINK DIRETO */}
-            <button 
+            <button
               onClick={(e) => { e.stopPropagation(); openImage(item.url); }}
               className="absolute top-3 right-3 size-8 bg-black/60 backdrop-blur-md rounded-xl flex items-center justify-center text-white border border-white/10 z-20 active:scale-90 transition-transform shadow-lg"
               title="Ver Original"
@@ -64,9 +63,9 @@ const Gallery: React.FC = () => {
               <span className="text-[7px] font-black text-primary uppercase tracking-[0.2em] mb-1">{item.category}</span>
               <h3 className="text-white font-display font-bold text-xs leading-tight line-clamp-2">{item.title}</h3>
               <div className="mt-3 flex gap-2">
-                <button 
-                   onClick={() => navigate(`/salon/luxe-aura-jardins`)}
-                   className="flex-1 py-2 bg-primary text-background-dark rounded-lg text-[7px] font-black uppercase tracking-widest shadow-xl"
+                <button
+                  onClick={() => navigate(`/salon/luxe-aura-jardins`)}
+                  className="flex-1 py-2 bg-primary text-background-dark rounded-lg text-[7px] font-black uppercase tracking-widest shadow-xl"
                 >
                   Agendar
                 </button>

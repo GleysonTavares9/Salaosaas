@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4'
 
 const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
@@ -6,76 +7,61 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
-    if (req.method === 'OPTIONS') {
-        return new Response('ok', { headers: corsHeaders })
-    }
+    if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
     try {
-        const API_KEY = Deno.env.get('GEMINI_API_KEY')
-        if (!API_KEY) {
-            console.error("GEMINI_API_KEY nao configurada")
-            throw new Error('GEMINI_API_KEY is not set')
+        // 1. Inicialização e Auth
+        const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
+        const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
+        const supabase = createClient(supabaseUrl, supabaseKey);
+
+        const authHeader = req.headers.get('Authorization');
+        if (!authHeader) throw new Error('Missing Authorization header');
+
+        const { data: { user }, error: authError } = await supabase.auth.getUser(authHeader.replace('Bearer ', ''));
+        if (authError || !user) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: corsHeaders });
+
+        // 2. Controle de Uso (RPC OBRIGATÓRIO)
+        const { data: canProcess, error: usageError } = await supabase.rpc('check_and_increment_usage', { p_max_limit: 40 });
+        if (usageError || !canProcess) {
+            return new Response(
+                JSON.stringify({ error: 'Limite mensal de IA atingido. Tente novamente no próximo mês.' }),
+                { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
         }
 
-        let body;
-        try {
-            body = await req.json()
-        } catch (e) {
-            throw new Error("Invalid Body")
-        }
+        const API_KEY = Deno.env.get('GEMINI_API_KEY');
+        if (!API_KEY) throw new Error('GEMINI_API_KEY is not set');
 
-        const { prompt, context } = body
+        const { prompt, context } = await req.json();
 
-        // 1. Construir Contexto do Banco de Dados
+        // 3. Otimização de Contexto (JSON Enxuto)
         let contextString = "";
         if (context) {
-            if (context.services && context.services.length > 0) {
-                const servicesList = context.services.slice(0, 50).map((s: any) => `- ${s.name} (${s.salons?.nome || 'Salão'}): R$${s.price}`).join('\n');
-                contextString += `\nCATÁLOGO DE SERVIÇOS:\n${servicesList}`;
+            if (context.services) {
+                contextString += `\nSERVIÇOS: ${context.services.slice(0, 10).map((s: any) => `${s.name}(R$${s.price})`).join(', ')}`;
             }
-            if (context.products && context.products.length > 0) {
-                const productsList = context.products.slice(0, 50).map((p: any) => `- ${p.name}: R$${p.price}`).join('\n');
-                contextString += `\n\nBOUTIQUE DE PRODUTOS:\n${productsList}`;
+            if (context.products) {
+                contextString += `\nPRODUTOS: ${context.products.slice(0, 10).map((p: any) => `${p.name}(R$${p.price})`).join(', ')}`;
             }
         }
 
-        const systemInstructions = `Você é a Aura, assistente virtual técnica da Luxe Aura.
-      
-    ${contextString ? `CATÁLOGO OFICIAL DISPONÍVEL:` : ''}
-    ${contextString}
+        const systemInstructions = `Você é a Aura da Luxe Aura. Responda de forma técnica, formal e objetiva. Use apenas o catálogo fornecido. Não use emojis desnecessários.${contextString}`;
 
-    DIRETRIZES ESTRITAS DE COMPORTAMENTO:
-    1.  **Objetividade Extrema**: Não faça "sala" nem use linguagem excessivamente afetiva. Seja formal e direta.
-    2.  **Foco no Catálogo**: Sua única função é apresentar os serviços/produtos disponíveis e tirar dúvidas sobre eles.
-    3.  **Resposta Padrão**: Se o usuário apenas cumprimentar (ex: "olá"), responda apresentando a lista de serviços principais de forma resumida e pergunte qual ele deseja.
-    4.  **Agendamentos**: Se o cliente perguntar sobre agendamento, oriente-o a selecionar o serviço para prosseguir com a reserva.
-    5.  **Tom de Voz**: Profissional, sério e eficiente. Sem emojis desnecessários.`;
-
-        // 2. Chamada Direta à API REST do Gemini
-        // Usando o modelo correto informado: gemini-3-flash-preview
-        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${API_KEY}`;
+        // 4. Chamada LLM (Payload Mínimo)
+        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${API_KEY}`;
 
         const response = await fetch(geminiUrl, {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-                contents: [{
-                    role: "user",
-                    parts: [{ text: `${systemInstructions}\n\nPergunta do cliente: "${prompt}"` }]
-                }]
+                contents: [{ role: "user", parts: [{ text: `${systemInstructions}\n\nUser: ${prompt}` }] }],
+                generationConfig: { maxOutputTokens: 250, temperature: 0.1 }
             })
         });
 
-        if (!response.ok) {
-            const errText = await response.text();
-            console.error("Gemini API Error:", errText);
-            throw new Error(`Gemini API Error: ${response.status} - ${errText}`);
-        }
-
         const data = await response.json();
-        const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "Desculpe, não consegui formular uma resposta no momento.";
+        const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "Erro ao processar.";
 
         return new Response(
             JSON.stringify({ response: text }),
@@ -83,7 +69,6 @@ serve(async (req) => {
         )
 
     } catch (error) {
-        console.error("Function Error:", error)
         return new Response(
             JSON.stringify({ error: error.message }),
             { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },

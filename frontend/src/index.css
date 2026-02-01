@@ -78,8 +78,8 @@
 
   .scroll-container {
     @apply flex-1 overflow-y-auto no-scrollbar;
-    padding-bottom: 180px;
-    /* Espaço extra para não cobrir conteúdo com footer flutuante */
+    padding-bottom: calc(180px + var(--sab));
+    /* Espaço extra para não cobrir conteúdo com footer flutuante + Safe Area */
     overscroll-behavior-y: contain;
     -webkit-overflow-scrolling: touch;
   }

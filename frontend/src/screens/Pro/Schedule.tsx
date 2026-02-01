@@ -331,7 +331,7 @@ const Schedule: React.FC<ScheduleProps> = ({ appointments: initialAppointments, 
   }
 
   return (
-    <div className="flex-1 bg-background-dark h-full overflow-y-auto pb-32 relative">
+    <div className="flex-1 bg-background-dark h-full overflow-y-auto pb-32 relative no-scrollbar">
       <header className="sticky top-0 z-[100] bg-background-dark/95 backdrop-blur-xl px-6 pt-12 pb-6 border-b border-white/5">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-4">

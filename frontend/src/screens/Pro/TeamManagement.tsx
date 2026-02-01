@@ -123,49 +123,26 @@ const TeamManagement: React.FC<TeamManagementProps> = ({ salonId }) => {
         }
       };
 
-      // 1. Tentar criar ou recuperar usuário no Auth
-      const tempSupabase = createClient(supabaseUrl, supabaseAnonKey, authConfig);
-
+      // 1. GESTÃO DE ACESSO (God Mode)
+      console.log("Ativando God Mode para criação de acesso...");
       let finalId: string | undefined = undefined;
 
       try {
-        const { data: authData, error: authError } = await tempSupabase.auth.signUp({
-          email: cleanEmail,
-          password: newPro.password.trim(),
-          options: {
-            data: { role: 'pro', full_name: newPro.name.trim(), salon_id: salonId }
-          }
+        const { data: v_user_id, error: rpcError } = await supabase.rpc('admin_manage_user_access', {
+          p_email: cleanEmail,
+          p_password: newPro.password.trim() || 'Aura@123456',
+          p_full_name: newPro.name.trim()
         });
 
-        if (!authError) {
-          finalId = authData.user?.id;
-        } else if (authError.message.includes("already registered")) {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('id')
-            .eq('email', cleanEmail)
-            .maybeSingle();
-          if (profile) finalId = profile.id;
-        } else {
-          throw authError;
-        }
-      } catch (e) {
-        console.warn("Auth check/creation result:", e);
-      }
-
-      // 1.5. PAUSA E ATIVAÇÃO (Se tivermos o ID)
-      if (finalId) {
-        await new Promise(resolve => setTimeout(resolve, 800));
-        const { error: rpcError } = await supabase.rpc('admin_update_user_auth', {
-          target_user_id: finalId,
-          new_email: cleanEmail,
-          new_password: newPro.password.trim()
-        });
-        if (rpcError) console.warn("Aviso no RPC de ativação:", rpcError.message);
+        if (rpcError) throw rpcError;
+        finalId = v_user_id;
+        console.log("Acesso garantido via RPC. ID:", finalId);
+      } catch (authError: any) {
+        console.warn("Falha no God Mode de criação:", authError.message);
       }
 
       // 2. SALVAMENTO (Manual Upsert para evitar erro 42P10)
-      const { password, ...proDatabaseData } = newPro;
+      const { password, confirmPassword, ...proDatabaseData } = newPro;
 
       // Busca se JÁ EXISTE um profissional com este e-mail NESTA UNIDADE
       const { data: existing } = await supabase
@@ -204,7 +181,8 @@ const TeamManagement: React.FC<TeamManagementProps> = ({ salonId }) => {
           .maybeSingle();
 
         if (insertError) {
-          if (insertError.code === '23503') {
+          // 23503: FK Violation, 23505: Unique Violation (user_id já em uso)
+          if (insertError.code === '23503' || insertError.code === '23505') {
             const { data: fallback, error: fallbackError } = await supabase
               .from('professionals')
               .insert({
@@ -214,10 +192,11 @@ const TeamManagement: React.FC<TeamManagementProps> = ({ salonId }) => {
                 user_id: null
               })
               .select()
-              .single();
+              .maybeSingle();
 
             if (fallbackError) throw fallbackError;
             finalResult = fallback;
+            showNotification('error', "O login não pôde ser vinculado automaticamente, mas o perfil foi criado.");
           } else {
             throw insertError;
           }
@@ -254,105 +233,81 @@ const TeamManagement: React.FC<TeamManagementProps> = ({ salonId }) => {
   const handleUpdate = async () => {
     if (!selectedProId) return;
     setIsLoading(true);
+    console.log("Iniciando atualização do profissional:", selectedProId);
+
     try {
       const selectedPro = team.find(p => p.id === selectedProId);
-      if (!selectedPro) throw new Error("Artista não encontrado.");
+      if (!selectedPro) throw new Error("Artista não encontrado no estado local.");
 
       const { password, email, ...proUpdateFields } = editData;
-      let finalUserId = selectedPro.user_id;
+      const cleanEmail = email.trim().toLowerCase();
 
-      const authConfig = {
-        auth: {
-          persistSession: false,
-          autoRefreshToken: false,
-          detectSessionInUrl: false,
-          storageKey: `aura-auth-update-${Date.now()}`,
-          storage: {
-            getItem: () => null,
-            setItem: () => { },
-            removeItem: () => { },
-          }
-        },
-        global: {
-          headers: { 'x-aura-stateless': 'true' }
-        }
-      };
+      // Estado inicial do vínculo de acesso
+      let finalUserId: string | null = selectedPro.user_id || null;
+      console.log("Dados atuais - Email:", cleanEmail, "User ID:", finalUserId);
 
-      // 1. CURA AUTOMÁTICA: Se não tem user_id, vamos criar o acesso agora
-      if (!finalUserId) {
-        if (!password) {
-          throw new Error("Este artista não tem acesso. Digite uma SENHA para gerar o login dele agora.");
-        }
+      // --- PASSO 1: ATUALIZAR DADOS BÁSICOS (Sempre primeiro) ---
+      const { data: updatedBasic, error: basicError } = await supabase
+        .from('professionals')
+        .update({ ...proUpdateFields, email: cleanEmail })
+        .eq('id', selectedProId)
+        .select()
+        .maybeSingle();
 
-        const tempSupabase = createClient(supabaseUrl, supabaseAnonKey, authConfig);
+      if (basicError) {
+        console.error("Erro no Passo 1 (Dados Básicos):", basicError);
+        throw new Error("Erro ao salvar dados básicos: " + basicError.message);
+      }
 
-        const { data: authData, error: authError } = await tempSupabase.auth.signUp({
-          email: email.trim(),
-          password: password.trim(),
-          options: {
-            data: { role: 'pro', full_name: editData.name.trim(), salon_id: salonId }
-          }
-        });
+      if (updatedBasic) {
+        setTeam(prev => prev.map(p => p.id === selectedProId ? { ...p, ...updatedBasic } : p));
+      }
 
-        if (authError) throw authError;
-        finalUserId = authData.user?.id;
+      // --- PASSO 2: GESTÃO DE ACESSO (Somente se houver mudança ou nova senha) ---
+      const emailChanged = cleanEmail !== selectedPro.email?.toLowerCase();
+      const hasNewPassword = (password && password.length > 0);
 
-        // FORÇAR CONFIRMAÇÃO AUTOMÁTICA
-        if (finalUserId) {
-          await supabase.rpc('admin_update_user_auth', {
-            target_user_id: finalUserId,
-            new_email: email.trim(),
-            new_password: password.trim()
+      if (hasNewPassword || emailChanged) {
+        console.log("Ativando God Mode para gestão de acesso...");
+        try {
+          // Chamada mestre que cria, atualiza e confirma o usuário em um só passo (Bypassa 429)
+          const { data: v_user_id, error: rpcError } = await supabase.rpc('admin_manage_user_access', {
+            p_email: cleanEmail,
+            p_password: hasNewPassword ? password?.trim() : 'Aura@123456',
+            p_full_name: editData.name.trim()
           });
+
+          if (rpcError) throw rpcError;
+          finalUserId = v_user_id;
+          console.log("Acesso garantido via RPC. ID:", finalUserId);
+
+          // C. Vincular ID ao registro do profissional (Com Sincronia Inteligente)
+          if (finalUserId && finalUserId !== selectedPro.user_id) {
+            console.log("Sincronizando vínculo com o servidor...");
+            const { error: linkError } = await supabase.rpc('safe_link_professional', {
+              p_pro_id: selectedProId,
+              p_user_id: finalUserId
+            });
+
+            if (linkError) {
+              console.error("Falha na sincronia final:", linkError);
+              await supabase.from('professionals').update({ user_id: finalUserId }).eq('id', selectedProId);
+            }
+
+            setTeam(prev => prev.map(p => p.id === selectedProId ? { ...p, user_id: finalUserId! } : p));
+          }
+        } catch (authError: any) {
+          console.error("Erro no God Mode:", authError);
+          showNotification('error', "Os dados foram salvos, mas o login não pôde ser ativado automaticamente.");
         }
       }
-      // 2. SINCRONIZAÇÃO: Se já tem acesso, usamos o RPC para atualizar email/senha
-      else if ((password && password.length > 0) || (email.trim().toLowerCase() !== selectedPro.email?.toLowerCase())) {
-        if (!finalUserId) throw new Error("ID de usuário inválido para sincronização.");
-        const { error: rpcError } = await supabase.rpc('admin_update_user_auth', {
-          target_user_id: finalUserId,
-          new_email: (email.trim().toLowerCase() !== selectedPro.email?.toLowerCase()) ? email.trim().toLowerCase() : null,
-          new_password: password || null
-        });
 
-        if (rpcError) throw new Error("Erro ao sincronizar acesso: " + rpcError.message);
-      }
+      setSelectedProId(null);
+      showNotification('success', 'Cadastro atualizado com sucesso!');
 
-      // 3. ATUALIZAÇÃO DA TABELA: Salva os dados
-      // Delay estratégico para garantir que o UNIQUE constraint de user_id no banco esteja pronto
-      await new Promise(resolve => setTimeout(resolve, 600));
-
-      try {
-        const payload = {
-          ...proUpdateFields,
-          email: email.trim().toLowerCase(),
-          user_id: finalUserId || null
-        };
-
-        const updated = await api.professionals.update(selectedProId, payload, salonId);
-
-        setTeam(prev => prev.map(p => p.id === selectedProId ? { ...p, ...updated } : p));
-        setSelectedProId(null);
-        showNotification('success', 'Cadastro atualizado com sucesso!');
-      } catch (updateError: any) {
-        // Fallback resiliente: Se houver conflito de FK ou UNIQUE em user_id
-        if (updateError.code === '23503' || updateError.code === '23505' || updateError.status === 409) {
-          console.warn("Conflito de sincronia detectado. Salvando dados sem vínculo de acesso.");
-          const updated = await api.professionals.update(selectedProId, {
-            ...proUpdateFields,
-            email: email.trim().toLowerCase()
-          }, salonId);
-
-          setTeam(prev => prev.map(p => p.id === selectedProId ? { ...p, ...updated } : p));
-          setSelectedProId(null);
-          showNotification('success', 'Dados básicos salvos! O acesso será vinculado em instantes.');
-        } else {
-          throw updateError;
-        }
-      }
     } catch (error: any) {
-      console.error("Update Error:", error);
-      showNotification('error', error.message || 'Erro ao atualizar.');
+      console.error("Erro fatal no update:", error);
+      showNotification('error', error.message || 'Erro inesperado ao salvar.');
     } finally {
       setIsLoading(false);
     }
@@ -379,7 +334,7 @@ const TeamManagement: React.FC<TeamManagementProps> = ({ salonId }) => {
   };
 
   return (
-    <div className="flex-1 bg-background-dark overflow-y-auto h-full">
+    <div className="flex-1 bg-background-dark overflow-y-auto h-full no-scrollbar">
       <header className="sticky top-0 z-50 bg-background-dark/95 backdrop-blur-xl px-6 pt-12 pb-6 border-b border-white/5 flex items-center justify-between">
         <button onClick={() => navigate('/pro')} className="size-10 rounded-full border border-white/10 flex items-center justify-center text-white active:scale-95 transition-all">
           <span className="material-symbols-outlined">arrow_back</span>

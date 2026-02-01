@@ -149,7 +149,7 @@ const Landing: React.FC<LandingProps> = ({ salons }) => {
         <div className="flex-1"></div>
 
         {/* RODAPÉ DE AÇÃO FIXO NA BASE */}
-        <div className="p-6 pb-12 flex flex-col gap-4 bg-gradient-to-t from-background-dark via-background-dark/80 to-transparent pointer-events-auto">
+        <div className="p-6 pb-[calc(2.5rem+var(--sab))] flex flex-col gap-4 bg-gradient-to-t from-background-dark via-background-dark/80 to-transparent pointer-events-auto">
           {selectedSalon ? (
             <div onClick={() => navigate(`/salon/${selectedSalon.slug_publico}`)} className="bg-surface-dark/95 backdrop-blur-xl border border-primary/30 rounded-[28px] p-4 shadow-2xl flex gap-4 items-center animate-fade-in pointer-events-auto cursor-pointer active:scale-95 transition-all">
               <img src={selectedSalon.logo_url} className="size-14 rounded-xl object-cover border border-white/10 shadow-lg" alt="Salon" />

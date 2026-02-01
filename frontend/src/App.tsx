@@ -271,11 +271,12 @@ const AppContent: React.FC = () => {
   const isFullView = ['/', '/login', '/login-user', '/register', '/register-user'].includes(location.pathname);
   const isChat = location.pathname.startsWith('/chat/');
   const isSalon = location.pathname.startsWith('/salon/');
-  const isQuickSchedule = location.pathname.startsWith('/q/'); // Nova rota publica
+  const isQuickSchedule = location.pathname.startsWith('/q/');
   const isGallery = location.pathname === '/gallery';
   const isBookingFlow = ['/select-service', '/choose-time', '/checkout'].includes(location.pathname);
 
   const shouldShowNav = !isFullView && !isChat && !isSalon && !isGallery && !isBookingFlow && !isQuickSchedule;
+  const shouldShowAI = role === 'client' && !isQuickSchedule;
 
   // Loading Screen
   if (isLoading) {
@@ -393,7 +394,7 @@ const AppContent: React.FC = () => {
         </Routes>
       </div>
       {shouldShowNav && <BottomNav role={role} />}
-      {role === 'client' && <AIConcierge />}
+      {shouldShowAI && <AIConcierge />}
     </div>
   );
 };

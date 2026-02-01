@@ -27,6 +27,7 @@ const ProductShowcase: React.FC<ProductShowcaseProps> = ({ bookingDraft, setBook
   const navigate = useNavigate();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showCart, setShowCart] = useState(false);
   const [coords, setCoords] = useState<{ lat: number; lng: number }>({ lat: -23.5667, lng: -46.6667 });
 
   // Safe access to products
@@ -132,13 +133,13 @@ const ProductShowcase: React.FC<ProductShowcaseProps> = ({ bookingDraft, setBook
           <h1 className="text-xl font-display font-black text-white italic tracking-tighter uppercase leading-none">Aura Boutique</h1>
           <p className="text-[7px] text-primary font-black uppercase tracking-[0.3em] mt-1">Produtos Próximos a Você</p>
         </div>
-        <div className="size-10 flex items-center justify-center text-primary relative">
+        <button onClick={() => setShowCart(true)} className="size-10 flex items-center justify-center text-primary relative active:scale-90 transition-all">
           <span className="material-symbols-outlined">shopping_bag</span>
           {itemCount > 0 && <span className="absolute -top-1 -right-1 size-4 bg-primary text-background-dark text-[8px] font-black rounded-full flex items-center justify-center shadow-lg">{itemCount}</span>}
-        </div>
+        </button>
       </header>
 
-      <main className="scroll-container p-6">
+      <main className="flex-1 overflow-y-auto no-scrollbar p-6">
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20 opacity-40">
             <div className="size-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin mb-4"></div>
@@ -199,9 +200,9 @@ const ProductShowcase: React.FC<ProductShowcaseProps> = ({ bookingDraft, setBook
       </main>
 
       {itemCount > 0 && (
-        <footer className="fixed-floating-footer">
+        <footer className="fixed-floating-footer pb-[calc(2rem+var(--sab))]">
           <button
-            onClick={handleCheckout}
+            onClick={() => setShowCart(true)}
             className="w-full gold-gradient text-background-dark font-black py-5 rounded-2xl flex items-center justify-between px-7 shadow-2xl active:scale-95 transition-all"
           >
             <div className="text-left">
@@ -210,12 +211,79 @@ const ProductShowcase: React.FC<ProductShowcaseProps> = ({ bookingDraft, setBook
             </div>
             <div className="flex items-center gap-2">
               <span className="text-[8px] uppercase font-black tracking-widest">
-                {role ? 'Finalizar Agora' : 'Entrar para Comprar'}
+                Ver Sacola
               </span>
-              <span className="material-symbols-outlined text-lg font-black">arrow_forward</span>
+              <span className="material-symbols-outlined text-lg font-black">shopping_cart_checkout</span>
             </div>
           </button>
         </footer>
+      )}
+
+      {/* Cart Summary Modal */}
+      {showCart && (
+        <div className="fixed inset-0 z-[1000] flex flex-col justify-end bg-black/60 backdrop-blur-sm animate-fade-in" onClick={() => setShowCart(false)}>
+          <div className="bg-[#121214] rounded-t-[40px] border-t border-white/5 p-8 space-y-8 animate-fade-in-up" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-lg font-display font-black text-white italic tracking-tighter uppercase">Sua Sacola</h2>
+                <p className="text-[8px] text-primary font-black uppercase tracking-widest">Revisão do Ritual Premium</p>
+              </div>
+              <button onClick={() => setShowCart(false)} className="size-10 rounded-full bg-white/5 flex items-center justify-center text-slate-400">
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+
+            <div className="max-h-[50vh] overflow-y-auto space-y-4 no-scrollbar">
+              {/* Serviços */}
+              {(bookingDraft?.services || []).map((svc: any) => (
+                <div key={svc.id} className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
+                  <div className="flex items-center gap-4">
+                    <div className="size-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary">✂️</div>
+                    <div>
+                      <p className="text-[10px] font-black text-white uppercase">{svc.name}</p>
+                      <p className="text-[8px] text-slate-500 font-bold uppercase">Ritual de Estilo</p>
+                    </div>
+                  </div>
+                  <p className="text-[10px] font-black text-primary">R$ {svc.price.toFixed(2)}</p>
+                </div>
+              ))}
+
+              {/* Produtos */}
+              {productsInDraft.map((prod: Product) => (
+                <div key={prod.id} className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
+                  <div className="flex items-center gap-4">
+                    <img src={prod.image} className="size-10 rounded-xl object-cover" />
+                    <div>
+                      <p className="text-[10px] font-black text-white uppercase">{prod.name}</p>
+                      <p className="text-[8px] text-slate-500 font-bold uppercase">Aura Boutique</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <p className="text-[10px] font-black text-primary">R$ {prod.price.toFixed(2)}</p>
+                    <button onClick={() => toggleProduct(prod)} className="text-red-500/50 hover:text-red-500">
+                      <span className="material-symbols-outlined text-sm">delete</span>
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="pt-4 border-t border-white/5 space-y-4">
+              <div className="flex items-center justify-between">
+                <p className="text-[10px] font-black text-white uppercase tracking-widest">Total Estimado</p>
+                <p className="text-xl font-display font-black text-primary">R$ {totalPrice.toFixed(2)}</p>
+              </div>
+              <button
+                onClick={handleCheckout}
+                className="w-full gold-gradient text-background-dark font-black py-6 rounded-3xl flex items-center justify-center gap-3 shadow-xl active:scale-95 transition-all text-sm tracking-[0.2em]"
+              >
+                {role ? 'CONFIRMAR E PAGAR' : 'FAZER LOGIN PARA COMPRAR'}
+                <span className="material-symbols-outlined font-black">arrow_forward</span>
+              </button>
+              <div className="h-[var(--sab)]" /> {/* Mobile Safe Area Space */}
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

@@ -80,6 +80,15 @@ export const api = {
             const { data, error } = await supabase.from('services').select('*, salons(nome)');
             if (error) throw error;
             return data as any[];
+        },
+        async update(id: string, updates: Partial<Service>) {
+            const { data, error } = await supabase.from('services').update(updates).eq('id', id).select().single();
+            if (error) throw error;
+            return data as Service;
+        },
+        async delete(id: string) {
+            const { error } = await supabase.from('services').delete().eq('id', id);
+            if (error) throw error;
         }
     },
 
@@ -380,8 +389,9 @@ export const api = {
             if (error) throw error;
         },
         async resetPassword(email: string) {
+            const baseUrl = import.meta.env.VITE_APP_URL || window.location.origin;
             const { error } = await supabase.auth.resetPasswordForEmail(email, {
-                redirectTo: `${window.location.origin}/#/reset-password`,
+                redirectTo: `${baseUrl}/#/reset-password`,
             });
             if (error) throw error;
         },

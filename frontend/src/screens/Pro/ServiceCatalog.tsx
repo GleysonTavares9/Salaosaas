@@ -15,18 +15,21 @@ const ServiceCatalog: React.FC<ServiceCatalogProps> = ({ salonId }) => {
   const [services, setServices] = useState<Service[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isAdding, setIsAdding] = useState(false);
+  const [editingService, setEditingService] = useState<Service | null>(null);
 
   const [activeCategory, setActiveCategory] = useState('Todos');
   const categories = ['Todos', 'Cabelo', 'Barba', 'Unhas', 'Estética', 'Sobrancelha', 'Estilo', 'Outros'];
 
-  const [newService, setNewService] = useState({
+  const initialServiceState = {
     name: '',
     duration_min: 30,
     price: 0,
     category: 'Cabelo',
     description: '',
     image: 'https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&q=80&w=400'
-  });
+  };
+
+  const [newService, setNewService] = useState(initialServiceState);
 
   useEffect(() => {
     if (salonId) {
@@ -45,28 +48,55 @@ const ServiceCatalog: React.FC<ServiceCatalogProps> = ({ salonId }) => {
     e.preventDefault();
     if (!salonId) return;
     try {
-      const created = await api.services.create({
-        ...newService,
-        salon_id: salonId
-      });
-      setServices([created, ...services]);
+      setIsLoading(true);
+      if (editingService) {
+        const updated = await api.services.update(editingService.id, newService);
+        setServices(services.map(s => s.id === updated.id ? updated : s));
+        showToast("✨ Ritual atualizado!", 'success');
+      } else {
+        const created = await api.services.create({
+          ...newService,
+          salon_id: salonId
+        });
+        setServices([created, ...services]);
+        showToast("✨ Ritual criado!", 'success');
+      }
       setIsAdding(false);
-      setNewService({
-        name: '',
-        duration_min: 30,
-        price: 0,
-        category: 'Cabelo',
-        description: '',
-        image: 'https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&q=80&w=400'
-      });
-      showToast("✨ Serviço criado com sucesso!", 'success');
+      setEditingService(null);
+      setNewService(initialServiceState);
     } catch (error: any) {
-      showToast("Erro ao criar serviço: " + error.message, 'error');
+      showToast("Erro ao processar ritual: " + error.message, 'error');
+    } finally {
+      setIsLoading(false);
     }
   };
 
+  const handleDelete = async (id: string) => {
+    if (!window.confirm("Deseja realmente excluir este ritual? Esta ação é permanente.")) return;
+    try {
+      await api.services.delete(id);
+      setServices(services.filter(s => s.id !== id));
+      showToast("🗑️ Ritual removido.", 'success');
+    } catch (error: any) {
+      showToast("Erro ao excluir: " + error.message, 'error');
+    }
+  };
+
+  const openEdit = (s: Service) => {
+    setEditingService(s);
+    setNewService({
+      name: s.name,
+      duration_min: s.duration_min,
+      price: s.price,
+      category: s.category || 'Outros',
+      description: s.description || '',
+      image: s.image || initialServiceState.image
+    });
+    setIsAdding(true);
+  };
+
   return (
-    <div className="flex-1 bg-background-dark overflow-y-auto h-full">
+    <div className="flex-1 bg-background-dark overflow-y-auto h-full no-scrollbar">
       <header className="sticky top-0 z-50 bg-background-dark/95 backdrop-blur-md px-6 pt-12 pb-6 border-b border-white/5">
         <div className="flex items-center justify-between">
           <div>
@@ -115,25 +145,44 @@ const ServiceCatalog: React.FC<ServiceCatalogProps> = ({ salonId }) => {
         ) : (
           <div className="space-y-4">
             {services.filter(s => activeCategory === 'Todos' || s.category === activeCategory).map((s) => (
-              <div key={s.id} className="group flex items-center gap-5 bg-surface-dark/60 p-5 rounded-[32px] border border-white/5 shadow-xl hover:border-primary/20 transition-all">
-                <div className="size-20 rounded-2xl overflow-hidden shrink-0 border border-white/5 shadow-inner relative">
-                  <img src={s.image} className="size-full object-cover grayscale-[0.2] group-hover:grayscale-0 transition-all duration-500" alt={s.name} />
-                  <div className="absolute inset-x-0 bottom-0 bg-black/40 backdrop-blur-md py-1">
-                    <p className="text-[7px] text-white font-black text-center uppercase tracking-widest">{s.category}</p>
-                  </div>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h4 className="font-display text-base font-black text-white italic tracking-tight truncate uppercase leading-tight">{s.name}</h4>
-                  <div className="flex items-center gap-2 mt-2">
-                    <div className="flex items-center gap-1.5 px-2 py-1 bg-white/5 rounded-lg border border-white/10">
-                      <span className="material-symbols-outlined text-[10px] text-primary">schedule</span>
-                      <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">{s.duration_min} min</span>
+              <div key={s.id} className="group relative bg-surface-dark/60 p-5 rounded-[32px] border border-white/5 shadow-xl hover:border-primary/20 transition-all">
+                <div className="flex items-center gap-5">
+                  <div className="size-20 rounded-2xl overflow-hidden shrink-0 border border-white/5 shadow-inner relative">
+                    <img src={s.image} className="size-full object-cover grayscale-[0.2] group-hover:grayscale-0 transition-all duration-500" alt={s.name} />
+                    <div className="absolute inset-x-0 bottom-0 bg-black/40 backdrop-blur-md py-1">
+                      <p className="text-[7px] text-white font-black text-center uppercase tracking-widest">{s.category}</p>
                     </div>
                   </div>
-                </div>
-                <div className="text-right">
-                  <p className="text-[8px] font-black text-slate-600 uppercase tracking-widest leading-none mb-1 text-right">A partir de</p>
-                  <p className="text-xl font-display font-black text-primary tracking-tight italic leading-none">R$ {s.price.toFixed(2)}</p>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-display text-base font-black text-white italic tracking-tight truncate uppercase leading-tight">{s.name}</h4>
+                    <div className="flex items-center gap-2 mt-2">
+                      <div className="flex items-center gap-1.5 px-2 py-1 bg-white/5 rounded-lg border border-white/10">
+                        <span className="material-symbols-outlined text-[10px] text-primary">schedule</span>
+                        <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">{s.duration_min} min</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="text-right flex flex-col items-end gap-3">
+                    <div className="space-y-1">
+                      <p className="text-[8px] font-black text-slate-600 uppercase tracking-widest leading-none text-right">Ritual</p>
+                      <p className="text-xl font-display font-black text-primary tracking-tight italic leading-none text-right">R$ {s.price.toFixed(2)}</p>
+                    </div>
+                    {/* Botões de Ação */}
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => openEdit(s)}
+                        className="size-8 rounded-lg bg-white/5 flex items-center justify-center text-slate-400 hover:text-primary hover:bg-primary/10 transition-all border border-white/5"
+                      >
+                        <span className="material-symbols-outlined text-sm">edit</span>
+                      </button>
+                      <button
+                        onClick={() => handleDelete(s.id)}
+                        className="size-8 rounded-lg bg-white/5 flex items-center justify-center text-slate-400 hover:text-red-500 hover:bg-red-500/10 transition-all border border-white/5"
+                      >
+                        <span className="material-symbols-outlined text-sm">delete</span>
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
             ))}
@@ -152,8 +201,19 @@ const ServiceCatalog: React.FC<ServiceCatalogProps> = ({ salonId }) => {
         <div className="fixed inset-0 z-[60] bg-background-dark/95 backdrop-blur-xl animate-fade-in flex flex-col items-center overflow-hidden">
           <div className="flex-1 flex flex-col bg-background-dark max-w-[450px] w-full h-full">
             <header className="p-8 flex items-center justify-between">
-              <h2 className="text-xl font-display font-black text-white italic tracking-tighter uppercase">Novo Serviço</h2>
-              <button onClick={() => setIsAdding(false)} className="text-slate-500"><span className="material-symbols-outlined">close</span></button>
+              <h2 className="text-xl font-display font-black text-white italic tracking-tighter uppercase">
+                {editingService ? 'Ajustar Ritual' : 'Novo Ritual'}
+              </h2>
+              <button
+                onClick={() => {
+                  setIsAdding(false);
+                  setEditingService(null);
+                  setNewService(initialServiceState);
+                }}
+                className="text-slate-500"
+              >
+                <span className="material-symbols-outlined">close</span>
+              </button>
             </header>
             <form onSubmit={handleCreate} className="p-8 flex-1 overflow-y-auto space-y-6 pb-40 min-h-0">
               <div className="space-y-2">

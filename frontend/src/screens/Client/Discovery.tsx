@@ -186,7 +186,7 @@ const Discovery: React.FC<DiscoveryProps> = ({ salons: initialSalons, role }) =>
         </div>
       </header>
 
-      <main className="flex-1 overflow-y-auto px-6 pt-2 pb-32 space-y-8">
+      <main className="flex-1 overflow-y-auto px-6 pt-2 pb-32 space-y-8 no-scrollbar">
         {viewMode === 'map' ? (
           <div className="h-[520px] w-full rounded-[40px] overflow-hidden border border-white/5 shadow-2xl relative">
             <MapContainer

@@ -127,7 +127,7 @@ const Dashboard: React.FC<DashboardProps> = ({ role, salon, appointments, userId
   const menuItems = role === 'admin' ? adminMenu : proMenu;
 
   return (
-    <div className="flex-1 bg-background-dark h-full overflow-y-auto">
+    <div className="flex-1 bg-background-dark h-full overflow-y-auto no-scrollbar">
       <header className="p-6 pt-16 flex items-center justify-between sticky top-0 bg-background-dark/95 backdrop-blur-xl z-50 border-b border-white/5">
         <div className="flex items-center gap-4">
           <div className="size-12 rounded-2xl gold-gradient flex items-center justify-center text-background-dark shadow-lg transition-transform active:scale-90 relative">
@@ -162,29 +162,53 @@ const Dashboard: React.FC<DashboardProps> = ({ role, salon, appointments, userId
 
       <main className="p-6 space-y-8 pb-32 safe-area-bottom animate-fade-in">
 
-        {/* Link Compartilhável do Bot */}
+        {/* Link de Agendamento Profissional Elite */}
         {salon?.slug_publico && (
-          <div className="bg-gradient-to-r from-indigo-900/40 to-purple-900/40 border border-indigo-500/30 p-5 rounded-[32px] flex items-center justify-between shadow-xl relative overflow-hidden group">
-            <div className="absolute inset-0 bg-indigo-500/5 group-hover:bg-indigo-500/10 transition-colors"></div>
-            <div className="relative z-10">
-              <div className="flex items-center gap-2 mb-1">
-                <span className="bg-indigo-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest">Novo</span>
-                <h3 className="text-white font-black text-sm tracking-tight">Agendamento Inteligente 🤖</h3>
+          <div className="gold-gradient p-[1px] rounded-[32px] shadow-2xl group transition-all active:scale-[0.98]">
+            <div className="bg-background-dark/95 backdrop-blur-xl rounded-[31px] p-6 flex items-center justify-between relative overflow-hidden">
+              {/* Efeito de brilho sutil */}
+              <div className="absolute top-0 -left-1/2 w-full h-full bg-gradient-to-r from-transparent via-primary/5 to-transparent skew-x-[-25deg] group-hover:left-[120%] transition-all duration-1000"></div>
+
+              <div className="relative z-10 flex-1 mr-4">
+                <div className="flex items-center gap-2 mb-1.5">
+                  <div className="size-2 rounded-full bg-primary animate-pulse"></div>
+                  <h3 className="text-white font-black text-xs uppercase tracking-[0.2em]">Seu Link Aura</h3>
+                </div>
+                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest italic">Compartilhe o luxo com seus clientes</p>
               </div>
-              <p className="text-[10px] text-indigo-200 font-medium">Link do Robô para enviar aos clientes.</p>
+
+              <div className="flex items-center gap-2 relative z-10">
+                <button
+                  onClick={async () => {
+                    const baseUrl = import.meta.env.VITE_APP_URL || window.location.origin;
+                    if (window.location.hostname === 'localhost' && !import.meta.env.VITE_APP_URL && (window as any).Capacitor) {
+                      alert('Atenção: Configure a VITE_APP_URL no seu .env para gerar links válidos no celular.');
+                    }
+                    const link = `${baseUrl}/#/q/${salon.slug_publico}`;
+
+                    // Se estiver no mobile e suportar compartilhamento nativo
+                    if (navigator.share) {
+                      try {
+                        await navigator.share({
+                          title: salon.nome,
+                          text: `Agende seu horário na ${salon.nome} ✨`,
+                          url: link,
+                        });
+                      } catch (err) {
+                        navigator.clipboard.writeText(link);
+                        alert('Link copiado para a área de transferência!');
+                      }
+                    } else {
+                      navigator.clipboard.writeText(link);
+                      alert('Link copiado! Envie para seus clientes: ' + link);
+                    }
+                  }}
+                  className="bg-primary text-background-dark size-12 rounded-2xl flex items-center justify-center shadow-lg transition-all hover:brightness-110 active:scale-90"
+                >
+                  <span className="material-symbols-outlined font-black">share</span>
+                </button>
+              </div>
             </div>
-            <button
-              onClick={() => {
-                const link = `${window.location.origin}/#/q/${salon.slug_publico}`;
-                navigator.clipboard.writeText(link);
-                // Usar toast customizado se possivel, ou alert simples
-                alert('Link do Robô copiado! Envie para seus clientes: ' + link);
-              }}
-              className="relative z-10 bg-indigo-500 text-white px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg active:scale-95 transition-all flex items-center gap-2 hover:bg-indigo-400"
-            >
-              <span className="material-symbols-outlined text-base">content_copy</span>
-              Copiar
-            </button>
           </div>
         )}
 

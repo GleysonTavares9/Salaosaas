@@ -244,7 +244,7 @@ const AdminBookings: React.FC<AdminBookingsProps> = ({ appointments, role, salon
 
 
   return (
-    <div className="flex-1 bg-background-dark overflow-y-auto h-full">
+    <div className="flex-1 bg-background-dark overflow-y-auto h-full no-scrollbar">
       <header className="sticky top-0 z-50 bg-background-dark/95 backdrop-blur-xl px-6 pt-12 pb-6 border-b border-white/5">
         <div className="flex items-center gap-4 mb-6">
           <button onClick={() => navigate('/pro')} className="size-10 rounded-full border border-white/10 flex items-center justify-center text-white">

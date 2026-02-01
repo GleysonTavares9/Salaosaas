@@ -654,7 +654,7 @@ const Checkout: React.FC<CheckoutProps> = ({ bookingDraft, salons, onConfirm, se
       )}
 
       {step !== 'success' && (
-        <footer className="fixed bottom-0 left-0 right-0 z-50 flex justify-center pointer-events-none p-4 md:p-8">
+        <footer className="fixed bottom-0 left-0 right-0 z-50 flex justify-center pointer-events-none p-4 md:p-8 pb-[calc(1rem+var(--sab))]">
           <div className="w-full max-w-md bg-background-dark/95 backdrop-blur-2xl border border-white/10 p-6 pt-8 rounded-[32px] shadow-2xl pointer-events-auto">
             <div className="flex justify-between items-end mb-6 px-4">
               <div className="text-left">
