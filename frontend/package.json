@@ -12,6 +12,7 @@
     "@capacitor/android": "^8.0.1",
     "@capacitor/cli": "^7.4.5",
     "@capacitor/core": "^8.0.1",
+    "@capacitor/ios": "^8.0.2",
     "@capacitor/splash-screen": "^8.0.0",
     "@google/genai": "0.2.0",
     "@mercadopago/sdk-react": "^1.0.7",
