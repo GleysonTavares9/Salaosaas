@@ -37,6 +37,8 @@ const QuickSchedule: React.FC = () => {
     const [userData, setUserData] = useState({ phone: '', name: '', email: '', password: '' });
     const [bookingDraft, setBookingDraft] = useState<any>(null);
     const [isTyping, setIsTyping] = useState(false);
+    const [botQueue, setBotQueue] = useState<React.ReactNode[]>([]);
+    const [isProcessingQueue, setIsProcessingQueue] = useState(false);
 
     const scrollRef = useRef<HTMLDivElement>(null);
     const initialized = useRef(false);
@@ -74,15 +76,39 @@ const QuickSchedule: React.FC = () => {
     }, [messages, step]);
 
     const addBotMessage = (text: React.ReactNode) => {
-        setIsTyping(true);
-        // Simular tempo de digitação baseado no comprimento do texto
-        const typingTime = typeof text === 'string' ? Math.min(Math.max(text.length * 15, 600), 2000) : 1000;
-
-        setTimeout(() => {
-            setMessages(prev => [...prev, { id: `${Date.now()}-${Math.random()}`, text, sender: 'bot' }]);
-            setIsTyping(false);
-        }, typingTime);
+        setBotQueue(prev => [...prev, text]);
     };
+
+    useEffect(() => {
+        if (!isProcessingQueue && botQueue.length > 0) {
+            const processNext = async () => {
+                setIsProcessingQueue(true);
+                const text = botQueue[0];
+                setBotQueue(prev => prev.slice(1));
+
+                // 1. Mostrar os 3 pontinhos (Pensando)
+                setIsTyping(true);
+                const dotsTime = typeof text === 'string' ? Math.min(Math.max(text.length * 8, 400), 800) : 600;
+                await new Promise(r => setTimeout(r, dotsTime));
+                setIsTyping(false);
+
+                // 2. Adicionar a mensagem à lista (Inicia Typewriter)
+                setMessages(prev => [...prev, { id: `${Date.now()}-${Math.random()}`, text, sender: 'bot' }]);
+
+                // 3. Estimar tempo de digitação para a próxima frase esperar
+                if (typeof text === 'string') {
+                    const pauses = (text.match(/[.!?]/g) || []).length * 700 + (text.match(/[,]/g) || []).length * 300;
+                    const totalTypingTime = (text.length * 45) + pauses + 800; // Tempo total + margem de fôlego
+                    await new Promise(r => setTimeout(r, totalTypingTime));
+                } else {
+                    await new Promise(r => setTimeout(r, 1000));
+                }
+
+                setIsProcessingQueue(false);
+            };
+            processNext();
+        }
+    }, [botQueue, isProcessingQueue]);
 
     const addUserMessage = (text: string) => setMessages(prev => [...prev, { id: `${Date.now()}-${Math.random()}`, text, sender: 'user' }]);
 
