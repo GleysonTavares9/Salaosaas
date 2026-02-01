@@ -6,9 +6,9 @@ const config: CapacitorConfig = {
   webDir: 'dist',
   plugins: {
     SplashScreen: {
-      launchShowDuration: 3000,
-      launchAutoHide: true,
-      launchFadeOutDuration: 500,
+      launchShowDuration: 0,
+      launchAutoHide: false, // Vamos esconder manualmente no App.tsx
+      launchFadeOutDuration: 200,
       backgroundColor: "#08090a",
       androidSplashResourceName: "splash",
       androidScaleType: "CENTER_CROP",
