@@ -186,10 +186,27 @@ BEGIN
   ON CONFLICT (id) DO UPDATE SET
     full_name = EXCLUDED.full_name,
     role = EXCLUDED.role,
-    phone = COALESCE(EXCLUDED.phone, profiles.phone);
+    phone = COALESCE(EXCLUDED.phone, profiles.phone),
+    email = EXCLUDED.email;
   RETURN new;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- REINICIALIZAÇÃO DE TRIGGERS (Evita erro 500 no Login)
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+DROP TRIGGER IF EXISTS on_auth_user_updated ON auth.users;
+
+-- Trigger apenas para INSERT (Criação)
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+-- Trigger para UPDATE apenas se houver mudança de metadados (Ignora Last Sign In)
+CREATE TRIGGER on_auth_user_updated
+  AFTER UPDATE ON auth.users
+  FOR EACH ROW
+  WHEN (old.raw_user_meta_data IS DISTINCT FROM new.raw_user_meta_data)
+  EXECUTE FUNCTION public.handle_new_user();
 
 -- ============================================
 -- POLÍTICAS DE RLS (SEGURANÇA COMPLETA)
