@@ -14,9 +14,18 @@ interface Message {
     sender: 'bot' | 'user';
 }
 
-// Dourado Aura Color (Based on official #ecd3a5 and #c1a571)
 const auraGold = "#ecd3a5";
 const auraGoldDark = "#c1a571";
+
+const DAY_KEY_MAP: { [key: string]: string } = {
+    'segunda-feira': 'segunda',
+    'terça-feira': 'terca',
+    'quarta-feira': 'quarta',
+    'quinta-feira': 'quinta',
+    'sexta-feira': 'sexta',
+    'sábado': 'sabado',
+    'domingo': 'domingo'
+};
 
 const renderText = (text: string) => <span dangerouslySetInnerHTML={{ __html: text.replace(/\*\*(.*?)\*\*/g, `<b style="color: ${auraGold}">$1</b>`).replace(/\n/g, '<br/>') }} />;
 
@@ -87,8 +96,45 @@ const QuickSchedule: React.FC = () => {
     const [isProcessingQueue, setIsProcessingQueue] = useState(false);
     const [showElements, setShowElements] = useState(false);
 
+    // Drag to scroll refs
+    const servicesScrollRef = useRef<HTMLDivElement>(null);
+    const proScrollRef = useRef<HTMLDivElement>(null);
+    const dateScrollRef = useRef<HTMLDivElement>(null);
+
     const scrollRef = useRef<HTMLDivElement>(null);
     const initialized = useRef(false);
+
+    const setupDragScroll = (ref: React.RefObject<HTMLDivElement>) => {
+        let isDown = false;
+        let startX: number;
+        let scrollLeft: number;
+
+        return {
+            onMouseDown: (e: React.MouseEvent) => {
+                isDown = true;
+                if (!ref.current) return;
+                startX = e.pageX - ref.current.offsetLeft;
+                scrollLeft = ref.current.scrollLeft;
+            },
+            onMouseLeave: () => {
+                isDown = false;
+            },
+            onMouseUp: () => {
+                isDown = false;
+            },
+            onMouseMove: (e: React.MouseEvent) => {
+                if (!isDown || !ref.current) return;
+                e.preventDefault();
+                const x = e.pageX - ref.current.offsetLeft;
+                const walk = (x - startX) * 2;
+                ref.current.scrollLeft = scrollLeft - walk;
+            }
+        };
+    };
+
+    const servicesDrag = setupDragScroll(servicesScrollRef);
+    const proDrag = setupDragScroll(proScrollRef);
+    const dateDrag = setupDragScroll(dateScrollRef);
 
 
     useEffect(() => {
@@ -453,7 +499,11 @@ const QuickSchedule: React.FC = () => {
                     <div className="pb-4">
                         {showElements && step === 'SERVICES' && (
                             <>
-                                <div className="mt-4 flex overflow-x-auto gap-4 pb-4 scrollbar-hide px-1">
+                                <div
+                                    ref={servicesScrollRef}
+                                    {...servicesDrag}
+                                    className="mt-4 flex overflow-x-auto gap-4 pb-4 scrollbar-hide px-1 cursor-grab active:cursor-grabbing select-none"
+                                >
                                     {services.map(svc => {
                                         const isSelected = selectedServices.some(s => s.id === svc.id);
                                         return (
@@ -481,7 +531,11 @@ const QuickSchedule: React.FC = () => {
                         )}
 
                         {showElements && step === 'PROFESSIONAL' && (
-                            <div className="mt-4 flex overflow-x-auto gap-5 pb-4 scrollbar-hide px-1">
+                            <div
+                                ref={proScrollRef}
+                                {...proDrag}
+                                className="mt-4 flex overflow-x-auto gap-5 pb-4 scrollbar-hide px-1 cursor-grab active:cursor-grabbing select-none"
+                            >
                                 {professionals.filter(p => !selectedPro || p.id === selectedPro.id).map(pro => (
                                     <div key={pro.id} onClick={() => handleProSelect(pro)} className="shrink-0 flex flex-col items-center gap-3 cursor-pointer active:scale-95 transition-transform p-1">
                                         <div className={`size-20 rounded-[28px] p-1 border-2 transition-all ${selectedPro?.id === pro.id ? 'shadow-xl' : 'border-white/5'}`} style={{ borderColor: selectedPro?.id === pro.id ? auraGold : 'transparent' }}>
@@ -497,7 +551,11 @@ const QuickSchedule: React.FC = () => {
                         )}
 
                         {showElements && step === 'DATE' && (
-                            <div className="mt-4 flex overflow-x-auto gap-3 pb-4 scrollbar-hide px-1">
+                            <div
+                                ref={dateScrollRef}
+                                {...dateDrag}
+                                className="mt-4 flex overflow-x-auto gap-3 pb-4 scrollbar-hide px-1 cursor-grab active:cursor-grabbing select-none"
+                            >
                                 {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13].map(offset => {
                                     const d = new Date();
                                     d.setDate(d.getDate() + offset);
@@ -508,18 +566,7 @@ const QuickSchedule: React.FC = () => {
                                     const dayNum = d.getDate();
                                     const monthLabel = d.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '').toUpperCase();
 
-                                    // Tradução para o padrão do objeto operating_hours
-                                    const dayKeyMap: { [key: string]: string } = {
-                                        'segunda-feira': 'segunda',
-                                        'terça-feira': 'terca',
-                                        'quarta-feira': 'quarta',
-                                        'quinta-feira': 'quinta',
-                                        'sexta-feira': 'sexta',
-                                        'sábado': 'sabado',
-                                        'domingo': 'domingo'
-                                    };
-
-                                    const key = dayKeyMap[dayName] || dayName;
+                                    const key = DAY_KEY_MAP[dayName] || dayName;
                                     const isClosed = salon?.horario_funcionamento?.[key]?.closed;
                                     const label = offset === 0 ? 'Hoje' : offset === 1 ? 'Amanhã' : `${dayShort}, ${dayNum} ${monthLabel}`;
 
@@ -529,8 +576,8 @@ const QuickSchedule: React.FC = () => {
                                             onClick={() => !isClosed && handleDateSelect(dateStr, label)}
                                             disabled={isClosed}
                                             className={`shrink-0 flex flex-col items-center justify-center w-20 h-24 rounded-[24px] transition-all border ${isClosed
-                                                    ? 'bg-red-500/5 border-red-500/10 opacity-40 cursor-not-allowed'
-                                                    : 'bg-[#1c1c1f] border-white/5 active:scale-95 hover:border-primary/30'
+                                                ? 'bg-red-500/5 border-red-500/10 opacity-40 cursor-not-allowed'
+                                                : 'bg-[#1c1c1f] border-white/5 active:scale-95 hover:border-primary/30'
                                                 }`}
                                         >
                                             <span className={`text-[8px] font-black uppercase tracking-widest mb-1 ${isClosed ? 'text-red-400' : 'text-slate-500'}`}>
@@ -604,7 +651,7 @@ const QuickSchedule: React.FC = () => {
                     {['WELCOME', 'LOADING', 'PROFESSIONAL', 'DATE', 'TIME', 'SUCCESS'].includes(step) && <div className="h-4 w-full flex items-center justify-center"><div className="w-12 h-1 bg-white/5 rounded-full"></div></div>}
                 </div>
             </div>
-        </div>
+        </div >
     );
 };
 export default QuickSchedule;

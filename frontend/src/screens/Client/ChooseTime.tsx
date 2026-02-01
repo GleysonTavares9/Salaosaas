@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Professional } from '../../types';
 import { api } from '../../lib/api';
@@ -10,6 +9,16 @@ interface ChooseTimeProps {
   setBookingDraft: React.Dispatch<React.SetStateAction<any>>;
 }
 
+const DAY_KEY_MAP: { [key: string]: string } = {
+  'segunda-feira': 'segunda',
+  'terça-feira': 'terca',
+  'quarta-feira': 'quarta',
+  'quinta-feira': 'quinta',
+  'sexta-feira': 'sexta',
+  'sábado': 'sabado',
+  'domingo': 'domingo'
+};
+
 const ChooseTime: React.FC<ChooseTimeProps> = ({ bookingDraft, setBookingDraft }) => {
   const navigate = useNavigate();
   const [professionals, setProfessionals] = useState<Professional[]>([]);
@@ -17,43 +26,89 @@ const ChooseTime: React.FC<ChooseTimeProps> = ({ bookingDraft, setBookingDraft }
   const [isLoading, setIsLoading] = useState(true);
   const [availableSlots, setAvailableSlots] = useState<string[]>([]);
 
+  // Drag to scroll refs
+  const proScrollRef = useRef<HTMLDivElement>(null);
+  const dateScrollRef = useRef<HTMLDivElement>(null);
+
+  const setupDragScroll = (ref: React.RefObject<HTMLDivElement>) => {
+    let isDown = false;
+    let startX: number;
+    let scrollLeft: number;
+
+    return {
+      onMouseDown: (e: React.MouseEvent) => {
+        isDown = true;
+        if (!ref.current) return;
+        ref.current.classList.add('active');
+        startX = e.pageX - ref.current.offsetLeft;
+        scrollLeft = ref.current.scrollLeft;
+      },
+      onMouseLeave: () => {
+        isDown = false;
+        if (!ref.current) return;
+        ref.current.classList.remove('active');
+      },
+      onMouseUp: () => {
+        isDown = false;
+        if (!ref.current) return;
+        ref.current.classList.remove('active');
+      },
+      onMouseMove: (e: React.MouseEvent) => {
+        if (!isDown || !ref.current) return;
+        e.preventDefault();
+        const x = e.pageX - ref.current.offsetLeft;
+        const walk = (x - startX) * 2;
+        ref.current.scrollLeft = scrollLeft - walk;
+      }
+    };
+  };
+
+  const proDrag = setupDragScroll(proScrollRef);
+  const dateDrag = setupDragScroll(dateScrollRef);
+
   // 1. Calcular Duração Total
   const totalDuration = bookingDraft.services?.reduce((acc: number, s: any) => acc + (s.duration_min || 30), 0) || 30;
 
-  const nextDays = Array.from({ length: 14 }, (_, i) => {
-    const d = new Date();
-    d.setDate(d.getDate() + i);
-
-    // YYYY-MM-DD
-    const dateStr = `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getDate().toString().padStart(2, '0')}`;
-    const dayName = d.toLocaleDateString('pt-BR', { weekday: 'long' }).toLowerCase();
-    const dayShort = d.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '').toUpperCase();
-    const dayNum = d.getDate();
-    const monthLabel = d.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '').toUpperCase();
-
-    const dayKeyMap: { [key: string]: string } = {
-      'segunda-feira': 'segunda',
-      'terça-feira': 'terca',
-      'quarta-feira': 'quarta',
-      'quinta-feira': 'quinta',
-      'sexta-feira': 'sexta',
-      'sábado': 'sabado',
-      'domingo': 'domingo'
-    };
-
-    const key = dayKeyMap[dayName] || dayName;
-    const isClosed = salonData?.horario_funcionamento?.[key]?.closed;
-
-    return {
-      label: i === 0 ? 'Hoje' : i === 1 ? 'Amanhã' : dayShort,
-      date: dateStr,
-      display: `${dayNum} ${monthLabel}`,
-      isClosed
-    };
-  });
-
-  const [selectedDay, setSelectedDay] = useState(bookingDraft.date || nextDays[0].date);
   const [salonData, setSalonData] = useState<any>(null);
+
+  const nextDays = useMemo(() => {
+    return Array.from({ length: 14 }, (_, i) => {
+      const d = new Date();
+      d.setDate(d.getDate() + i);
+
+      const dateStr = `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getDate().toString().padStart(2, '0')}`;
+      const dayName = d.toLocaleDateString('pt-BR', { weekday: 'long' }).toLowerCase();
+      const dayShort = d.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '').toUpperCase();
+      const dayNum = d.getDate();
+      const monthLabel = d.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '').toUpperCase();
+
+      const key = DAY_KEY_MAP[dayName] || dayName;
+      const isClosed = salonData?.horario_funcionamento?.[key]?.closed;
+
+      return {
+        label: i === 0 ? 'Hoje' : i === 1 ? 'Amanhã' : dayShort,
+        date: dateStr,
+        display: `${dayNum} ${monthLabel}`,
+        isClosed
+      };
+    });
+  }, [salonData]);
+
+  const [selectedDay, setSelectedDay] = useState(bookingDraft.date || (nextDays[0] ? nextDays[0].date : ''));
+
+  // Sincroniza selectedDay se o draft mudar
+  useEffect(() => {
+    if (bookingDraft.date && bookingDraft.date !== selectedDay) {
+      setSelectedDay(bookingDraft.date);
+    }
+  }, [bookingDraft.date, selectedDay]);
+
+  // Fallback: se não tiver data selecionada, pega a primeira disponível do nextDays
+  useEffect(() => {
+    if (!selectedDay && nextDays[0]) {
+      setSelectedDay(nextDays[0].date);
+    }
+  }, [nextDays, selectedDay]);
 
   // Carregar salão, profissionais e agendamentos existentes
   useEffect(() => {
@@ -158,7 +213,11 @@ const ChooseTime: React.FC<ChooseTimeProps> = ({ bookingDraft, setBookingDraft }
             <h3 className="text-[10px] font-black text-primary uppercase tracking-[0.4em]">Seu Artista</h3>
             <span className="text-[8px] font-bold text-slate-600 uppercase tracking-widest">Inspirados por você</span>
           </div>
-          <div className="flex gap-6 overflow-x-auto no-scrollbar py-4 px-1">
+          <div
+            ref={proScrollRef}
+            {...proDrag}
+            className="flex gap-6 overflow-x-auto no-scrollbar py-4 px-1 cursor-grab active:cursor-grabbing select-none"
+          >
             {isLoading ? (
               <div className="flex gap-6 w-full">
                 {[1, 2, 3].map(i => (
@@ -196,17 +255,21 @@ const ChooseTime: React.FC<ChooseTimeProps> = ({ bookingDraft, setBookingDraft }
 
         <section className="animate-fade-in" style={{ animationDelay: '100ms' }}>
           <h3 className="text-[10px] font-black text-primary uppercase tracking-[0.4em] mb-6 ml-1">Data Aura</h3>
-          <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2 px-1">
+          <div
+            ref={dateScrollRef}
+            {...dateDrag}
+            className="flex gap-4 overflow-x-auto no-scrollbar pb-2 px-1 cursor-grab active:cursor-grabbing select-none"
+          >
             {nextDays.map(d => (
               <button
                 key={d.date}
                 onClick={() => !d.isClosed && setSelectedDay(d.date)}
                 disabled={d.isClosed}
                 className={`shrink-0 w-24 py-6 rounded-[24px] border flex flex-col items-center transition-all shadow-xl ${d.isClosed
-                    ? 'bg-red-500/5 border-red-500/10 opacity-30 cursor-not-allowed'
-                    : selectedDay === d.date
-                      ? 'gold-gradient text-background-dark border-primary'
-                      : 'bg-surface-dark border-white/5 text-slate-500'
+                  ? 'bg-red-500/5 border-red-500/10 opacity-30 cursor-not-allowed'
+                  : selectedDay === d.date
+                    ? 'gold-gradient text-background-dark border-primary'
+                    : 'bg-surface-dark border-white/5 text-slate-500'
                   }`}
               >
                 <span className={`text-[8px] font-black uppercase mb-1.5 tracking-widest ${d.isClosed ? 'text-red-400' : ''}`}>
