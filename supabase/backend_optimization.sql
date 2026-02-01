@@ -131,11 +131,14 @@ CREATE OR REPLACE FUNCTION public.get_profile_by_phone(p_phone TEXT)
 RETURNS JSONB AS $$
 DECLARE
     v_data JSONB;
+    v_clean_phone TEXT;
 BEGIN
+    v_clean_phone := regexp_replace(p_phone, '\D', '', 'g');
+    
     SELECT jsonb_build_object('id', id, 'email', email, 'full_name', full_name) 
     INTO v_data
     FROM public.profiles 
-    WHERE phone = p_phone 
+    WHERE regexp_replace(phone, '\D', '', 'g') = v_clean_phone
     LIMIT 1;
 
     RETURN v_data;

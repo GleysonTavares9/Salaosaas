@@ -84,20 +84,40 @@ const QuickSchedule: React.FC = () => {
 
         switch (step) {
             case 'PHONE':
-                setUserData({ ...userData, phone: text });
+                const cleanPhone = text.replace(/\D/g, '');
+                setUserData({ ...userData, phone: cleanPhone });
                 addBotMessage("Verificando cadastro...");
-                const { data: profile } = await supabase.rpc('get_profile_by_phone', { p_phone: text });
+
+                // Nota: Usamos a RPC que busca por telefone limpo
+                const { data: profile } = await supabase.rpc('get_profile_by_phone', { p_phone: cleanPhone });
+
                 if (profile && profile.id) {
-                    setUserData(prev => ({ ...prev, email: profile.email }));
-                    setTimeout(() => { addBotMessage("Digite sua **senha**."); setStep('PASSWORD'); }, 600);
+                    setUserData(prev => ({ ...prev, email: profile.email, name: profile.full_name }));
+                    const firstName = (profile.full_name || 'Usuário').split(' ')[0];
+                    setTimeout(() => {
+                        addBotMessage(`Olá **${firstName}**! Que bom te ver novamente. ✨`);
+                        addBotMessage("Por favor, digite sua **senha** para continuar:");
+                        setStep('PASSWORD');
+                    }, 600);
                 } else {
-                    setTimeout(() => { addBotMessage("Qual seu **Nome**?"); setStep('REGISTER_NAME'); }, 600);
+                    setTimeout(() => {
+                        addBotMessage("Não encontrei seu cadastro. Sem problemas, vamos criar um agora!");
+                        addBotMessage("Qual seu **Nome completo**?");
+                        setStep('REGISTER_NAME');
+                    }, 600);
                 }
                 break;
             case 'PASSWORD':
                 const { error: loginError } = await supabase.auth.signInWithPassword({ email: userData.email, password: text });
-                if (loginError) addBotMessage("Senha incorreta.");
-                else { addBotMessage("Login realizado! Selecione os serviços abaixo:"); setStep('SERVICES'); }
+                if (loginError) {
+                    addBotMessage("Senha incorreta. Tente novamente ou peça ajuda ao suporte.");
+                } else {
+                    addBotMessage(`Excelente, **${userData.name.split(' ')[1] || userData.name}**! Vamos aos serviços.`);
+                    setTimeout(() => {
+                        addBotMessage("Selecione os serviços abaixo:");
+                        setStep('SERVICES');
+                    }, 400);
+                }
                 break;
             case 'REGISTER_NAME':
                 setUserData(prev => ({ ...prev, name: text }));
@@ -105,9 +125,26 @@ const QuickSchedule: React.FC = () => {
                 setStep('REGISTER_EMAIL');
                 break;
             case 'REGISTER_EMAIL':
-                setUserData(prev => ({ ...prev, email: text }));
-                addBotMessage("Crie uma **senha**:");
-                setStep('REGISTER_PASSWORD');
+                const email = text.toLowerCase().trim();
+                setUserData(prev => ({ ...prev, email }));
+                addBotMessage("Verificando e-mail...");
+
+                // Verifica se este e-mail já existe para não dar erro no registro
+                const { data: existingUser } = await supabase.rpc('get_profile_by_email', { p_email: email });
+
+                if (existingUser) {
+                    setUserData(prev => ({ ...prev, name: existingUser.full_name }));
+                    setTimeout(() => {
+                        addBotMessage(`Identificamos que você já possui uma conta com o e-mail **${email}**.`);
+                        addBotMessage("Por favor, digite sua **senha** para entrar:");
+                        setStep('PASSWORD');
+                    }, 600);
+                } else {
+                    setTimeout(() => {
+                        addBotMessage("Para finalizar seu cadastro, crie uma **senha**:");
+                        setStep('REGISTER_PASSWORD');
+                    }, 600);
+                }
                 break;
             case 'REGISTER_PASSWORD':
                 setUserData(prev => ({ ...prev, password: text }));
