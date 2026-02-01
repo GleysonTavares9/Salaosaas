@@ -195,13 +195,11 @@ const QuickSchedule: React.FC = () => {
                 }
 
                 setIsProcessingQueue(false);
-
-                // Se a fila acabou, espera um pouco e mostra os botões/elementos
-                if (botQueue.length === 0) {
-                    setShowElements(true);
-                }
             };
             processNext();
+        } else if (!isProcessingQueue && botQueue.length === 0) {
+            // Se a fila acabou e não estamos processando, garante que os elementos apareçam
+            setShowElements(true);
         }
     }, [botQueue, isProcessingQueue]);
 
@@ -212,7 +210,13 @@ const QuickSchedule: React.FC = () => {
         if (!inputValue.trim()) return;
         const text = inputValue.trim();
         setInputValue('');
-        addUserMessage(text);
+
+        // Se for um passo de senha, mascaramos a mensagem no chat
+        const displayPath = ['PASSWORD', 'REGISTER_PASSWORD'].includes(step)
+            ? '•'.repeat(Math.min(text.length, 12))
+            : text;
+
+        addUserMessage(displayPath);
         setShowElements(false); // Esconde elementos ao enviar nova mensagem
 
         switch (step) {
