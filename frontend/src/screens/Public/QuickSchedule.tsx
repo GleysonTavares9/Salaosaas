@@ -157,17 +157,29 @@ const QuickSchedule: React.FC = () => {
                 break;
 
             case 'REGISTER_PASSWORD':
-                setUserData(prev => ({ ...prev, password: text }));
-                addBotMessage("Registrando...");
+                addBotMessage("Registrando sua conta...");
+                // Usamos o texto direto para a senha para evitar delay de estado
                 const { error: signUpError } = await supabase.auth.signUp({
-                    email: userData.email, password: text,
-                    options: { data: { full_name: userData.name, phone: userData.phone, role: 'client' } }
+                    email: userData.email,
+                    password: text,
+                    options: {
+                        data: {
+                            full_name: userData.name,
+                            phone: userData.phone,
+                            role: 'client'
+                        }
+                    }
                 });
+
                 if (signUpError) {
-                    addBotMessage("Ops! " + signUpError.message);
+                    addBotMessage("Erro ao criar conta: " + signUpError.message);
                 } else {
-                    addBotMessage("Conta criada com sucesso! ✨\nSelecione seus serviços:");
-                    setStep('SERVICES');
+                    setUserData(prev => ({ ...prev, password: text }));
+                    addBotMessage("Conta criada com sucesso! ✨🚀");
+                    setTimeout(() => {
+                        addBotMessage("Agora, selecione os serviços desejados:");
+                        setStep('SERVICES');
+                    }, 600);
                 }
                 break;
         }
