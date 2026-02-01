@@ -126,46 +126,25 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- 4. RPC: get_profile_by_phone (Seguro)
-CREATE OR REPLACE FUNCTION public.get_profile_by_phone(p_phone TEXT)
+-- 4. RPC Consolidada: get_profile_by_contact (ECONOMIA DE CONSULTAS)
+-- Busca por telefone (limpo) OU e-mail em uma única chamada ao Supabase.
+CREATE OR REPLACE FUNCTION public.get_profile_by_contact(p_contact TEXT)
 RETURNS JSONB AS $$
 DECLARE
     v_data JSONB;
     v_clean_phone TEXT;
 BEGIN
-    v_clean_phone := regexp_replace(p_phone, '\D', '', 'g');
+    -- Limpa o contato para teste de telefone (apenas números)
+    v_clean_phone := regexp_replace(p_contact, '\D', '', 'g');
     
     SELECT jsonb_build_object('id', id, 'email', email, 'full_name', full_name) 
     INTO v_data
     FROM public.profiles 
-    WHERE regexp_replace(phone, '\D', '', 'g') = v_clean_phone
+    WHERE 
+        (v_clean_phone <> '' AND regexp_replace(phone, '\D', '', 'g') = v_clean_phone)
+        OR 
+        (LOWER(email) = LOWER(TRIM(p_contact)))
     LIMIT 1;
-
-    RETURN v_data;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
--- 5. RPC: get_profile_by_email (Busca híbrida Profile + Auth)
-CREATE OR REPLACE FUNCTION public.get_profile_by_email(p_email TEXT)
-RETURNS JSONB AS $$
-DECLARE
-    v_data JSONB;
-BEGIN
-    -- 1. Tenta no profiles (Público)
-    SELECT jsonb_build_object('id', id, 'email', email, 'full_name', full_name) 
-    INTO v_data
-    FROM public.profiles 
-    WHERE LOWER(email) = LOWER(TRIM(p_email))
-    LIMIT 1;
-
-    -- 2. Se não achar, busca no Auth (Garante o ID se o trigger falhou)
-    IF v_data IS NULL THEN
-        SELECT jsonb_build_object('id', id, 'email', email, 'full_name', (raw_user_meta_data->>'full_name')) 
-        INTO v_data
-        FROM auth.users 
-        WHERE LOWER(email) = LOWER(TRIM(p_email))
-        LIMIT 1;
-    END IF;
 
     RETURN v_data;
 END;

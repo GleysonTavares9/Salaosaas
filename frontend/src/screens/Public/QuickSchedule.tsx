@@ -84,68 +84,78 @@ const QuickSchedule: React.FC = () => {
 
         switch (step) {
             case 'PHONE':
-                const cleanPhone = text.replace(/\D/g, '');
-                setUserData({ ...userData, phone: cleanPhone });
-                addBotMessage("Verificando cadastro...");
+                const contact = text.trim();
+                const isEmail = contact.includes('@');
+                setUserData({ ...userData, phone: isEmail ? '' : contact.replace(/\D/g, ''), email: isEmail ? contact : '' });
 
-                // Nota: Usamos a RPC que busca por telefone limpo
-                const { data: profile } = await supabase.rpc('get_profile_by_phone', { p_phone: cleanPhone });
+                addBotMessage("Verificando...");
+
+                // RPC Otimizada: 1 única consulta para Telefone ou E-mail
+                const { data: profile } = await supabase.rpc('get_profile_by_contact', { p_contact: contact });
 
                 if (profile && profile.id) {
                     setUserData(prev => ({ ...prev, email: profile.email, name: profile.full_name }));
                     const firstName = (profile.full_name || 'Usuário').split(' ')[0];
                     setTimeout(() => {
-                        addBotMessage(`Olá **${firstName}**! Que bom te ver novamente. ✨`);
-                        addBotMessage("Por favor, digite sua **senha** para continuar:");
+                        addBotMessage(`Olá **${firstName}**! Que bom te ver. ✨`);
+                        addBotMessage("Digite sua **senha** para entrar:");
                         setStep('PASSWORD');
-                    }, 600);
+                    }, 400);
+                } else if (isEmail) {
+                    setTimeout(() => {
+                        addBotMessage("Seja bem-vindo! Qual seu **Nome completo**?");
+                        setStep('REGISTER_NAME');
+                    }, 400);
                 } else {
                     setTimeout(() => {
-                        addBotMessage("Não encontrei seu cadastro. Sem problemas, vamos criar um agora!");
-                        addBotMessage("Qual seu **Nome completo**?");
-                        setStep('REGISTER_NAME');
-                    }, 600);
+                        addBotMessage("Não achei seu celular. Para garantir, qual seu **e-mail**?");
+                        setStep('AUTH_CHECK');
+                    }, 400);
                 }
                 break;
+
+            case 'AUTH_CHECK':
+                const emailCheck = text.toLowerCase().trim();
+                setUserData(prev => ({ ...prev, email: emailCheck }));
+
+                // Consulta consolidada
+                const { data: secondProfile } = await supabase.rpc('get_profile_by_contact', { p_contact: emailCheck });
+
+                if (secondProfile) {
+                    setUserData(prev => ({ ...prev, name: secondProfile.full_name }));
+                    setTimeout(() => {
+                        addBotMessage(`Ah, agora encontrei você! ✨`);
+                        addBotMessage("Digite sua **senha**:");
+                        setStep('PASSWORD');
+                    }, 400);
+                } else {
+                    setTimeout(() => {
+                        addBotMessage("Seja bem-vindo! Qual seu **Nome completo**?");
+                        setStep('REGISTER_NAME');
+                    }, 400);
+                }
+                break;
+
             case 'PASSWORD':
                 const { error: loginError } = await supabase.auth.signInWithPassword({ email: userData.email, password: text });
                 if (loginError) {
                     addBotMessage("Senha incorreta. Tente novamente ou peça ajuda ao suporte.");
                 } else {
-                    addBotMessage(`Excelente, **${userData.name.split(' ')[1] || userData.name}**! Vamos aos serviços.`);
+                    addBotMessage(`Excelente, **${(userData.name || '').split(' ')[0] || 'que bom te ver'}**! Vamos aos rituais de hoje.`);
                     setTimeout(() => {
                         addBotMessage("Selecione os serviços abaixo:");
                         setStep('SERVICES');
                     }, 400);
                 }
                 break;
+
             case 'REGISTER_NAME':
                 setUserData(prev => ({ ...prev, name: text }));
-                addBotMessage("Qual seu **e-mail**?");
-                setStep('REGISTER_EMAIL');
+                // Como já temos o e-mail do AUTH_CHECK, pedimos a senha
+                addBotMessage(`Prazer, **${text.split(' ')[0]}**! Agora para finalizar, crie uma **senha**:`);
+                setStep('REGISTER_PASSWORD');
                 break;
-            case 'REGISTER_EMAIL':
-                const email = text.toLowerCase().trim();
-                setUserData(prev => ({ ...prev, email }));
-                addBotMessage("Verificando e-mail...");
 
-                // Verifica se este e-mail já existe para não dar erro no registro
-                const { data: existingUser } = await supabase.rpc('get_profile_by_email', { p_email: email });
-
-                if (existingUser) {
-                    setUserData(prev => ({ ...prev, name: existingUser.full_name }));
-                    setTimeout(() => {
-                        addBotMessage(`Identificamos que você já possui uma conta com o e-mail **${email}**.`);
-                        addBotMessage("Por favor, digite sua **senha** para entrar:");
-                        setStep('PASSWORD');
-                    }, 600);
-                } else {
-                    setTimeout(() => {
-                        addBotMessage("Para finalizar seu cadastro, crie uma **senha**:");
-                        setStep('REGISTER_PASSWORD');
-                    }, 600);
-                }
-                break;
             case 'REGISTER_PASSWORD':
                 setUserData(prev => ({ ...prev, password: text }));
                 addBotMessage("Registrando...");
@@ -153,8 +163,12 @@ const QuickSchedule: React.FC = () => {
                     email: userData.email, password: text,
                     options: { data: { full_name: userData.name, phone: userData.phone, role: 'client' } }
                 });
-                if (signUpError) addBotMessage("Erro: " + signUpError.message);
-                else { addBotMessage("Conta criada! Selecione os serviços:"); setStep('SERVICES'); }
+                if (signUpError) {
+                    addBotMessage("Ops! " + signUpError.message);
+                } else {
+                    addBotMessage("Conta criada com sucesso! ✨\nSelecione seus serviços:");
+                    setStep('SERVICES');
+                }
                 break;
         }
     };
