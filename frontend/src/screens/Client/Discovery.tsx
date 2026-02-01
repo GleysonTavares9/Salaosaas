@@ -142,7 +142,7 @@ const Discovery: React.FC<DiscoveryProps> = ({ salons: initialSalons, role }) =>
 
   return (
     <div className="flex-1 flex flex-col h-full bg-background-dark relative text-white">
-      <header className="px-6 pt-12 pb-6 shrink-0 z-20">
+      <header className="px-6 pt-[calc(env(safe-area-inset-top)+2rem)] pb-6 shrink-0 z-20">
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-display font-black italic tracking-tighter leading-none">Luxe Aura</h1>

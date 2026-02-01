@@ -147,7 +147,7 @@ const AuthClient: React.FC<AuthClientProps> = ({ onLogin }) => {
   if (isRecovering) {
     return (
       <div className="flex-1 bg-background-dark min-h-screen flex flex-col p-8 relative">
-        <header className="pt-8 pb-8 flex items-center justify-between">
+        <header className="pt-[calc(env(safe-area-inset-top)+2rem)] pb-8 flex items-center justify-between">
           <button onClick={() => setIsRecovering(false)} className="size-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-white">
             <span className="material-symbols-outlined">arrow_back</span>
           </button>
@@ -203,7 +203,7 @@ const AuthClient: React.FC<AuthClientProps> = ({ onLogin }) => {
 
   return (
     <div className="flex-1 bg-background-dark h-full flex flex-col p-8 overflow-y-auto no-scrollbar relative">
-      <header className="pt-8 pb-6 flex items-center justify-between">
+      <header className="pt-[calc(env(safe-area-inset-top)+2rem)] pb-6 flex items-center justify-between">
         <button onClick={() => navigate('/')} className="size-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-white active:scale-90 transition-transform shadow-xl">
           <span className="material-symbols-outlined">close</span>
         </button>

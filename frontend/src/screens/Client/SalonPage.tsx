@@ -185,7 +185,7 @@ const SalonPage: React.FC<SalonPageProps> = ({ salons, role, setBookingDraft }) 
           <img src={salon.banner_url} className="absolute inset-0 w-full h-full object-cover grayscale opacity-30" alt="Banner" />
           <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-background-dark pointer-events-none"></div>
 
-          <header className="relative z-10 p-6 pt-12 flex items-center justify-between">
+          <header className="relative z-10 p-6 pt-[calc(env(safe-area-inset-top)+2rem)] flex items-center justify-between">
             <button onClick={() => navigate(-1)} className="size-12 flex items-center justify-center rounded-2xl bg-black/40 backdrop-blur-md border border-white/10 text-white active:scale-95 transition-all">
               <span className="material-symbols-outlined text-xl">arrow_back</span>
             </button>

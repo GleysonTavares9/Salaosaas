@@ -121,7 +121,7 @@ const PartnerLogin: React.FC<PartnerLoginProps> = ({ onLogin }) => {
         <div className="absolute inset-0 bg-gradient-to-b from-background-dark via-transparent to-background-dark"></div>
       </div>
 
-      <header className="relative z-10 p-8 flex items-center justify-between">
+      <header className="relative z-10 p-8 pt-[calc(env(safe-area-inset-top)+2rem)] flex items-center justify-between">
         <button onClick={() => navigate('/')} className="size-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-white">
           <span className="material-symbols-outlined">close</span>
         </button>

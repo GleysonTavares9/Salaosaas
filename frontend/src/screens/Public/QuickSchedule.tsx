@@ -36,6 +36,7 @@ const QuickSchedule: React.FC = () => {
     const [inputValue, setInputValue] = useState('');
     const [userData, setUserData] = useState({ phone: '', name: '', email: '', password: '' });
     const [bookingDraft, setBookingDraft] = useState<any>(null);
+    const [isTyping, setIsTyping] = useState(false);
 
     const scrollRef = useRef<HTMLDivElement>(null);
     const initialized = useRef(false);
@@ -72,9 +73,30 @@ const QuickSchedule: React.FC = () => {
         setTimeout(() => scrollRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
     }, [messages, step]);
 
-    const addBotMessage = (text: React.ReactNode) => setMessages(prev => [...prev, { id: `${Date.now()}-${Math.random()}`, text, sender: 'bot' }]);
+    const addBotMessage = (text: React.ReactNode) => {
+        setIsTyping(true);
+        // Simular tempo de digitação baseado no comprimento do texto
+        const typingTime = typeof text === 'string' ? Math.min(Math.max(text.length * 15, 600), 2000) : 1000;
+
+        setTimeout(() => {
+            setMessages(prev => [...prev, { id: `${Date.now()}-${Math.random()}`, text, sender: 'bot' }]);
+            setIsTyping(false);
+        }, typingTime);
+    };
+
     const addUserMessage = (text: string) => setMessages(prev => [...prev, { id: `${Date.now()}-${Math.random()}`, text, sender: 'user' }]);
+
     const renderText = (text: string) => <span dangerouslySetInnerHTML={{ __html: text.replace(/\*\*(.*?)\*\*/g, `<b style="color: ${auraGold}">$1</b>`).replace(/\n/g, '<br/>') }} />;
+
+    const TypingIndicator = () => (
+        <div className="flex justify-start animate-fade-in">
+            <div className="bg-[#1c1c1f] px-5 py-4 rounded-[24px] rounded-tl-sm border border-[#c1a571]/20 shadow-[#c1a571]/5 flex gap-1 items-center">
+                <div className="w-1.5 h-1.5 bg-[#ecd3a5] rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                <div className="w-1.5 h-1.5 bg-[#ecd3a5] rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                <div className="w-1.5 h-1.5 bg-[#ecd3a5] rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+            </div>
+        </div>
+    );
 
     const handleSend = async () => {
         if (!inputValue.trim()) return;
@@ -172,7 +194,14 @@ const QuickSchedule: React.FC = () => {
                 });
 
                 if (signUpError) {
-                    addBotMessage("Erro ao criar conta: " + signUpError.message);
+                    // Se o erro for de usuário já cadastrado, capturamos e redirecionamos para senha
+                    if (signUpError.message.toLowerCase().includes('already registered') || signUpError.status === 422) {
+                        addBotMessage("Identifiquei que você já possui cadastro com este e-mail.");
+                        addBotMessage("Por favor, digite sua **senha** para entrar:");
+                        setStep('PASSWORD');
+                    } else {
+                        addBotMessage("Ops! " + signUpError.message);
+                    }
                 } else {
                     setUserData(prev => ({ ...prev, password: text }));
                     addBotMessage("Conta criada com sucesso! ✨🚀");
@@ -293,8 +322,8 @@ const QuickSchedule: React.FC = () => {
     };
 
     return (
-        <div className="bg-[#0a0a0b] min-h-screen flex items-center justify-center p-0 sm:p-6 overflow-hidden">
-            <div className="w-full max-w-[440px] h-full sm:h-[90vh] bg-[#121214] sm:rounded-[40px] border border-white/5 shadow-2xl flex flex-col overflow-hidden relative font-sans">
+        <div className="bg-[#0a0a0b] h-[100dvh] w-full flex items-center justify-center p-0 sm:p-6 overflow-hidden fixed inset-0 sm:relative">
+            <div className="w-full max-w-[440px] h-full sm:h-[90vh] bg-[#121214] sm:rounded-[40px] border border-white/5 shadow-2xl flex flex-col overflow-hidden relative font-sans pt-[env(safe-area-inset-top)]">
 
                 {/* Header Premium Aura */}
                 <div className="px-6 py-5 bg-[#18181b] border-b border-white/5 flex items-center justify-between z-10 shrink-0">
@@ -346,6 +375,8 @@ const QuickSchedule: React.FC = () => {
                             </div>
                         </div>
                     ))}
+
+                    {isTyping && <TypingIndicator />}
 
                     {/* Elements */}
                     <div className="pb-4">

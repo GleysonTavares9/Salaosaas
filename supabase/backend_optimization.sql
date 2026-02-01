@@ -126,17 +126,17 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- 4. RPC Consolidada: get_profile_by_contact (ECONOMIA DE CONSULTAS)
--- Busca por telefone (limpo) OU e-mail em uma única chamada ao Supabase.
+-- 4. RPC Consolidada: get_profile_by_contact (ECONOMIA DE CONSULTAS + ROBUSTEZ)
+-- Busca por telefone (limpo) OU e-mail em PROFILES e Fallback no AUTH.USERS
 CREATE OR REPLACE FUNCTION public.get_profile_by_contact(p_contact TEXT)
 RETURNS JSONB AS $$
 DECLARE
     v_data JSONB;
     v_clean_phone TEXT;
 BEGIN
-    -- Limpa o contato para teste de telefone (apenas números)
     v_clean_phone := regexp_replace(p_contact, '\D', '', 'g');
     
+    -- 1. Busca no Profiles (Prioridade)
     SELECT jsonb_build_object('id', id, 'email', email, 'full_name', full_name) 
     INTO v_data
     FROM public.profiles 
@@ -145,6 +145,18 @@ BEGIN
         OR 
         (LOWER(email) = LOWER(TRIM(p_contact)))
     LIMIT 1;
+
+    -- 2. Fallback no Auth.Users (Se não achar no profiles, mas o cara já tem login)
+    IF v_data IS NULL THEN
+        SELECT jsonb_build_object('id', id, 'email', email, 'full_name', COALESCE(raw_user_meta_data->>'full_name', raw_user_meta_data->>'name', 'Usuário'))
+        INTO v_data
+        FROM auth.users 
+        WHERE 
+            (v_clean_phone <> '' AND regexp_replace(phone, '\D', '', 'g') = v_clean_phone)
+            OR 
+            (LOWER(email) = LOWER(TRIM(p_contact)))
+        LIMIT 1;
+    END IF;
 
     RETURN v_data;
 END;

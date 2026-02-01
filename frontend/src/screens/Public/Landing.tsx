@@ -128,7 +128,7 @@ const Landing: React.FC<LandingProps> = ({ salons }) => {
 
       {/* OVERLAY DE INTERFACE */}
       <div className="relative z-10 flex flex-col h-full pointer-events-none">
-        <header className="p-6 pt-12 flex items-center justify-between bg-gradient-to-b from-background-dark via-background-dark/40 to-transparent pointer-events-auto">
+        <header className="p-6 pt-[calc(env(safe-area-inset-top)+2rem)] flex items-center justify-between bg-gradient-to-b from-background-dark via-background-dark/40 to-transparent pointer-events-auto">
           <div>
             <h1 className="text-xl font-display font-black text-white italic tracking-tighter leading-none mb-1">Luxe Aura</h1>
             <p className="text-[7px] text-slate-500 font-black uppercase tracking-[0.2em]">{userLocation}</p>

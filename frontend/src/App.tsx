@@ -308,7 +308,7 @@ const AppContent: React.FC = () => {
 
       {/* Native Email Confirmation Banner */}
       {currentUserId && !isEmailConfirmed && (
-        <div className="mobile-constrained top-0 border-b border-primary/30 p-4 px-6 flex items-center justify-between animate-fade-in z-[1001] bg-background-dark/80 backdrop-blur-md shrink-0">
+        <div className="mobile-constrained top-[env(safe-area-inset-top)] border-b border-primary/30 p-4 px-6 flex items-center justify-between animate-fade-in z-[1001] bg-background-dark/80 backdrop-blur-md shrink-0">
           <div className="flex items-center gap-3">
             <span className="material-symbols-outlined text-primary text-xl">mark_email_unread</span>
             <div>
