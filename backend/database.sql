@@ -171,7 +171,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Trigger para criar profile automaticamente
+-- Trigger para criar profile automaticamente (Robustecido para Aura Elite)
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS trigger AS $$
 BEGIN
@@ -179,10 +179,14 @@ BEGIN
   VALUES (
     new.id,
     new.email,
-    new.raw_user_meta_data->>'name',
+    COALESCE(new.raw_user_meta_data->>'name', new.raw_user_meta_data->>'full_name', 'Novo Usuário'),
     COALESCE(new.raw_user_meta_data->>'role', 'client'),
     new.raw_user_meta_data->>'phone'
-  );
+  )
+  ON CONFLICT (id) DO UPDATE SET
+    full_name = EXCLUDED.full_name,
+    role = EXCLUDED.role,
+    phone = COALESCE(EXCLUDED.phone, profiles.phone);
   RETURN new;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;

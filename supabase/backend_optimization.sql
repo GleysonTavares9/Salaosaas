@@ -2,6 +2,9 @@
 -- Date: 2026-01-31
 -- Author: Antigravity
 
+-- 0. EXTENSÕES NECESSÁRIAS
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
 -- 1. TABELA DE CONTROLE DE USO AI
 CREATE TABLE IF NOT EXISTS public.ai_usage (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -193,3 +196,56 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- Isso resolve o erro 409 quando o mesmo e-mail tenta ser profissional em perfis diferentes.
 ALTER TABLE IF EXISTS public.professionals DROP CONSTRAINT IF EXISTS professionals_user_id_key;
 DROP INDEX IF EXISTS professionals_user_id_key;
+
+-- 7. RPC: admin_manage_user_access (Criação de Acesso God Mode)
+-- Permite ao Gestor criar/atualizar acessos de colaboradores sem confirmação de e-mail.
+CREATE OR REPLACE FUNCTION public.admin_manage_user_access(
+    p_email TEXT,
+    p_password TEXT,
+    p_full_name TEXT
+)
+RETURNS UUID AS $$
+DECLARE
+    v_user_id UUID;
+BEGIN
+    -- 1. Verifica se já existe o usuário pelo e-mail
+    SELECT id INTO v_user_id FROM auth.users WHERE email = LOWER(TRIM(p_email));
+
+    IF v_user_id IS NULL THEN
+        -- 2. Cria Usuário se não existir (Security Definer Bypassa limites)
+        INSERT INTO auth.users (
+            instance_id, id, aud, role, email, encrypted_password, 
+            email_confirmed_at, raw_app_meta_data, raw_user_meta_data, 
+            created_at, updated_at, confirmation_token, email_change, 
+            email_change_token_new, recovery_token
+        ) VALUES (
+            '00000000-0000-0000-0000-000000000000', gen_random_uuid(), 'authenticated', 
+            'authenticated', LOWER(TRIM(p_email)), extensions.crypt(p_password, extensions.gen_salt('bf')),
+            now(), '{"provider": "email", "providers": ["email"]}', 
+            jsonb_build_object('name', p_full_name, 'full_name', p_full_name, 'role', 'pro'),
+            now(), now(), '', '', '', ''
+        ) RETURNING id INTO v_user_id;
+    ELSE
+        -- 3. Atualiza Usuário se já existir (Sincroniza Metadados e Senha)
+        UPDATE auth.users 
+        SET encrypted_password = extensions.crypt(p_password, extensions.gen_salt('bf')),
+            raw_user_meta_data = raw_user_meta_data || jsonb_build_object('name', p_full_name, 'full_name', p_full_name, 'role', 'pro'),
+            updated_at = now(),
+            email_confirmed_at = now()
+        WHERE id = v_user_id;
+
+        -- Garante que o perfil no Profiles também esteja alinhado
+        UPDATE public.profiles SET role = 'pro', full_name = p_full_name WHERE id = v_user_id;
+    END IF;
+
+    RETURN v_user_id;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, auth, extensions;
+
+-- 8. RPC: safe_link_professional
+CREATE OR REPLACE FUNCTION public.safe_link_professional(p_pro_id UUID, p_user_id UUID)
+RETURNS VOID AS $$
+BEGIN
+    UPDATE public.professionals SET user_id = p_user_id WHERE id = p_pro_id;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;

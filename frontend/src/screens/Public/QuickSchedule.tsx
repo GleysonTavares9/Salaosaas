@@ -48,17 +48,24 @@ const QuickSchedule: React.FC = () => {
         if (!slug || initialized.current) return;
         initialized.current = true;
 
-        api.salons.getBySlug(slug).then(data => {
-            setSalon(data);
-            setStep('WELCOME');
-            addBotMessage(`Olá! Bem-vindo ao *${data.nome}*. ✨`);
-            setTimeout(() => {
-                addBotMessage("Vamos realizar seu agendamento. Digite seu **celular** para começar.");
-                setStep('PHONE');
-            }, 600);
-            api.services.getBySalon(data.id).then(setServices);
-            api.professionals.getBySalon(data.id).then(setProfessionals);
-        });
+        api.salons.getBySlug(slug.toLowerCase())
+            .then(data => {
+                if (!data) throw new Error("Unidade não encontrada.");
+                setSalon(data);
+                setStep('WELCOME');
+                addBotMessage(`Olá! Bem-vindo ao *${data.nome}*. ✨`);
+                setTimeout(() => {
+                    addBotMessage("Vamos realizar seu agendamento. Digite seu **celular** para começar.");
+                    setStep('PHONE');
+                }, 600);
+                api.services.getBySalon(data.id).then(setServices);
+                api.professionals.getBySalon(data.id).then(setProfessionals);
+            })
+            .catch(err => {
+                console.error("Erro QuickSchedule:", err);
+                addBotMessage("Ops! Não encontramos esta unidade ou o link expirou. 😕");
+                setTimeout(() => navigate('/explore'), 3000);
+            });
     }, [slug]);
 
     useEffect(() => {

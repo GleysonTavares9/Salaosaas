@@ -129,20 +129,23 @@ const AppContent: React.FC = () => {
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      const currentPath = window.location.hash.replace('#', '').split('?')[0];
+      const hashPath = window.location.hash.replace('#', '').split('?')[0];
+      const winPath = window.location.pathname;
+
+      // --- URL HEALING: Se o usuário esquecer o '#' no link do bot ---
+      // Caso acesse salaosaas.vercel.app/q/slug direto (sem hash)
+      if (winPath.startsWith('/q/') && !hashPath.startsWith('/q/')) {
+        const slugFromPath = winPath.split('/q/')[1];
+        if (slugFromPath) {
+          window.location.replace(`/#/q/${slugFromPath}`);
+          return;
+        }
+      }
+
+      const currentPath = hashPath;
 
       if (session) {
         const userRole = session.user.user_metadata.role || 'client';
-
-        // 1. SEGURANÇA TOTAL: Bloquear login na porta errada (Cliente vs Parceiro)
-        // Nota: Removido block imediato para permitir que o AuthClient mostre o Overlay visual.
-        /* 
-        if (userRole !== 'client' && (currentPath === '/login-user' || currentPath === '/register-user')) {
-          await supabase.auth.signOut();
-          navigate('/login', { replace: true });
-          return;
-        } 
-        */
 
         if (userRole === 'client' && (currentPath === '/login' || currentPath === '/register')) {
           await supabase.auth.signOut();
@@ -158,7 +161,6 @@ const AppContent: React.FC = () => {
         fetchSalons();
 
         // 3. REDIRECIONAMENTO INTELIGENTE POR CARGO
-        // Se Admin ou Pro cair na Home pública, leva para o painel
         const isPublicHome = ['', '/', '/explore', '/discovery'].includes(currentPath);
         if ((userRole === 'admin' || userRole === 'pro') && isPublicHome) {
           navigate('/pro', { replace: true });
