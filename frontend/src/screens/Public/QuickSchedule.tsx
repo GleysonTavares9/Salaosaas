@@ -429,7 +429,7 @@ const QuickSchedule: React.FC = () => {
                             CONFIRMAR AGENDAMENTO
                         </button>
                     )}
-                    {['PHONE', 'PASSWORD', 'REGISTER_NAME', 'REGISTER_EMAIL', 'REGISTER_PASSWORD'].includes(step) && (
+                    {['PHONE', 'AUTH_CHECK', 'PASSWORD', 'REGISTER_NAME', 'REGISTER_EMAIL', 'REGISTER_PASSWORD'].includes(step) && (
                         <div className="flex gap-3 relative">
                             <input type={step.includes('PASSWORD') ? 'password' : 'text'}
                                 value={inputValue} onChange={e => setInputValue(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSend()}
