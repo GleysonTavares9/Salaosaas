@@ -118,9 +118,9 @@
             }
 
             50% {
-                transform: scale(1.05);
+                transform: scale(1);
                 opacity: 1;
-                filter: drop-shadow(0 0 20px rgba(193, 165, 113, 0.4));
+                filter: drop-shadow(0 0 30px rgba(193, 165, 113, 0.5));
             }
 
             100% {
@@ -138,8 +138,7 @@
 
 <body class="antialiased">
     <div id="app-loader">
-        <div class="size-16 border-2 border-primary/20 border-t-primary rounded-full animate-spin mb-4"></div>
-        <p class="text-[10px] font-black text-primary uppercase tracking-[0.4em] animate-pulse">Luxe Aura Elite</p>
+        <img src="/splash.png" class="w-56 h-auto animate-pulse-zoom" alt="Luxe Aura">
     </div>
     <div id="root"></div>
     <script type="module" src="./src/index.tsx"></script>
