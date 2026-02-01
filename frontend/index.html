@@ -10,28 +10,14 @@
         content="Luxe Aura - A plataforma definitiva para gestão de salões e spas de luxo. Agendamento boutique, pagamentos integrados e experiência personalizada.">
     <meta name="theme-color" content="#08090a">
 
-    <!-- Open Graph / Facebook -->
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://salaosaas.vercel.app">
-    <meta property="og:title" content="Luxe Aura | Elite Beauty Management">
-    <meta property="og:description"
-        content="A experiência definitiva em gestão de beleza e agendamento elite. Rituais personalizados, profissionais de luxo e agendamento inteligente.">
-    <meta property="og:image" content="https://salaosaas.vercel.app/og-image.png">
-
-    <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:url" content="https://salaosaas.vercel.app">
-    <meta property="twitter:title" content="Luxe Aura | Elite Beauty Management">
-    <meta property="twitter:description"
-        content="A plataforma definitiva para gestão de salões e spas de luxo. Agendamento boutique e experiência personalizada.">
-    <meta property="twitter:image" content="https://salaosaas.vercel.app/og-image.png">
+    <!-- Preloads -->
+    <link rel="preload" href="/splash.png" as="image">
 
     <link rel="icon" type="image/png" href="/favicon.png">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,700;0,900;1,400&family=Manrope:wght@300;400;500;600;700;800&display=swap"
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800;900&display=swap"
         rel="stylesheet" />
     <link
         href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-25..0&display=swap"
@@ -55,7 +41,7 @@
             user-select: none;
         }
 
-        /* SplashScreen Imersiva (Web) */
+        /* SplashScreen Imersiva (Stage 2) */
         #app-loader {
             position: fixed;
             top: 0;
@@ -72,36 +58,112 @@
             overflow: hidden;
         }
 
-        .splash-image {
+        /* Imagem de Fundo (Tela Cheia) */
+        .splash-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
             height: 100%;
             object-fit: cover;
-            display: block;
-            animation: breathe 5s ease-in-out infinite;
+            animation: breathe 10s ease-in-out infinite;
+            z-index: 1;
         }
 
-        /* No Desktop, mantemos o logo elegante e não esticado */
-        @media (min-width: 769px) {
-            .splash-image {
-                width: 480px;
-                height: auto;
-                object-fit: contain;
-                filter: drop-shadow(0 20px 60px rgba(0, 0, 0, 0.6));
-                animation: breathe-desktop 5s ease-in-out infinite;
-            }
+        /* Conteúdo do Loader (Sobreposto) */
+        .loader-overlay {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            border-radius: 50px;
+            background: rgba(8, 9, 10, 0.4);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .loader-spin {
+            width: 32px;
+            height: 32px;
+            border: 2px solid rgba(193, 165, 113, 0.2);
+            border-top-color: #c1a571;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .loader-text {
+            margin-top: 24px;
+            color: #c1a571;
+            font-size: 9px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 5px;
+            animation: pulse-op 2s ease-in-out infinite;
         }
 
         @keyframes breathe {
 
             0%,
             100% {
-                transform: scale(1);
-                opacity: 0.9;
+                transform: scale(1.05);
             }
 
             50% {
-                transform: scale(1.05);
+                transform: scale(1);
+            }
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes pulse-op {
+
+            0%,
+            100% {
+                opacity: 0.5;
+            }
+
+            50% {
                 opacity: 1;
+            }
+        }
+
+        /* Desktop: Mantemos o fundo focado no centro */
+        @media (min-width: 769px) {
+            .splash-bg {
+                width: 480px;
+                left: 50%;
+                transform: translateX(-50%);
+                object-fit: contain;
+                animation: none;
+                opacity: 0.1;
+                filter: blur(30px);
+            }
+
+            .loader-overlay {
+                background: transparent;
+                backdrop-filter: none;
+                border: none;
+                box-shadow: none;
+            }
+
+            .loader-overlay::before {
+                content: "";
+                display: block;
+                width: 280px;
+                height: 120px;
+                background: url('/splash.png') no-repeat center;
+                background-size: contain;
+                margin-bottom: 40px;
+                animation: breathe-desktop 5s ease-in-out infinite;
             }
         }
 
@@ -110,11 +172,11 @@
             0%,
             100% {
                 transform: scale(1);
-                opacity: 0.95;
+                opacity: 0.8;
             }
 
             50% {
-                transform: scale(1.02);
+                transform: scale(1.03);
                 opacity: 1;
             }
         }
@@ -122,22 +184,27 @@
 </head>
 
 <body class="antialiased">
+    <!-- Stage 2: Web Splash Imersiva -->
     <div id="app-loader">
-        <img src="/splash.png" class="splash-image" alt="Luxe Aura">
+        <img src="/splash.png" class="splash-bg" alt="Luxe Aura Background">
+        <div class="loader-overlay">
+            <div class="loader-spin"></div>
+            <p class="loader-text">Iniciando Luxe Aura</p>
+        </div>
     </div>
 
     <div id="root"></div>
     <script type="module" src="./src/index.tsx"></script>
 
-    <!-- Fail-safe para remover o loader caso o script principal falhe -->
     <script>
+        // Segurança: Remove o loader se algo falhar
         setTimeout(() => {
             const loader = document.getElementById('app-loader');
-            if (loader) {
+            if (loader && loader.style.opacity !== '0') {
                 loader.style.opacity = '0';
                 setTimeout(() => loader.remove(), 1000);
             }
-        }, 12000);
+        }, 15000);
     </script>
 </body>
 
