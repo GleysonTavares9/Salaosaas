@@ -521,16 +521,23 @@ const QuickSchedule: React.FC = () => {
 
                                     const key = dayKeyMap[dayName] || dayName;
                                     const isClosed = salon?.horario_funcionamento?.[key]?.closed;
-
-                                    if (isClosed) return null;
-
                                     const label = offset === 0 ? 'Hoje' : offset === 1 ? 'Amanhã' : `${dayShort}, ${dayNum} ${monthLabel}`;
 
                                     return (
-                                        <button key={dateStr} onClick={() => handleDateSelect(dateStr, label)} className="shrink-0 flex flex-col items-center justify-center w-20 h-24 bg-[#1c1c1f] border border-white/5 rounded-[24px] transition-all active:scale-95 hover:border-primary/30">
-                                            <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-1">{dayShort}</span>
-                                            <span className="text-xl font-display font-black text-white italic">{dayNum}</span>
-                                            <span className="text-[8px] font-black text-primary uppercase tracking-widest mt-1">{monthLabel}</span>
+                                        <button
+                                            key={dateStr}
+                                            onClick={() => !isClosed && handleDateSelect(dateStr, label)}
+                                            disabled={isClosed}
+                                            className={`shrink-0 flex flex-col items-center justify-center w-20 h-24 rounded-[24px] transition-all border ${isClosed
+                                                    ? 'bg-red-500/5 border-red-500/10 opacity-40 cursor-not-allowed'
+                                                    : 'bg-[#1c1c1f] border-white/5 active:scale-95 hover:border-primary/30'
+                                                }`}
+                                        >
+                                            <span className={`text-[8px] font-black uppercase tracking-widest mb-1 ${isClosed ? 'text-red-400' : 'text-slate-500'}`}>
+                                                {isClosed ? 'FECHADO' : dayShort}
+                                            </span>
+                                            <span className={`text-xl font-display font-black italic ${isClosed ? 'text-slate-600' : 'text-white'}`}>{dayNum}</span>
+                                            <span className={`text-[8px] font-black uppercase tracking-widest mt-1 ${isClosed ? 'text-slate-700' : 'text-primary'}`}>{monthLabel}</span>
                                         </button>
                                     );
                                 })}

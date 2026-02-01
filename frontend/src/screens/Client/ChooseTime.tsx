@@ -20,29 +20,39 @@ const ChooseTime: React.FC<ChooseTimeProps> = ({ bookingDraft, setBookingDraft }
   // 1. Calcular Duração Total
   const totalDuration = bookingDraft.services?.reduce((acc: number, s: any) => acc + (s.duration_min || 30), 0) || 30;
 
-  const today = new Date();
-  const tomorrow = new Date(Date.now() + 86400000);
-  const dayAfter = new Date(Date.now() + 172800000);
+  const nextDays = Array.from({ length: 14 }, (_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() + i);
 
-  const days = [
-    {
-      label: 'Hoje',
-      date: today.toISOString().split('T')[0],
-      display: today.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })
-    },
-    {
-      label: 'Amanhã',
-      date: tomorrow.toISOString().split('T')[0],
-      display: tomorrow.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })
-    },
-    {
-      label: 'Próximo',
-      date: dayAfter.toISOString().split('T')[0],
-      display: dayAfter.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })
-    },
-  ];
+    // YYYY-MM-DD
+    const dateStr = `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getDate().toString().padStart(2, '0')}`;
+    const dayName = d.toLocaleDateString('pt-BR', { weekday: 'long' }).toLowerCase();
+    const dayShort = d.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '').toUpperCase();
+    const dayNum = d.getDate();
+    const monthLabel = d.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '').toUpperCase();
 
-  const [selectedDay, setSelectedDay] = useState(bookingDraft.date || days[0].date);
+    const dayKeyMap: { [key: string]: string } = {
+      'segunda-feira': 'segunda',
+      'terça-feira': 'terca',
+      'quarta-feira': 'quarta',
+      'quinta-feira': 'quinta',
+      'sexta-feira': 'sexta',
+      'sábado': 'sabado',
+      'domingo': 'domingo'
+    };
+
+    const key = dayKeyMap[dayName] || dayName;
+    const isClosed = salonData?.horario_funcionamento?.[key]?.closed;
+
+    return {
+      label: i === 0 ? 'Hoje' : i === 1 ? 'Amanhã' : dayShort,
+      date: dateStr,
+      display: `${dayNum} ${monthLabel}`,
+      isClosed
+    };
+  });
+
+  const [selectedDay, setSelectedDay] = useState(bookingDraft.date || nextDays[0].date);
   const [salonData, setSalonData] = useState<any>(null);
 
   // Carregar salão, profissionais e agendamentos existentes
@@ -186,11 +196,25 @@ const ChooseTime: React.FC<ChooseTimeProps> = ({ bookingDraft, setBookingDraft }
 
         <section className="animate-fade-in" style={{ animationDelay: '100ms' }}>
           <h3 className="text-[10px] font-black text-primary uppercase tracking-[0.4em] mb-6 ml-1">Data Aura</h3>
-          <div className="flex gap-4">
-            {days.map(d => (
-              <button key={d.date} onClick={() => setSelectedDay(d.date)} className={`flex-1 py-5 rounded-[24px] border flex flex-col items-center transition-all shadow-xl ${selectedDay === d.date ? 'gold-gradient text-background-dark border-primary' : 'bg-surface-dark border-white/5 text-slate-500'}`}>
-                <span className="text-[8px] font-black uppercase mb-1.5 tracking-widest">{d.label}</span>
-                <span className="text-sm font-black italic font-display">{d.display.toUpperCase()}</span>
+          <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2 px-1">
+            {nextDays.map(d => (
+              <button
+                key={d.date}
+                onClick={() => !d.isClosed && setSelectedDay(d.date)}
+                disabled={d.isClosed}
+                className={`shrink-0 w-24 py-6 rounded-[24px] border flex flex-col items-center transition-all shadow-xl ${d.isClosed
+                    ? 'bg-red-500/5 border-red-500/10 opacity-30 cursor-not-allowed'
+                    : selectedDay === d.date
+                      ? 'gold-gradient text-background-dark border-primary'
+                      : 'bg-surface-dark border-white/5 text-slate-500'
+                  }`}
+              >
+                <span className={`text-[8px] font-black uppercase mb-1.5 tracking-widest ${d.isClosed ? 'text-red-400' : ''}`}>
+                  {d.isClosed ? 'FECHADO' : d.label}
+                </span>
+                <span className={`text-sm font-black italic font-display ${d.isClosed ? 'text-slate-700' : ''}`}>
+                  {d.display.toUpperCase()}
+                </span>
               </button>
             ))}
           </div>
