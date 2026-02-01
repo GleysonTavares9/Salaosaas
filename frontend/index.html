@@ -110,35 +110,61 @@
             animation: fadeIn 0.6s ease-out forwards;
         }
 
-        @keyframes pulse-zoom {
-            0% {
-                transform: scale(0.92);
-                opacity: 0.5;
-                filter: drop-shadow(0 0 0px rgba(193, 165, 113, 0));
+        @keyframes breathe {
+
+            0%,
+            100% {
+                transform: scale(1);
+                opacity: 0.9;
             }
 
             50% {
-                transform: scale(1);
+                transform: scale(1.03);
                 opacity: 1;
-                filter: drop-shadow(0 0 30px rgba(193, 165, 113, 0.5));
-            }
-
-            100% {
-                transform: scale(0.92);
-                opacity: 0.5;
-                filter: drop-shadow(0 0 0px rgba(193, 165, 113, 0));
             }
         }
 
-        .animate-pulse-zoom {
-            animation: pulse-zoom 2.5s ease-in-out infinite;
+        #app-loader {
+            position: fixed;
+            inset: 0;
+            background: #08090a;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+        }
+
+        .animate-breathe {
+            animation: breathe 5s ease-in-out infinite;
+            max-width: 80%;
+            max-height: 80vh;
+            object-fit: contain;
+            filter: drop-shadow(0 0 30px rgba(193, 165, 113, 0.2));
+            z-index: 10000;
+        }
+
+        /* Mobile Flow: Animated Logo Area */
+        @media (max-width: 500px) {
+            .animate-breathe {
+                width: 70%;
+            }
+        }
+
+        /* Desktop Flow: Elegant Professional Logo */
+        @media (min-width: 501px) {
+            .animate-breathe {
+                width: 450px;
+                filter: drop-shadow(0 20px 60px rgba(0, 0, 0, 0.6));
+            }
         }
     </style>
 </head>
 
 <body class="antialiased">
     <div id="app-loader">
-        <img src="/splash.png" class="w-56 h-auto animate-pulse-zoom" alt="Luxe Aura">
+        <img src="/splash.png" class="animate-breathe" alt="Luxe Aura">
     </div>
     <div id="root"></div>
     <script type="module" src="./src/index.tsx"></script>

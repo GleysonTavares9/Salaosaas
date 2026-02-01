@@ -76,15 +76,15 @@ if (container) {
       </React.StrictMode>
     );
 
-    // Ocultar o loader apenas quando o React estiver pronto
+    // Ocultar o loader apenas quando o React estiver pronto e a animação "respirar" um pouco
     setTimeout(() => {
       if (loader) {
         loader.style.opacity = '0';
         setTimeout(() => {
           if (loader.parentNode) loader.parentNode.removeChild(loader);
-        }, 500);
+        }, 800);
       }
-    }, 1000);
+    }, 2500);
 
   } catch (error) {
     console.error("Erro fatal na montagem:", error);
