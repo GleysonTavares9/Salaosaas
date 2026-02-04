@@ -207,7 +207,7 @@ const ChooseTime: React.FC<ChooseTimeProps> = ({ bookingDraft, setBookingDraft }
         <div className="size-10"></div>
       </header>
 
-      <main className="flex-1 overflow-y-auto px-6 pt-8 space-y-12 no-scrollbar pb-40">
+      <main className="flex-1 overflow-y-auto px-6 pt-8 space-y-12 no-scrollbar pb-[350px]">
         <section className="animate-fade-in">
           <div className="flex justify-between items-center mb-6 px-1">
             <h3 className="text-[10px] font-black text-primary uppercase tracking-[0.4em]">Seu Artista</h3>

@@ -257,8 +257,7 @@ const BusinessSetup: React.FC<BusinessSetupProps> = ({ salon, userId, onSave }) 
 
     // Tenta obter coordenadas apenas se estiverem zeradas ou se forem o fallback de SP
     const currentLoc = sanitizedData.location || { lat: 0, lng: 0 };
-    const isDefaultLocation = (currentLoc.lat === 0 && currentLoc.lng === 0) ||
-      (currentLoc.lat === -23.55052 && currentLoc.lng === -46.633308);
+    const isDefaultLocation = !currentLoc || (currentLoc.lat === 0 && currentLoc.lng === 0);
 
     if (isDefaultLocation) {
       const coords = await fetchCoordinates(fullAddress);

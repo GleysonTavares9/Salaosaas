@@ -72,7 +72,7 @@ const Discovery: React.FC<DiscoveryProps> = ({ salons: initialSalons, role }) =>
   const [activeSegment, setActiveSegment] = useState<BusinessSegment | 'Todos'>('Todos');
   const [search, setSearch] = useState('');
   const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
-  const [coords, setCoords] = useState<{ lat: number; lng: number }>({ lat: -23.5667, lng: -46.6667 });
+  const [coords, setCoords] = useState<{ lat: number; lng: number }>({ lat: -15.7942, lng: -47.8822 }); // Default Brasília (Centro do BR)
   const [hasLocation, setHasLocation] = useState(false);
   const [userAvatar, setUserAvatar] = useState<string | null>(null);
   const [userName, setUserName] = useState<string>('');
@@ -82,6 +82,7 @@ const Discovery: React.FC<DiscoveryProps> = ({ salons: initialSalons, role }) =>
   const segments: (BusinessSegment | 'Todos')[] = ['Todos', 'Salão', 'Manicure', 'Sobrancelha', 'Barba', 'Estética', 'Spa'];
 
   useEffect(() => {
+    // Tenta obter posição com timeout
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -89,7 +90,6 @@ const Discovery: React.FC<DiscoveryProps> = ({ salons: initialSalons, role }) =>
           setCoords({ lat: latitude, lng: longitude });
           setHasLocation(true);
 
-          // Reverse geocoding (Premium Touch: Detect City)
           fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=pt`)
             .then(res => res.json())
             .then(data => {
@@ -98,7 +98,15 @@ const Discovery: React.FC<DiscoveryProps> = ({ salons: initialSalons, role }) =>
             })
             .catch(() => setCityName('SUA LOCALIDADE'));
         },
-        () => setHasLocation(false)
+        async (error) => {
+          console.warn("Geolocation failed, trying to center on first salon...", error);
+          setHasLocation(false);
+          // Fallback: Tenta centrar no primeiro salão da lista se houver
+          if (initialSalons.length > 0 && initialSalons[0].location) {
+            setCoords({ lat: initialSalons[0].location.lat, lng: initialSalons[0].location.lng });
+          }
+        },
+        { timeout: 10000, enableHighAccuracy: true }
       );
     }
 
@@ -146,7 +154,16 @@ const Discovery: React.FC<DiscoveryProps> = ({ salons: initialSalons, role }) =>
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-display font-black italic tracking-tighter leading-none">Luxe Aura</h1>
-            <p className="text-[8px] font-black uppercase tracking-[0.3em] text-slate-500 mt-2">{cityName} • <span className="text-primary">AURA PREMIUM</span></p>
+            <div className="flex items-center gap-2 mt-2">
+              <p className="text-[8px] font-black uppercase tracking-[0.3em] text-slate-500">{cityName}</p>
+              <button
+                onClick={() => window.location.reload()}
+                className="flex items-center gap-1 group"
+              >
+                <span className="material-symbols-outlined text-[10px] text-primary animate-pulse group-active:rotate-180 transition-transform">location_on</span>
+                <span className="text-[7px] font-black text-primary/60 uppercase tracking-widest border-b border-primary/20">Detectar</span>
+              </button>
+            </div>
           </div>
           <div className="flex items-center gap-3">
             <button onClick={() => setViewMode(v => v === 'list' ? 'map' : 'list')} className="size-10 rounded-xl bg-surface-dark border border-white/5 flex items-center justify-center text-slate-400 shadow-xl active:scale-95 transition-all">
