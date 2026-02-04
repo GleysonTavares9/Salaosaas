@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { useLocation } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
 import { getBeautyAdvice } from '../lib/ai.ts';
 
 import { api } from '../lib/api';
@@ -19,13 +20,38 @@ const AIConcierge: React.FC = () => {
   const isChatPage = location.pathname.includes('/chat/') || location.pathname.includes('/messages');
   const shouldHide = hiddenPaths.some(path => location.pathname.includes(path));
 
-  // Carregar dados do catálogo ao abrir o chat para dar contexto à IA
+  // 1. Verificação de permissão da IA baseada no plano do salão
+  const [isVisible, setIsVisible] = useState(true);
+
+  React.useEffect(() => {
+    const checkAvailability = async () => {
+      if (location.pathname.includes('/salon/')) {
+        const slug = location.pathname.split('/salon/')[1];
+        if (slug) {
+          try {
+            const salon = await api.salons.getBySlug(slug);
+            if (salon?.id) {
+              const billing = await api.salons.getBilling(salon.id);
+              if (billing && !billing.limits.ai_enabled) {
+                setIsVisible(false);
+              } else {
+                setIsVisible(true);
+              }
+            }
+          } catch (e) {
+            console.error("Erro ao verificar permissão da IA:", e);
+          }
+        }
+      }
+    };
+    checkAvailability();
+  }, [location.pathname]);
+
+  // 2. Carregar contexto (Serviços/Produtos) apenas se abrir
   React.useEffect(() => {
     if (isOpen && contextData.services.length === 0) {
       const fetchData = async () => {
         try {
-          // Busca todos os serviços e produtos para contexto global
-          // (Em um app real multi-tenant, filtraríamos pelo salão atual se isSalonPage)
           const [services, products] = await Promise.all([
             api.services.getAll().catch(err => { console.warn("Erro ao buscar serviços para IA", err); return []; }),
             api.products.getAll().catch(err => { console.warn("Erro ao buscar produtos para IA", err); return []; })
@@ -39,7 +65,7 @@ const AIConcierge: React.FC = () => {
     }
   }, [isOpen]);
 
-  if (shouldHide) return null;
+  if (shouldHide || !isVisible) return null;
 
   const handleAsk = async (e: React.FormEvent) => {
     e.preventDefault();

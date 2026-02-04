@@ -7,7 +7,7 @@ import { INITIAL_HOURS } from '../../constants';
 import { useToast } from '../../contexts/ToastContext';
 
 interface PartnerRegisterProps {
-  onRegister: (role: 'admin', userId: string) => void;
+  onRegister: (role: 'admin', userId: string) => Promise<void> | void;
 }
 
 const PartnerRegister: React.FC<PartnerRegisterProps> = ({ onRegister }) => {
@@ -62,8 +62,9 @@ const PartnerRegister: React.FC<PartnerRegisterProps> = ({ onRegister }) => {
         p_initial_hours: INITIAL_HOURS
       });
 
-      onRegister('admin', authRes.user.id);
-      navigate('/pro/business-setup'); // Leva direto para configurar a unidade
+      showToast("✨ Unidade Aura criada com sucesso! Seja bem-vindo.", "success");
+      await onRegister('admin', authRes.user.id);
+      // O App.tsx já cuida do redirecionamento após o onRegister concluir o fetch de dados
 
     } catch (error: any) {
       console.error("Erro no cadastro:", error.message || error);

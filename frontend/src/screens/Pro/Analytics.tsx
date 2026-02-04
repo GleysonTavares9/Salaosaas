@@ -23,9 +23,17 @@ const Analytics: React.FC<AnalyticsProps> = ({ appointments, role, salon, userId
   const [showCustomModal, setShowCustomModal] = useState(false);
   const [customRange, setCustomRange] = useState({ start: '', end: '' });
 
+  const [billingInfo, setBillingInfo] = useState<any>(null);
+
   useEffect(() => {
-    if (salon?.id && role === 'admin') {
-      api.professionals.getBySalon(salon.id).then(setProfessionals);
+    if (salon?.id) {
+      if (role === 'admin') {
+        api.professionals.getBySalon(salon.id).then(setProfessionals);
+
+        api.salons.getBilling(salon.id).then(info => {
+          if (info) setBillingInfo(info);
+        }).catch(() => { });
+      }
     }
   }, [salon?.id, role]);
 
@@ -282,7 +290,22 @@ const Analytics: React.FC<AnalyticsProps> = ({ appointments, role, salon, userId
             </div>
           </div>
 
-          <div className="h-48 w-full mt-10 -ml-4">
+          <div className="h-48 w-full mt-10 -ml-4 relative">
+            {/* Bloqueio Dinâmico pelo Banco (Bypassa se Trial ou se 'financial_enabled' for true) */}
+            {billingInfo && !billingInfo.limits.financial_enabled && !billingInfo.is_trial_active && (
+              <div className="absolute inset-x-4 -inset-y-32 z-10 bg-background-dark/80 backdrop-blur-md flex flex-col items-center justify-center p-8 text-center animate-fade-in rounded-[40px] border-2 border-primary/20">
+                <div className="size-16 rounded-[24px] gold-gradient flex items-center justify-center text-background-dark shadow-2xl mb-4">
+                  <span className="material-symbols-outlined text-3xl font-black">lock</span>
+                </div>
+                <h3 className="text-xl font-display font-black text-white italic tracking-tighter uppercase mb-2">Controle Financeiro</h3>
+                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest leading-relaxed mb-6">
+                  O faturamento e relatórios financeiros detalhados estão disponíveis apenas nos planos <span className="text-primary">PRO</span> e <span className="text-primary">PREMIUM</span>.
+                </p>
+                <button onClick={() => navigate('/pro/billing')} className="gold-gradient text-background-dark px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] shadow-xl active:scale-95 transition-all">
+                  Desbloquear agora
+                </button>
+              </div>
+            )}
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={stats.chartData}>
                 <defs>

@@ -1,15 +1,17 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Service } from '../../types';
+import { Service, Salon } from '../../types';
 import { api } from '../../lib/api';
+import { supabase } from '../../lib/supabase';
 import { useToast } from '../../contexts/ToastContext';
 
 interface ServiceCatalogProps {
-  salonId?: string;
+  salon?: Salon;
 }
 
-const ServiceCatalog: React.FC<ServiceCatalogProps> = ({ salonId }) => {
+const ServiceCatalog: React.FC<ServiceCatalogProps> = ({ salon }) => {
+  const salonId = salon?.id;
   const navigate = useNavigate();
   const { showToast } = useToast();
   const [services, setServices] = useState<Service[]>([]);
@@ -31,14 +33,18 @@ const ServiceCatalog: React.FC<ServiceCatalogProps> = ({ salonId }) => {
 
   const [newService, setNewService] = useState(initialServiceState);
 
+  const [billingInfo, setBillingInfo] = useState<any>(null);
+
   useEffect(() => {
     if (salonId) {
       api.services.getBySalon(salonId).then(data => {
         setServices(data || []);
+      }).catch(() => { });
+
+      api.salons.getBilling(salonId).then(info => {
+        if (info) setBillingInfo(info);
         setIsLoading(false);
-      }).catch(() => {
-        setIsLoading(false);
-      });
+      }).catch(() => setIsLoading(false));
     } else {
       setIsLoading(false);
     }
@@ -46,7 +52,10 @@ const ServiceCatalog: React.FC<ServiceCatalogProps> = ({ salonId }) => {
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!salonId) return;
+    if (!salonId) {
+      showToast("Erro: ID do salão não encontrado.", "error");
+      return;
+    }
     try {
       setIsLoading(true);
       if (editingService) {
@@ -54,6 +63,16 @@ const ServiceCatalog: React.FC<ServiceCatalogProps> = ({ salonId }) => {
         setServices(services.map(s => s.id === updated.id ? updated : s));
         showToast("✨ Ritual atualizado!", 'success');
       } else {
+        // Bloqueio de Plano (Limite Dinâmico do Banco)
+        const maxServices = billingInfo?.limits?.max_services || 10;
+        const isTrial = billingInfo?.is_trial_active;
+
+        if (!isTrial && services.length >= maxServices) {
+          showToast(`Limite de ${maxServices} rituais atingido no seu plano atual. Faça upgrade!`, 'error');
+          setIsLoading(false);
+          return;
+        }
+
         const created = await api.services.create({
           ...newService,
           salon_id: salonId
@@ -223,11 +242,30 @@ const ServiceCatalog: React.FC<ServiceCatalogProps> = ({ salonId }) => {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Preço (R$)</label>
-                  <input type="number" step="0.01" required value={newService.price} onChange={e => setNewService({ ...newService, price: parseFloat(e.target.value) })} className="w-full bg-surface-dark border border-white/5 rounded-2xl p-5 text-white text-sm outline-none" />
+                  <input
+                    type="number"
+                    step="0.01"
+                    required
+                    value={newService.price || ''}
+                    onChange={e => {
+                      const val = parseFloat(e.target.value);
+                      setNewService({ ...newService, price: isNaN(val) ? 0 : val });
+                    }}
+                    className="w-full bg-surface-dark border border-white/5 rounded-2xl p-5 text-white text-sm outline-none focus:border-primary"
+                  />
                 </div>
                 <div className="space-y-2">
                   <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Tempo (min)</label>
-                  <input type="number" required value={newService.duration_min} onChange={e => setNewService({ ...newService, duration_min: parseInt(e.target.value) })} className="w-full bg-surface-dark border border-white/5 rounded-2xl p-5 text-white text-sm outline-none" />
+                  <input
+                    type="number"
+                    required
+                    value={newService.duration_min || ''}
+                    onChange={e => {
+                      const val = parseInt(e.target.value);
+                      setNewService({ ...newService, duration_min: isNaN(val) ? 0 : val });
+                    }}
+                    className="w-full bg-surface-dark border border-white/5 rounded-2xl p-5 text-white text-sm outline-none focus:border-primary"
+                  />
                 </div>
               </div>
               <div className="space-y-3">

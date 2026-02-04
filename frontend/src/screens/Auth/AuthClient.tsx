@@ -6,7 +6,7 @@ import { supabase } from '../../lib/supabase';
 import { useToast } from '../../contexts/ToastContext';
 
 interface AuthClientProps {
-  onLogin: (role: 'client', userId: string) => void;
+  onLogin: (role: 'client', userId: string) => Promise<void> | void;
 }
 
 const AuthClient: React.FC<AuthClientProps> = ({ onLogin }) => {
@@ -89,7 +89,7 @@ const AuthClient: React.FC<AuthClientProps> = ({ onLogin }) => {
             return;
           }
 
-          onLogin('client', authRes.user.id);
+          await onLogin('client', authRes.user.id);
         }
       } else {
         // CADASTRO: Apenas cria, não loga automático na UI

@@ -1,8 +1,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Product } from '../../types';
+import { Product, Salon } from '../../types';
 import { api } from '../../lib/api';
+import { supabase } from '../../lib/supabase';
 import { useToast } from '../../contexts/ToastContext';
 
 interface ProductCatalogProps {
@@ -18,6 +19,7 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({ salonId }) => {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('Todos');
+  const [billingInfo, setBillingInfo] = useState<any>(null);
 
   const categories = ['Todos', 'Cabelo', 'Barba', 'Rosto', 'Corpo', 'Kits', 'Acessório', 'Perfumes'];
 
@@ -34,10 +36,12 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({ salonId }) => {
     if (salonId) {
       api.products.getBySalon(salonId).then(data => {
         setProducts(data || []);
+      }).catch(() => { });
+
+      api.salons.getBilling(salonId).then(info => {
+        if (info) setBillingInfo(info);
         setIsLoading(false);
-      }).catch(() => {
-        setIsLoading(false);
-      });
+      }).catch(() => setIsLoading(false));
     } else {
       setIsLoading(false);
     }
@@ -75,6 +79,16 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({ salonId }) => {
         setProducts(products.map(p => p.id === editingProduct.id ? updated : p));
         showToast("✨ Produto atualizado!", 'success');
       } else {
+        // Bloqueio de Plano (Limite Dinâmico do Banco)
+        const maxProducts = billingInfo?.limits?.max_products || 5;
+        const isTrial = billingInfo?.is_trial_active;
+
+        if (!isTrial && products.length >= maxProducts) {
+          showToast(`Limite de ${maxProducts} produtos atingido. Migre para o PRO!`, 'error');
+          setIsLoading(false);
+          return;
+        }
+
         const created = await api.products.create({
           ...formProduct,
           salon_id: salonId

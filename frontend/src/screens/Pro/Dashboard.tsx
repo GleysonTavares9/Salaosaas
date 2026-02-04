@@ -5,12 +5,14 @@ import { ViewRole, Salon, Appointment, Product } from '../../types';
 import { ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { api } from '../../lib/api';
 import { supabase } from '../../lib/supabase';
+import { useToast } from '../../contexts/ToastContext';
 
 interface DashboardProps {
   role: ViewRole;
   salon: Salon;
   userId: string | null;
   appointments: Appointment[];
+  isMaster?: boolean;
 }
 
 interface MenuItem {
@@ -22,18 +24,27 @@ interface MenuItem {
   badge?: number;
 }
 
-const Dashboard: React.FC<DashboardProps> = ({ role, salon, appointments, userId }) => {
+const Dashboard: React.FC<DashboardProps> = ({ role, salon, appointments, userId, isMaster }) => {
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const [lowStockCount, setLowStockCount] = useState(0);
   const [proProfile, setProProfile] = useState<any>(null);
   const [userProfile, setUserProfile] = useState<any>(null); // For Admin avatar
+  const [billingInfo, setBillingInfo] = useState<any>(null);
 
   useEffect(() => {
-    if (salon?.id && role === 'admin') {
-      api.products.getBySalon(salon.id).then(products => {
-        const low = products.filter(p => p.stock < 5).length;
-        setLowStockCount(low);
-      });
+    if (salon?.id) {
+      if (role === 'admin') {
+        api.products.getBySalon(salon.id).then(products => {
+          const low = products.filter(p => p.stock < 5).length;
+          setLowStockCount(low);
+        });
+
+        // Buscar billing info centralizado do banco
+        api.salons.getBilling(salon.id).then(info => {
+          setBillingInfo(info);
+        }).catch(err => console.error("Erro billing rpc:", err));
+      }
     }
 
     if (userId) {
@@ -115,6 +126,7 @@ const Dashboard: React.FC<DashboardProps> = ({ role, salon, appointments, userId
     { label: 'Catálogo Serviços', icon: 'menu_book', path: '/pro/catalog', color: 'indigo', desc: 'Rituais e preços' },
     { label: 'Configurações', icon: 'settings', path: '/pro/business-setup', color: 'slate', desc: 'Branding da unidade' },
     { label: 'Mensagens', icon: 'chat_bubble', path: '/messages', color: 'slate', desc: 'SAC Cliente' },
+    ...(isMaster ? [{ label: '🛡️ SaaSMaster', icon: 'dashboard_customize', path: '/pro/master', color: 'amber', desc: 'Controle Global SaaS' }] : []),
   ];
 
   const proMenu: MenuItem[] = [
@@ -159,6 +171,49 @@ const Dashboard: React.FC<DashboardProps> = ({ role, salon, appointments, userId
           />
         </button>
       </header>
+
+      {/* Subscription Status Banner (New) */}
+      {role === 'admin' && billingInfo?.is_trial_active && (
+        <div className="mx-6 mt-4 p-3 bg-primary/10 border border-primary/20 rounded-2xl flex items-center justify-between animate-fade-in shadow-lg">
+          <div className="flex items-center gap-3">
+            <div className="size-8 rounded-xl gold-gradient flex items-center justify-center text-background-dark">
+              <span className="material-symbols-outlined text-sm font-black">timer</span>
+            </div>
+            <div>
+              <p className="text-[9px] font-black text-white uppercase tracking-widest leading-none mb-1">Período de Experiência</p>
+              <p className="text-[7px] text-primary font-bold uppercase tracking-widest">
+                {(() => {
+                  const ends = new Date(billingInfo.trial_ends_at);
+                  const now = new Date();
+                  const diff = ends.getTime() - now.getTime();
+                  const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+                  return days > 0 ? `${days} dias restantes no seu passe elite` : 'Período encerrado. Renove agora!';
+                })()}
+              </p>
+            </div>
+          </div>
+          <button onClick={() => navigate('/pro/billing')} className="bg-primary text-background-dark px-3 py-1.5 rounded-lg text-[7px] font-black uppercase tracking-widest shadow-xl active:scale-95 transition-all">
+            Assinar PRO
+          </button>
+        </div>
+      )}
+
+      {role === 'admin' && billingInfo?.plan === 'free' && !billingInfo?.is_trial_active && (
+        <div className="mx-6 mt-4 p-3 bg-surface-dark border border-white/10 rounded-2xl flex items-center justify-between animate-fade-in shadow-lg">
+          <div className="flex items-center gap-3">
+            <div className="size-8 rounded-xl bg-white/5 flex items-center justify-center text-slate-500 border border-white/5">
+              <span className="material-symbols-outlined text-sm font-black">lock</span>
+            </div>
+            <div>
+              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Plano Gratuito Ativo</p>
+              <p className="text-[7px] text-slate-500 font-bold uppercase tracking-widest">IA e Financeiro bloqueados. Migre para o PRO.</p>
+            </div>
+          </div>
+          <button onClick={() => navigate('/pro/billing')} className="gold-gradient text-background-dark px-3 py-1.5 rounded-lg text-[7px] font-black uppercase tracking-widest shadow-xl active:scale-95 transition-all">
+            Upgrade
+          </button>
+        </div>
+      )}
 
       <main className="p-6 space-y-8 pb-32 safe-area-bottom animate-fade-in">
 
@@ -263,26 +318,64 @@ const Dashboard: React.FC<DashboardProps> = ({ role, salon, appointments, userId
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {menuItems.map((item) => (
-              <button
-                key={item.label}
-                onClick={() => navigate(item.path)}
-                className="bg-surface-dark/60 p-5 rounded-[32px] border border-white/5 flex flex-col items-center gap-4 active:scale-95 transition-all shadow-lg text-center h-full relative group hover:border-primary/20"
-              >
-                {item.badge && (
-                  <div className="absolute top-4 right-4 size-5 bg-red-500 rounded-full flex items-center justify-center text-[9px] font-black text-white border-2 border-surface-dark">
-                    {item.badge}
+            {menuItems.map(item => {
+              // Lógica de Travamento Visual
+              let isLocked = false;
+
+              // 1. Relatórios Financeiros (Analytics) - Bloqueado no Free
+              if (item.path === '/pro/analytics') {
+                if (billingInfo && !billingInfo.limits.financial_enabled && !billingInfo.is_trial_active) {
+                  isLocked = true;
+                }
+              }
+
+              // 2. Mensagens (SAC/CRM) - Bloqueado no Free
+              if (item.path === '/messages') {
+                if (billingInfo && billingInfo.plan === 'free' && !billingInfo.is_trial_active) {
+                  isLocked = true;
+                }
+              }
+
+              return (
+                <button
+                  key={item.label}
+                  onClick={() => {
+                    if (isLocked) {
+                      showToast("Funcionalidade exclusiva dos Planos PRO e Premium.", "error");
+                      navigate('/pro/billing'); // Atalho para upgrade
+                      return;
+                    }
+                    navigate(item.path);
+                  }}
+                  className={`bg-surface-dark/60 p-5 rounded-[32px] border flex flex-col items-center gap-4 transition-all shadow-lg text-center h-full relative group hover:border-primary/20
+                    ${isLocked ? 'opacity-50 grayscale cursor-not-allowed border-red-500/20' : 'border-white/5 active:scale-95'}
+                  `}
+                >
+                  {item.badge && !isLocked && (
+                    <div className="absolute top-4 right-4 size-5 bg-red-500 rounded-full flex items-center justify-center text-[9px] font-black text-white border-2 border-surface-dark">
+                      {item.badge}
+                    </div>
+                  )}
+
+                  {isLocked && (
+                    <div className="absolute top-3 right-3 size-6 bg-background-dark rounded-full flex items-center justify-center text-primary shadow-lg border border-primary/20">
+                      <span className="material-symbols-outlined text-[14px]">lock</span>
+                    </div>
+                  )}
+
+                  <div className={`size-12 rounded-2xl flex items-center justify-center transition-colors
+                    ${isLocked ? 'bg-white/5 text-slate-500' : 'bg-white/5 text-primary group-hover:bg-primary/10'}
+                  `}>
+                    <span className="material-symbols-outlined text-2xl">{item.icon}</span>
                   </div>
-                )}
-                <div className="size-12 rounded-2xl bg-white/5 flex items-center justify-center text-primary group-hover:bg-primary/10 transition-colors">
-                  <span className="material-symbols-outlined text-2xl">{item.icon}</span>
-                </div>
-                <div>
-                  <span className="text-[10px] font-black uppercase tracking-widest text-white block mb-1">{item.label}</span>
-                  <p className="text-[8px] font-bold text-slate-600 uppercase tracking-widest leading-none">{item.desc}</p>
-                </div>
-              </button>
-            ))}
+                  <div>
+                    <span className={`text-[10px] font-black uppercase tracking-widest block mb-1 ${isLocked ? 'text-slate-500' : 'text-white'}`}>{item.label}</span>
+                    <p className="text-[8px] font-bold text-slate-600 uppercase tracking-widest leading-none">{item.desc}</p>
+                  </div>
+                </button>
+              );
+            })
+            }
           </div>
         </section>
 
@@ -304,6 +397,13 @@ const Dashboard: React.FC<DashboardProps> = ({ role, salon, appointments, userId
             </button>
             <button
               onClick={async () => {
+                // Bloqueio de Lembretes Automáticos no Free
+                if (billingInfo && !billingInfo.limits.ai_enabled && !billingInfo.is_trial_active) {
+                  showToast("Automação de lembretes é exclusiva do PRO.", "error");
+                  navigate('/pro/billing');
+                  return;
+                }
+
                 if (!window.confirm('Enviar lembretes para agendamentos de AMANHÃ?')) return;
                 try {
                   const { data, error } = await supabase.functions.invoke('send-reminders');
@@ -313,9 +413,15 @@ const Dashboard: React.FC<DashboardProps> = ({ role, salon, appointments, userId
                   alert('Erro: ' + err.message);
                 }
               }}
-              className="bg-purple-500/10 border border-purple-500/20 text-purple-500 py-6 rounded-3xl flex items-center justify-center gap-3 font-black uppercase tracking-[0.2em] text-[10px] active:scale-95 transition-all shadow-lg col-span-2"
+              className={`py-6 rounded-3xl flex items-center justify-center gap-3 font-black uppercase tracking-[0.2em] text-[10px] active:scale-95 transition-all shadow-lg col-span-2
+                ${(billingInfo && !billingInfo.limits.ai_enabled && !billingInfo.is_trial_active)
+                  ? 'bg-white/5 border border-white/10 text-slate-500 opacity-50 grayscale cursor-not-allowed'
+                  : 'bg-purple-500/10 border border-purple-500/20 text-purple-500'}
+              `}
             >
-              <span className="material-symbols-outlined">notification_important</span>
+              <span className="material-symbols-outlined">
+                {(billingInfo && !billingInfo.limits.ai_enabled && !billingInfo.is_trial_active) ? 'lock' : 'notification_important'}
+              </span>
               DISPARAR LEMBRETES (AMANHÃ)
             </button>
           </div>

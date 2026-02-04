@@ -5,7 +5,7 @@ import { api } from '../../lib/api';
 import { useToast } from '../../contexts/ToastContext';
 
 interface UserRegisterProps {
-  onRegister: (role: 'client', userId: string) => void;
+  onRegister: (role: 'client', userId: string) => Promise<void> | void;
 }
 
 const UserRegister: React.FC<UserRegisterProps> = ({ onRegister }) => {
@@ -36,7 +36,8 @@ const UserRegister: React.FC<UserRegisterProps> = ({ onRegister }) => {
         phone: formData.phone
       });
       if (authRes.user) {
-        onRegister('client', authRes.user.id);
+        showToast("✨ Conta criada com sucesso! Bem-vindo(a) à Aura.", "success");
+        await onRegister('client', authRes.user.id);
         navigate('/');
       }
 

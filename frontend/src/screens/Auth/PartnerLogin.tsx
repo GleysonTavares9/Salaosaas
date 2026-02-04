@@ -2,13 +2,16 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ViewRole } from '../../types';
 import { api } from '../../lib/api';
+import { useToast } from '../../contexts/ToastContext';
 
 interface PartnerLoginProps {
-  onLogin: (role: ViewRole, userId: string) => void;
+  onLogin: (role: ViewRole, userId: string) => void | Promise<void>;
 }
 
 const PartnerLogin: React.FC<PartnerLoginProps> = ({ onLogin }) => {
   const navigate = useNavigate();
+  const { showToast } = useToast();
+  // ... (rest of states remain same)
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -60,8 +63,10 @@ const PartnerLogin: React.FC<PartnerLoginProps> = ({ onLogin }) => {
           return;
         }
 
-        onLogin(realRole, user.id);
-        navigate('/pro');
+        console.log("Aura: 🔐 Login Supabase OK. Sincronizando Perfil...");
+        showToast("✨ Login realizado com sucesso! Bem-vindo ao seu painel.", "success");
+        onLogin(realRole as ViewRole, user.id);
+        console.log("Aura: 🏁 Fluxo de login disparado.");
       }
     } catch (error: any) {
       console.error("Login Error:", error);

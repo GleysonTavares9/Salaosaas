@@ -38,6 +38,8 @@ import PartnerLogin from './screens/Auth/PartnerLogin.tsx';
 import PartnerRegister from './screens/Auth/PartnerRegister.tsx';
 import UserRegister from './screens/Auth/UserRegister.tsx';
 import ResetPassword from './screens/Auth/ResetPassword.tsx';
+import SaaSMaster from './screens/Pro/SaaSMaster.tsx';
+import Billing from './screens/Pro/Billing.tsx';
 import { ToastProvider, useToast } from './contexts/ToastContext.tsx';
 
 interface BookingDraft {
@@ -72,69 +74,61 @@ const AppContent: React.FC = () => {
   const [bookingDraft, setBookingDraft] = useState<BookingDraft>({ services: [], products: [] });
   const [isEmailConfirmed, setIsEmailConfirmed] = useState<boolean>(true);
   const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [isMaster, setIsMaster] = useState<boolean>(false);
   const { showToast } = useToast();
 
-  useEffect(() => {
-    const fetchSalons = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        const role = session?.user.user_metadata.role;
-        const userId = session?.user.id;
+  const fetchSalons = async (userId?: string, userRole?: string, masterStatus?: boolean) => {
+    try {
+      // Helper para Timeout de Rede (Aumentado para 15s para conexões oscilantes)
+      const withTimeout = <T,>(promise: PromiseLike<T> | Promise<T>, ms = 15000): Promise<T> => {
+        return Promise.race([
+          Promise.resolve(promise),
+          new Promise<T>((_, reject) => setTimeout(() => reject(new Error("Timeout na conexão")), ms))
+        ]);
+      };
 
-        const allSalons = await api.salons.getAll();
+      if (masterStatus) {
+        const all = await withTimeout(api.salons.getAll());
+        setSalons(all || []);
+      } else if (userId && (userRole === 'admin' || userRole === 'pro')) {
+        const { data: proData, error: proError } = await withTimeout(supabase
+          .from('professionals')
+          .select('salon_id')
+          .eq('user_id', userId)
+          .maybeSingle());
 
-        if (userId && (role === 'admin' || role === 'pro')) {
-          const { data: proData, error: proError } = await supabase
-            .from('professionals')
-            .select('salon_id')
-            .eq('user_id', userId)
-            .maybeSingle();
-
-          if (proData?.salon_id) {
-            const mySalon = allSalons.find(s => s.id === proData.salon_id);
-            if (mySalon) {
-              setSalons([mySalon]);
-              return;
-            }
-          } else {
-            if (role === 'admin') {
-              if (allSalons && allSalons.length > 0) {
-                setSalons([allSalons[0]]);
-                return;
-              }
-            }
-          }
+        if (proError) {
+          setSalons([]);
+          return;
         }
 
-        setSalons(allSalons || []);
-      } catch (err) {
-        console.error("fetchSalons error:", err);
-      } finally {
-        setIsLoading(false);
-        SplashScreen.hide();
-      }
-    };
-
-    // Sincronizar sessão do Supabase
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        setRole(session.user.user_metadata.role || 'client');
-        setCurrentUserId(session.user.id);
-        setIsEmailConfirmed(!!session.user.email_confirmed_at);
-        setUserEmail(session.user.email || null);
-        fetchSalons(); // Busca salões após login
+        if (proData?.salon_id) {
+          const mySalon = await withTimeout(api.salons.getById(proData.salon_id));
+          setSalons(mySalon ? [mySalon] : []);
+        } else {
+          setSalons([]);
+        }
       } else {
-        fetchSalons(); // Busca salões iniciais mesmo sem login
+        const publicSalons = await withTimeout(api.salons.getAll());
+        setSalons(publicSalons || []);
       }
-    });
+    } catch (err: any) {
+      // Falha silenciosa em produção (Retry automático pelo Supabase)
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+  useEffect(() => {
+
+    // 1. Sincronização Inicial e Realtime
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+
       const hashPath = window.location.hash.replace('#', '').split('?')[0];
       const winPath = window.location.pathname;
 
-      // --- URL HEALING: Se o usuário esquecer o '#' no link do bot ---
-      // Caso acesse salaosaas.vercel.app/q/slug direto (sem hash)
-      if (winPath.startsWith('/q/') && !hashPath.startsWith('/q/')) {
+      // URL Healing
+      if (winPath.startsWith('/q/') && !window.location.hash.startsWith('#/q/')) {
         const slugFromPath = winPath.split('/q/')[1];
         if (slugFromPath) {
           window.location.replace(`/#/q/${slugFromPath}`);
@@ -142,37 +136,91 @@ const AppContent: React.FC = () => {
         }
       }
 
-      const currentPath = hashPath;
-
       if (session) {
-        const userRole = session.user.user_metadata.role || 'client';
+        const uId = session.user.id;
 
-        if (userRole === 'client' && (currentPath === '/login' || currentPath === '/register')) {
-          await supabase.auth.signOut();
-          navigate('/login-user', { replace: true });
+        // EVITA LOOP: Se o usuário logado for o mesmo e já temos dados, não sincroniza de novo.
+        if (uId === currentUserId && salons.length > 0) {
+          setIsLoading(false);
           return;
         }
 
-        // 2. SINCRONIZAÇÃO DE DADOS
-        setRole(userRole);
-        setCurrentUserId(session.user.id);
-        setIsEmailConfirmed(!!session.user.email_confirmed_at);
-        setUserEmail(session.user.email || null);
-        fetchSalons();
+        // Watchdog: Força saída do loading se o servidor demorar demais (>15s)
+        const watchdog = setTimeout(() => {
+          setIsLoading(current => {
+            if (current) {
+              return false;
+            }
+            return false;
+          });
+        }, 15000);
 
-        // 3. REDIRECIONAMENTO INTELIGENTE POR CARGO
-        const isPublicHome = ['', '/', '/explore', '/discovery'].includes(currentPath);
-        if ((userRole === 'admin' || userRole === 'pro') && isPublicHome) {
-          navigate('/pro', { replace: true });
+        try {
+          if (uId !== currentUserId) {
+            setSalons([]);
+            setAppointments([]);
+          }
+
+          const uRole = session.user.user_metadata.role || 'client';
+          setRole(uRole);
+          setCurrentUserId(uId);
+          setIsEmailConfirmed(!!session.user.email_confirmed_at);
+          setUserEmail(session.user.email || null);
+
+          // Sincronismo do Master (Background)
+          if (uRole !== 'client') {
+            const checkMaster = async () => {
+              try {
+                const { data } = await supabase.from('profiles').select('is_master').eq('id', uId).maybeSingle();
+                if (data?.is_master) {
+                  setIsMaster(true);
+                  fetchSalons(uId, uRole, true);
+                }
+              } catch (e) {
+              }
+            };
+            checkMaster();
+          }
+
+          // Busca dados da unidade logada
+          await fetchSalons(uId, uRole, false);
+
+          // Navegação Automática
+          const isHome = ['', '/', '/explore', '/discovery', '/login', '/register', '/login-user'].includes(hashPath);
+          if ((uRole === 'admin' || uRole === 'pro') && isHome) {
+            navigate('/pro', { replace: true });
+          }
+        } catch (err) {
+        } finally {
+          clearTimeout(watchdog);
         }
-      } else {
+      }
+      else {
+        // Modo Visitante
         setRole(null);
         setCurrentUserId(null);
-        setIsEmailConfirmed(true);
-        setUserEmail(null);
-        fetchSalons();
+        setIsMaster(false);
+
+        // Watchdog Visitante
+        const guestWatchdog = setTimeout(() => {
+          setIsLoading(false);
+        }, 10000);
+
+        try {
+          await fetchSalons();
+        } finally {
+          clearTimeout(guestWatchdog);
+          setIsLoading(false);
+        }
       }
+
+      setIsLoading(false);
+      SplashScreen.hide();
     });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   useEffect(() => {
@@ -200,7 +248,6 @@ const AppContent: React.FC = () => {
             }
           }
         } catch (err) {
-          console.error("Erro ao carregar dados do profissional:", err);
         }
       };
       fetchData();
@@ -216,40 +263,31 @@ const AppContent: React.FC = () => {
     });
   };
 
-  const handleLogin = (selectedRole: ViewRole, userId?: string) => {
-    setRole(selectedRole);
-    if (userId) setCurrentUserId(userId);
-
-    // Verifica se veio do QuickSchedule
-    const quickScheduleReturn = localStorage.getItem('quickScheduleReturn');
-    if (quickScheduleReturn) {
-      localStorage.removeItem('quickScheduleReturn');
-      navigate(quickScheduleReturn, { replace: true });
-      return;
-    }
-
+  const handleLogin = async (selectedRole: ViewRole, userId?: string) => {
+    // Para clientes, forçamos a navegação para a home após o login
     if (selectedRole === 'client') {
-      const hasSalon = !!bookingDraft.salonId;
-      const hasProducts = (bookingDraft.products?.length || 0) > 0;
-      const hasServices = (bookingDraft.services?.length || 0) > 0;
-
-      if (hasProducts && !hasServices) {
-        navigate('/checkout');
-      } else if (hasServices) {
-        navigate('/choose-time');
-      } else {
-        navigate('/explore');
-      }
-    } else {
-      navigate('/pro');
+      navigate('/', { replace: true });
     }
+    // Para Admin/Pro, o onAuthStateChange já faz o redirecionamento para /pro
   };
 
   const handleLogout = async () => {
-    await api.auth.signOut();
+    // 1. Limpa os estados locais IMEDIATAMENTE para a UI reagir na hora
     setRole(null);
     setCurrentUserId(null);
+    setIsMaster(false);
+    setSalons([]);
+    setAppointments([]);
+
+    // 2. Navega para a home IMEDIATAMENTE
     navigate('/', { replace: true });
+
+    // 3. Comunica ao Supabase em background (não trava o usuário)
+    try {
+      await api.auth.signOut();
+    } catch (e) {
+      console.error("Logout silencioso:", e);
+    }
   };
 
   const updateAppointmentStatus = async (id: string, status: Appointment['status']) => {
@@ -339,10 +377,10 @@ const AppContent: React.FC = () => {
           <Route path="/" element={<Landing salons={salons} />} />
           <Route path="/explore" element={<Discovery salons={salons} role={role} />} />
           <Route path="/gallery" element={<Gallery />} />
-          <Route path="/login-user" element={<AuthClient onLogin={(role, uid) => handleLogin(role, uid)} />} />
-          <Route path="/register-user" element={<UserRegister onRegister={(role, uid) => handleLogin(role, uid)} />} />
-          <Route path="/login" element={<PartnerLogin onLogin={(role, uid) => handleLogin(role, uid)} />} />
-          <Route path="/register" element={<PartnerRegister onRegister={(role, uid) => handleLogin(role, uid)} />} />
+          <Route path="/login-user" element={<AuthClient onLogin={async (role, uid) => handleLogin(role, uid)} />} />
+          <Route path="/register-user" element={<UserRegister onRegister={async (role, uid) => handleLogin(role, uid)} />} />
+          <Route path="/login" element={<PartnerLogin onLogin={async (role, uid) => handleLogin(role, uid)} />} />
+          <Route path="/register" element={<PartnerRegister onRegister={async (role, uid) => handleLogin(role, uid)} />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/salon/:slug" element={<SalonPage salons={salons} role={role} setBookingDraft={setBookingDraft} />} />
           <Route path="/my-appointments" element={<MyAppointments appointments={appointments} onCancelAppointment={(id) => updateAppointmentStatus(id, 'canceled')} />} />
@@ -364,7 +402,7 @@ const AppContent: React.FC = () => {
           {/* Rotas Administrativas Protegidas */}
           <Route path="/pro" element={
             (role === 'admin' || role === 'pro')
-              ? <Dashboard role={role} salon={salons[0]} userId={currentUserId} appointments={appointments} />
+              ? <Dashboard role={role} salon={salons[0]} userId={currentUserId} appointments={appointments} isMaster={isMaster} />
               : <Navigate to="/login" replace />
           } />
 
@@ -395,11 +433,18 @@ const AppContent: React.FC = () => {
           } />
 
           {/* Rotas exclusivas do Administrador */}
-          <Route path="/pro/team" element={role === 'admin' ? <TeamManagement salonId={salons[0]?.id} /> : <Navigate to="/login" replace />} />
-          <Route path="/pro/catalog" element={role === 'admin' ? <ServiceCatalog salonId={salons[0]?.id} /> : <Navigate to="/login" replace />} />
-          <Route path="/pro/products" element={role === 'admin' ? <ProductCatalog salonId={salons[0]?.id} /> : <Navigate to="/login" replace />} />
+          <Route path="/pro/team" element={role === 'admin' ? <TeamManagement salon={salons[0]} /> : <Navigate to="/login" replace />} />
+          <Route path="/pro/catalog" element={role === 'admin' ? <ServiceCatalog salon={salons[0]} /> : <Navigate to="/login" replace />} />
+          <Route path="/pro/products" element={role === 'admin' ? <ProductCatalog salon={salons[0]} /> : <Navigate to="/login" replace />} />
           <Route path="/pro/business-setup" element={role === 'admin' ? <BusinessSetup salon={salons[0]} userId={currentUserId} onSave={handleUpdateSalon} /> : <Navigate to="/login" replace />} />
           <Route path="/pro/operating-hours" element={role === 'admin' ? <OperatingHours salon={salons[0]} userId={currentUserId} onSave={handleUpdateSalon} /> : <Navigate to="/login" replace />} />
+          <Route path="/pro/billing" element={
+            (role === 'admin' || role === 'pro')
+              ? <Billing />
+              : <Navigate to="/login" replace />
+          } />
+
+          <Route path="/pro/master" element={isMaster ? <SaaSMaster /> : <Navigate to="/login" replace />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </div>

@@ -24,6 +24,7 @@ const BusinessSetup: React.FC<BusinessSetupProps> = ({ salon, userId, onSave }) 
   const [street, setStreet] = useState('');
   const [number, setNumber] = useState('');
   const [district, setDistrict] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
 
   // Sincronizar Address Fields quando formData for carregado
   useEffect(() => {
@@ -114,7 +115,6 @@ const BusinessSetup: React.FC<BusinessSetupProps> = ({ salon, userId, onSave }) 
                   gallery_urls: mySalon.gallery_urls || []
                 });
               } catch (secErr) {
-                console.error("Erro ao carregar dados seguros:", secErr);
                 setFormData({ ...mySalon, gallery_urls: mySalon.gallery_urls || [] });
               }
               setIsLoading(false);
@@ -122,7 +122,6 @@ const BusinessSetup: React.FC<BusinessSetupProps> = ({ salon, userId, onSave }) 
             }
           }
         } catch (e) {
-          console.error("Erro ao carregar salão via userId:", e);
         }
       }
 
@@ -140,7 +139,6 @@ const BusinessSetup: React.FC<BusinessSetupProps> = ({ salon, userId, onSave }) 
           setIsLoading(false);
           return;
         } catch (e) {
-          console.error("Erro secure data via prop:", e);
         }
       }
 
@@ -210,13 +208,13 @@ const BusinessSetup: React.FC<BusinessSetupProps> = ({ salon, userId, onSave }) 
       }
       return null;
     } catch (error) {
-      console.warn("Geocoding lookup failed. Ignoring.", error);
       return null;
     }
   };
 
   const handleSave = async () => {
-    if (!formData) return;
+    if (!formData || isSaving) return;
+    setIsSaving(true);
     if (!userId) {
       showToast("Usuário não identificado. Faça login novamente.", "error");
       return;
@@ -224,34 +222,75 @@ const BusinessSetup: React.FC<BusinessSetupProps> = ({ salon, userId, onSave }) 
 
     // Combina endereço
     const fullAddress = `${street}, ${number} - ${district}, ${formData.cidade}`;
-    let finalData: any = {
-      ...formData,
-      endereco: `${street}, ${number} - ${district}`,
-      mp_public_key: mpConfig.publicKey
-    };
 
-    if (mpConfig.accessToken) {
-      finalData.mp_access_token = mpConfig.accessToken;
+    // Criamos uma cópia limpa para não bugar o formulário original
+    let finalData: any = { ...formData };
+
+    // Endereço formatado
+    finalData.endereco = `${street}, ${number} - ${district}`;
+
+    // PROTEÇÃO AGRESSIVA E WHITELIST: 
+    // Somente enviamos campos que sabemos que são seguros e necessários.
+    // Isso evita que campos calculados ou protegidos (que pedem criptografia) travem o banco.
+    const whitelist = [
+      'nome', 'slug_publico', 'segmento', 'descricao', 'logo_url',
+      'banner_url', 'endereco', 'cidade', 'telefone', 'amenities',
+      'gallery_urls', 'location', 'paga_no_local', 'horario_funcionamento', 'id'
+    ];
+
+    let sanitizedData: any = {};
+    whitelist.forEach(key => {
+      if (finalData[key] !== undefined) {
+        sanitizedData[key] = finalData[key];
+      }
+    });
+
+    // Adiciona chaves do Mercado Pago SOMENTE se foram realmente alteradas
+    // Adiciona chaves do Mercado Pago SOMENTE se foram realmente alteradas
+    // IMPORTANTE: REQUER QUE O SCRIPT FIX_DATABASE.SQL TENHA SIDO RODADO NO SUPABASE
+    if (mpConfig.accessToken && !mpConfig.accessToken.includes('***') && mpConfig.accessToken.length > 10) {
+      sanitizedData.mp_access_token = mpConfig.accessToken.trim();
+    }
+    if (mpConfig.publicKey && !mpConfig.publicKey.includes('***') && mpConfig.publicKey.length > 10) {
+      sanitizedData.mp_public_key = mpConfig.publicKey.trim();
     }
 
     // Tenta obter coordenadas apenas se estiverem zeradas ou se forem o fallback de SP
-    const isDefaultLocation = (finalData.location.lat === 0 && finalData.location.lng === 0) ||
-      (finalData.location.lat === -23.55052 && finalData.location.lng === -46.633308);
+    const currentLoc = sanitizedData.location || { lat: 0, lng: 0 };
+    const isDefaultLocation = (currentLoc.lat === 0 && currentLoc.lng === 0) ||
+      (currentLoc.lat === -23.55052 && currentLoc.lng === -46.633308);
 
     if (isDefaultLocation) {
       const coords = await fetchCoordinates(fullAddress);
       if (coords) {
-        finalData.location = coords;
+        sanitizedData.location = coords;
+      } else if (!sanitizedData.location) {
+        sanitizedData.location = { lat: 0, lng: 0 };
       }
     }
 
+    // REMOVE O ID DO PAYLOAD PARA EVITAR CONFLITO NO UPDATE
+    const salonId = sanitizedData.id || finalData.id;
+    delete sanitizedData.id;
+
+    console.log("🚀 Enviando atualização do salão:", { id: salonId, data: sanitizedData });
+
     try {
-      // Opcional: manter no localStorage apenas como um "último usado" ou remover para evitar inconsistência
       localStorage.setItem('aura_mp_config', JSON.stringify(mpConfig));
 
       if (finalData.id) {
-        // Update existing
-        const updated = await api.salons.update(finalData.id, finalData);
+        // Update existing using ONLY sanitized data
+        const updated = await api.salons.update(finalData.id, sanitizedData);
+
+        // FORÇA ATUALIZAÇÃO DO PAGA_NO_LOCAL (Garante que não seja ignorado pelo banco)
+        try {
+          await supabase.rpc('set_paga_no_local', {
+            p_salon_id: finalData.id,
+            p_value: sanitizedData.paga_no_local
+          });
+        } catch (e) {
+          console.warn("Aviso: Falha ao sincronizar Pagar no Local isoladamente, mas o salve geral continuou.");
+        }
 
         // Sincroniza o nome do proprietário também
         if (userId) {
@@ -293,8 +332,13 @@ const BusinessSetup: React.FC<BusinessSetupProps> = ({ salon, userId, onSave }) 
       showToast("Configurações da Unidade atualizadas com sucesso!", 'success');
       navigate('/pro');
     } catch (error: any) {
-      console.error(error);
-      showToast("Erro ao salvar: " + error.message, 'error');
+      if (error.message && (error.message.includes('function pgp_sym_encrypt') || error.message.includes('function emergency_update_salon'))) {
+        showToast("ERRO CRÍTICO NO BANCO: Rode o script FIX_DATABASE.sql no Supabase!", 'error');
+      } else {
+        showToast("Erro ao salvar: " + error.message, 'error');
+      }
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -627,8 +671,13 @@ const BusinessSetup: React.FC<BusinessSetupProps> = ({ salon, userId, onSave }) 
 
             <div className="pt-4 border-t border-white/5">
               <button
-                onClick={() => setFormData({ ...formData, paga_no_local: !formData.paga_no_local })}
-                className={`w-full p-5 rounded-2xl border transition-all flex items-center justify-between group ${formData.paga_no_local ? 'bg-primary/10 border-primary/20' : 'bg-background-dark border-white/5'}`}
+                type="button"
+                onClick={() => {
+                  const newValue = !formData.paga_no_local;
+                  setFormData(prev => ({ ...prev, paga_no_local: newValue }));
+                  showToast(newValue ? "✅ Pagamento no local HABILITADO" : "ℹ️ Pagamento no local DESABILITADO", 'success');
+                }}
+                className={`w-full p-5 rounded-2xl border transition-all flex items-center justify-between group ${formData.paga_no_local ? 'bg-primary/10 border-primary/20 shadow-[0_0_20px_rgba(255,255,255,0.05)]' : 'bg-background-dark border-white/5 opacity-80'}`}
               >
                 <div className="flex items-center gap-4 text-left">
                   <div className={`size-10 rounded-xl flex items-center justify-center transition-colors shrink-0 ${formData.paga_no_local ? 'bg-primary text-background-dark' : 'bg-white/5 text-slate-500'}`}>
@@ -673,7 +722,20 @@ const BusinessSetup: React.FC<BusinessSetupProps> = ({ salon, userId, onSave }) 
         </section>
 
         <div className="pt-10">
-          <button onClick={handleSave} className="w-full gold-gradient text-background-dark py-6 rounded-[32px] font-black uppercase tracking-[0.4em] text-[13px] shadow-[0_20px_50px_rgba(193,165,113,0.3)] active:scale-95 transition-all">Sincronizar Unidade</button>
+          <button
+            onClick={handleSave}
+            disabled={isSaving}
+            className={`w-full py-6 rounded-[32px] font-black uppercase tracking-[0.4em] text-[13px] shadow-[0_20px_50px_rgba(193,165,113,0.3)] active:scale-95 transition-all flex items-center justify-center gap-4 ${isSaving ? 'bg-slate-700 text-slate-400' : 'gold-gradient text-background-dark'}`}
+          >
+            {isSaving ? (
+              <>
+                <div className="size-4 border-2 border-slate-500 border-t-white rounded-full animate-spin"></div>
+                Salvando...
+              </>
+            ) : (
+              'Sincronizar Unidade'
+            )}
+          </button>
         </div>
       </main>
     </div >

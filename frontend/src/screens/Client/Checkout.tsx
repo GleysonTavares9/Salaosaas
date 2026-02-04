@@ -79,17 +79,19 @@ const Checkout: React.FC<CheckoutProps> = ({ bookingDraft, salons, onConfirm, se
   }, [isMpEnabled, activeSalon?.mp_public_key]);
 
   useEffect(() => {
-    // Se não encontrou nas props, busca direto da API para garantir dados (telefone, endereço)
-    if (!activeSalon && bookingDraft.salonId) {
-      api.salons.getById(bookingDraft.salonId).then(data => {
-        if (data) setActiveSalon(data);
-      }).catch(err => console.error("Erro ao buscar salão:", err));
-    } else if (!activeSalon && salons.length > 0 && bookingDraft.salonId) {
-      // Tenta encontrar novamente se salons mudou
-      const s = salons.find(s => s.id === bookingDraft.salonId);
-      if (s) setActiveSalon(s);
-    }
-  }, [bookingDraft.salonId, salons, activeSalon]);
+    const fetchSalon = async () => {
+      if (bookingDraft.salonId) {
+        try {
+          const salon = await api.salons.getById(bookingDraft.salonId);
+          setActiveSalon(salon);
+          console.log("Dados do salão atualizados:", salon.paga_no_local ? "Pagar no local habilitado" : "Checkout online obrigatório");
+        } catch (error) {
+          console.error('Erro ao carregar salão:', error);
+        }
+      }
+    };
+    fetchSalon();
+  }, [bookingDraft.salonId]);
 
   // Fetch available products
   useEffect(() => {
@@ -672,12 +674,13 @@ const Checkout: React.FC<CheckoutProps> = ({ bookingDraft, salons, onConfirm, se
               <button
                 onClick={() => {
                   if (step === 'summary') {
-                    // Se o salão tem MP configurado E VÁLIDO, permite escolher pagamento online
-                    if (isMpEnabled) {
-                      setStep('payment_detail');
-                    } else {
-                      // Se não tem MP ou a chave é inválida, finaliza direto (Pagar no Local)
+                    // SE o salão permite pagar no local, finalizamos direto (fluxo mais rápido esperado)
+                    // OU se não tem MP habilitado de qualquer forma.
+                    if (activeSalon?.paga_no_local || !isMpEnabled) {
                       handleFinalConfirm();
+                    } else {
+                      // Se o salão OBRIGA pagamento online (paga_no_local = false) E tem MP
+                      setStep('payment_detail');
                     }
                   } else {
                     // No passo payment_detail, o botão finaliza (usado no modo simulação ou fallback)
@@ -690,7 +693,12 @@ const Checkout: React.FC<CheckoutProps> = ({ bookingDraft, salons, onConfirm, se
                 className={`w-full gold-gradient text-background-dark font-black py-7 rounded-[36px] shadow-[0_30px_70px_rgba(193,165,113,0.3)] uppercase tracking-[0.4em] text-[12px] flex items-center justify-center gap-4 active:scale-95 transition-all border border-white/20`}
               >
                 {isProcessing ? <div className="size-7 border-3 border-background-dark/20 border-t-background-dark rounded-full animate-spin"></div> : (
-                  <> {step === 'summary' ? (isMpEnabled ? 'ESCOLHER FORMA DE PAGAMENTO' : 'RESERVAR E PAGAR NO LOCAL') : 'FINALIZAR RESERVA'} <span className="material-symbols-outlined font-black">arrow_forward</span> </>
+                  <>
+                    {step === 'summary' ? (
+                      (activeSalon?.paga_no_local || !isMpEnabled) ? 'FINALIZAR RESERVA' : 'ESCOLHER FORMA DE PAGAMENTO'
+                    ) : 'FINALIZAR RESERVA'}
+                    <span className="material-symbols-outlined font-black">arrow_forward</span>
+                  </>
                 )}
               </button>
             )}

@@ -1,20 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Professional } from '../../types';
+import { Professional, Salon } from '../../types';
 import { api } from '../../lib/api';
 import { supabase, supabaseUrl, supabaseAnonKey } from '../../lib/supabase';
 import { createClient } from '@supabase/supabase-js';
 
 interface TeamManagementProps {
-  salonId?: string;
+  salon?: Salon;
+  salonId?: string; // Fallback
 }
 
-const TeamManagement: React.FC<TeamManagementProps> = ({ salonId }) => {
+const TeamManagement: React.FC<TeamManagementProps> = ({ salon, salonId: explicitId }) => {
+  const salonId = salon?.id || explicitId;
   const navigate = useNavigate();
   const [team, setTeam] = useState<Professional[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isAdding, setIsAdding] = useState(false);
   const [selectedProId, setSelectedProId] = useState<string | null>(null);
+  const [billingInfo, setBillingInfo] = useState<any>(null);
 
   const [newPro, setNewPro] = useState({
     name: '',
@@ -64,8 +67,15 @@ const TeamManagement: React.FC<TeamManagementProps> = ({ salonId }) => {
     if (salonId) {
       api.professionals.getBySalon(salonId).then(data => {
         setTeam(data || []);
-        setIsLoading(false);
-      }).catch(() => setIsLoading(false));
+      }).catch(() => { });
+
+      api.salons.getBilling(salonId)
+        .then(data => {
+          if (data) setBillingInfo(data);
+          setIsLoading(false);
+        }).catch(() => {
+          setIsLoading(false);
+        });
     } else {
       setIsLoading(false);
     }
@@ -76,11 +86,11 @@ const TeamManagement: React.FC<TeamManagementProps> = ({ salonId }) => {
       const selectedPro = team.find(p => p.id === selectedProId);
       if (selectedPro) {
         setEditData({
-          name: selectedPro.name,
+          name: selectedPro.name || '',
           role: selectedPro.role || '',
           productivity: selectedPro.productivity || 0,
           comissao: selectedPro.comissao || 0,
-          status: selectedPro.status,
+          status: selectedPro.status || 'active',
           image: selectedPro.image || '',
           email: selectedPro.email || '',
           password: '' // Reset para evitar conflitos
@@ -96,6 +106,21 @@ const TeamManagement: React.FC<TeamManagementProps> = ({ salonId }) => {
       return;
     }
     if (!salonId) return;
+
+    // Bloqueio de Plano Elite (Limits - Calculado pelo Banco)
+    const maxPros = billingInfo?.limits?.max_professionals || 2;
+    const isTrial = billingInfo?.is_trial_active;
+
+    // O banco já resolve o Downgrade Virtual, mas aqui reforçamos o limite visual
+    if (!isTrial && team.length >= maxPros) {
+      if (maxPros === 2) {
+        showNotification('error', "Limite de 2 profissionais atingido no plano Gratuito. Faça upgrade para o PRO para ilimitados!");
+      } else {
+        showNotification('error', `Limite de ${maxPros} profissionais atingido para seu plano atual.`);
+      }
+      return;
+    }
+
     setIsLoading(true);
 
     // 0. Pre-verificação local
@@ -375,15 +400,45 @@ const TeamManagement: React.FC<TeamManagementProps> = ({ salonId }) => {
         </section>
 
         <section>
-          <button
-            onClick={() => setIsAdding(true)}
-            className="w-full bg-white/5 border border-dashed border-white/10 rounded-[32px] py-10 flex flex-col items-center justify-center gap-4 group hover:border-primary/20 hover:bg-white/[0.07] transition-all active:scale-[0.98]"
-          >
-            <div className="size-14 rounded-full gold-gradient flex items-center justify-center text-background-dark shadow-xl shadow-primary/20 group-hover:scale-110 transition-transform">
-              <span className="material-symbols-outlined text-2xl font-black">person_add</span>
-            </div>
-            <span className="text-[11px] font-black text-white uppercase tracking-[0.4em]">Contratar Novo Artista</span>
-          </button>
+          {(() => {
+            const maxPros = billingInfo?.limits?.max_professionals || 2;
+            const isTrial = billingInfo?.is_trial_active;
+            const isCapReached = !isTrial && team.length >= maxPros;
+
+            return (
+              <button
+                onClick={() => {
+                  if (isCapReached) {
+                    showNotification('error', `Limite de ${maxPros} artistas atingido no plano Gratuito.`);
+                    return;
+                  }
+                  setIsAdding(true);
+                }}
+                className={`w-full border border-dashed rounded-[32px] py-10 flex flex-col items-center justify-center gap-4 group transition-all active:scale-[0.98]
+                  ${isCapReached
+                    ? 'bg-red-500/5 border-red-500/20 cursor-not-allowed opacity-70'
+                    : 'bg-white/5 border-white/10 hover:border-primary/20 hover:bg-white/[0.07]'}
+                `}
+              >
+                <div className={`size-14 rounded-full flex items-center justify-center text-background-dark shadow-xl transition-transform ${!isCapReached && 'group-hover:scale-110'} 
+                  ${isCapReached ? 'bg-slate-500 shadow-none' : 'gold-gradient shadow-primary/20'}`}>
+                  <span className="material-symbols-outlined text-2xl font-black">
+                    {isCapReached ? 'lock' : 'person_add'}
+                  </span>
+                </div>
+                <div className="flex flex-col items-center gap-1">
+                  <span className={`text-[11px] font-black uppercase tracking-[0.4em] ${isCapReached ? 'text-slate-500' : 'text-white'}`}>
+                    {isCapReached ? 'Limite Atingido' : 'Contratar Novo Artista'}
+                  </span>
+                  {isCapReached && (
+                    <span className="text-[8px] font-bold text-red-400 uppercase tracking-widest bg-red-500/10 px-2 py-1 rounded-lg">
+                      Upgrade Necessário
+                    </span>
+                  )}
+                </div>
+              </button>
+            );
+          })()}
         </section>
 
         {/* Lista de Profissionais */}

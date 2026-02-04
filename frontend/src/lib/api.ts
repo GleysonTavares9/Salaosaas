@@ -6,18 +6,18 @@ export const api = {
     // --- Salões ---
     salons: {
         async getAll() {
-            const { data, error } = await supabase.from('salons').select('id, nome, slug_publico, segmento, descricao, logo_url, banner_url, endereco, cidade, rating, reviews, telefone, amenities, gallery_urls, location, horario_funcionamento, mp_public_key');
+            const { data, error } = await supabase.from('salons').select('id, nome, slug_publico, segmento, descricao, logo_url, banner_url, endereco, cidade, rating, reviews, telefone, amenities, gallery_urls, location, horario_funcionamento, paga_no_local, subscription_plan, trial_ends_at, subscription_status, mp_public_key');
             if (error) throw error;
             return data as Salon[];
         },
 
         async getBySlug(slug: string) {
-            const { data, error } = await supabase.from('salons').select('id, nome, slug_publico, segmento, descricao, logo_url, banner_url, endereco, cidade, rating, reviews, telefone, amenities, gallery_urls, location, horario_funcionamento, mp_public_key').eq('slug_publico', slug).single();
+            const { data, error } = await supabase.from('salons').select('id, nome, slug_publico, segmento, descricao, logo_url, banner_url, endereco, cidade, rating, reviews, telefone, amenities, gallery_urls, location, horario_funcionamento, paga_no_local, subscription_plan, trial_ends_at, subscription_status, mp_public_key').eq('slug_publico', slug).single();
             if (error) throw error;
             return data as Salon;
         },
         async getById(id: string) {
-            const { data, error } = await supabase.from('salons').select('id, nome, slug_publico, segmento, descricao, logo_url, banner_url, endereco, cidade, rating, reviews, telefone, amenities, gallery_urls, location, horario_funcionamento, mp_public_key').eq('id', id).single();
+            const { data, error } = await supabase.from('salons').select('id, nome, slug_publico, segmento, descricao, logo_url, banner_url, endereco, cidade, rating, reviews, telefone, amenities, gallery_urls, location, horario_funcionamento, paga_no_local, subscription_plan, trial_ends_at, subscription_status, mp_public_key').eq('id', id).single();
             if (error) throw error;
             return data as Salon;
         },
@@ -32,17 +32,53 @@ export const api = {
             return data as Salon;
         },
         async update(id: string, updates: Partial<Salon>) {
-            const { data, error } = await supabase.from('salons').update(updates).eq('id', id).select().single();
-            if (error) {
-                console.error(`API Error updating salon:`, error.message);
-                throw error;
+            try {
+                // Tenta update minimalista retornando só o ID
+                const { data, error } = await supabase.from('salons').update(updates).eq('id', id).select('id').single();
+                if (error) throw error;
+                return { ...updates, id } as Salon;
+            } catch (err: any) {
+                console.warn("Update padrão falhou, tentando estratégias de fallback...", err);
+
+                // Tentativa 2: Update "Cego" (Sem retorno)
+                // Se o trigger falhar no RETURNING, isso pode funcionar
+                const { error: blindError } = await supabase.from('salons').update(updates).eq('id', id);
+                if (!blindError) {
+                    return { ...updates, id } as Salon;
+                }
+
+                // Tentativa 3: Mega Fallback RPC (Cobre todos os campos)
+                try {
+                    const { data: rpcData, error: rpcError } = await supabase.rpc('mega_update_salon', {
+                        p_id: id,
+                        p_data: updates
+                    });
+
+                    if (!rpcError) {
+                        return { ...updates, id } as Salon;
+                    }
+                } catch (rpcErr) {
+                    console.error("Fallback Mega RPC também falhou", rpcErr);
+                }
+
+                // Se tudo falhar, joga o erro original
+                throw err;
             }
-            return data as Salon;
         },
         async registerNewSalon(params: any) {
             const { data, error } = await supabase.rpc('register_new_salon_and_owner', params);
             if (error) throw error;
             return data as string; // Retorna o ID do salão
+        },
+        async getBilling(id: string) {
+            const { data, error } = await supabase.rpc('get_salon_billing_info', { p_salon_id: id });
+            if (error) throw error;
+            return data;
+        },
+        async getPlans() {
+            const { data, error } = await supabase.from('subscription_plans').select('*').order('price', { ascending: true });
+            if (error) throw error;
+            return data;
         }
     },
 
