@@ -40,6 +40,8 @@ import UserRegister from './screens/Auth/UserRegister.tsx';
 import ResetPassword from './screens/Auth/ResetPassword.tsx';
 import SaaSMaster from './screens/Pro/SaaSMaster.tsx';
 import Billing from './screens/Pro/Billing.tsx';
+import PrivacyPolicy from './screens/Public/PrivacyPolicy.tsx';
+import TermsOfUse from './screens/Public/TermsOfUse.tsx';
 import { ToastProvider, useToast } from './contexts/ToastContext.tsx';
 
 interface BookingDraft {
@@ -382,6 +384,8 @@ const AppContent: React.FC = () => {
           <Route path="/login" element={<PartnerLogin onLogin={async (role, uid) => handleLogin(role, uid)} />} />
           <Route path="/register" element={<PartnerRegister onRegister={async (role, uid) => handleLogin(role, uid)} />} />
           <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/privacy" element={<PrivacyPolicy />} />
+          <Route path="/terms" element={<TermsOfUse />} />
           <Route path="/salon/:slug" element={<SalonPage salons={salons} role={role} setBookingDraft={setBookingDraft} />} />
           <Route path="/my-appointments" element={<MyAppointments appointments={appointments} onCancelAppointment={(id) => updateAppointmentStatus(id, 'canceled')} />} />
           <Route path="/profile" element={<Profile onLogout={handleLogout} />} />

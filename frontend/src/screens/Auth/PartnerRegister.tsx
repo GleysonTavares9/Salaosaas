@@ -213,8 +213,13 @@ const PartnerRegister: React.FC<PartnerRegisterProps> = ({ onRegister }) => {
           </button>
         </form>
 
-        <p className="mt-8 text-center text-slate-600 text-[10px] font-bold uppercase tracking-widest">
-          Agendando como cliente? <button onClick={() => navigate('/register-user')} className="text-primary ml-1">Crie sua conta pessoal</button>
+        <p className="mt-8 text-center text-slate-700 text-[10px] font-bold uppercase tracking-widest leading-relaxed">
+          Ao cadastrar sua unidade, você aceita nossos <br />
+          <button onClick={() => navigate('/terms')} className="text-primary underline underline-offset-4">termos de uso</button> e <button onClick={() => navigate('/privacy')} className="text-primary underline underline-offset-4">privacidade</button>
+        </p>
+
+        <p className="mt-12 text-center text-slate-600 text-[10px] font-bold uppercase tracking-widest">
+          Agendando como cliente? <button onClick={() => navigate('/register-user')} className="text-primary ml-1 underline underline-offset-4">Crie sua conta pessoal</button>
         </p>
       </main>
     </div>
