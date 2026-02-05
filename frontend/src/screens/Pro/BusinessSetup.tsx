@@ -245,13 +245,36 @@ const BusinessSetup: React.FC<BusinessSetupProps> = ({ salon, userId, onSave }) 
       }
     });
 
-    // Adiciona chaves do Mercado Pago SOMENTE se foram realmente alteradas
-    // Adiciona chaves do Mercado Pago SOMENTE se foram realmente alteradas
-    // IMPORTANTE: REQUER QUE O SCRIPT FIX_DATABASE.SQL TENHA SIDO RODADO NO SUPABASE
-    if (mpConfig.accessToken && !mpConfig.accessToken.includes('***') && mpConfig.accessToken.length > 10) {
+    // VALIDAÇÃO RIGOROSA MERCADO PAGO
+    if (mpConfig.accessToken || mpConfig.publicKey) {
+      const isTestToken = mpConfig.accessToken.startsWith('TEST-');
+      const isProdToken = mpConfig.accessToken.startsWith('APP_USR-');
+      const isCorrupted = mpConfig.accessToken.startsWith('\\\\x') || mpConfig.accessToken.startsWith('\\x');
+
+      if (isCorrupted) {
+        showToast("❌ Chave corrompida detectada! Por favor, cole o Access Token novamente do painel do Mercado Pago.", "error");
+        setIsSaving(false);
+        return;
+      }
+
+      if (mpConfig.accessToken && !isTestToken && !isProdToken && !mpConfig.accessToken.includes('***')) {
+        showToast("❌ Access Token inválido. Deve começar com APP_USR- ou TEST-", "error");
+        setIsSaving(false);
+        return;
+      }
+
+      if (mpConfig.publicKey && !mpConfig.publicKey.startsWith('APP_USR-') && !mpConfig.publicKey.startsWith('TEST-') && !mpConfig.publicKey.includes('***')) {
+        showToast("❌ Public Key inválida. Deve começar com APP_USR- ou TEST-", "error");
+        setIsSaving(false);
+        return;
+      }
+    }
+
+    // Adiciona chaves do Mercado Pago SOMENTE se forem realmente válidas e alteradas
+    if (mpConfig.accessToken && !mpConfig.accessToken.includes('***') && mpConfig.accessToken.length > 20) {
       sanitizedData.mp_access_token = mpConfig.accessToken.trim();
     }
-    if (mpConfig.publicKey && !mpConfig.publicKey.includes('***') && mpConfig.publicKey.length > 10) {
+    if (mpConfig.publicKey && !mpConfig.publicKey.includes('***') && mpConfig.publicKey.length > 20) {
       sanitizedData.mp_public_key = mpConfig.publicKey.trim();
     }
 

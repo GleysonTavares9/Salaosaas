@@ -119,9 +119,11 @@ const Dashboard: React.FC<DashboardProps> = ({ role, salon, appointments, userId
 
   const adminMenu: MenuItem[] = [
     { label: 'Visão do Caixa', icon: 'payments', path: '/pro/admin-bookings', color: 'blue', desc: 'Vendas e agendamentos' },
+    { label: 'Agenda Geral', icon: 'calendar_month', path: '/pro/schedule', color: 'purple', desc: 'Visualizar grade de agendamentos' },
     { label: 'Relatórios', icon: 'insights', path: '/pro/analytics', color: 'cyan', desc: 'Dados e KPIs' },
     { label: 'Gestão de Estoque', icon: 'inventory_2', path: '/pro/products', color: 'emerald', desc: 'Produtos e insumos' },
-    { label: 'Agenda & Horários', icon: 'more_time', path: '/pro/operating-hours', color: 'amber', desc: 'Configurar funcionamento' },
+    { label: 'Minha Assinatura', icon: 'stars', path: '/pro/billing', color: 'amber', desc: 'Planos e faturamento' },
+    { label: 'Horários Funcionamento', icon: 'more_time', path: '/pro/operating-hours', color: 'amber', desc: 'Configurar abertura/fechamento' },
     { label: 'Equipe', icon: 'groups', path: '/pro/team', color: 'purple', desc: 'Artistas e metas' },
     { label: 'Catálogo Serviços', icon: 'menu_book', path: '/pro/catalog', color: 'indigo', desc: 'Rituais e preços' },
     { label: 'Configurações', icon: 'settings', path: '/pro/business-setup', color: 'slate', desc: 'Branding da unidade' },

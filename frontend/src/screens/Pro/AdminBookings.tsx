@@ -165,7 +165,7 @@ const AdminBookings: React.FC<AdminBookingsProps> = ({ appointments, role, salon
 
   const openWhatsApp = (appt: Appointment) => {
     const phone = appt.clientPhone?.replace(/\D/g, '') || '5511999999999';
-    const text = `Olá ${appt.clientName}! Aqui é o ${appt.professionalName} do Luxe Aura. Estou entrando em contato sobre seu agendamento de ${appt.serviceName} no dia ${appt.date} às ${appt.time}.`;
+    const text = `Olá ${appt.clientName}! Aqui é o ${appt.professionalName || 'Profissional'} do Luxe Aura. Estou entrando em contato sobre seu agendamento de ${appt.service_names || appt.serviceName || 'Serviço'} no dia ${appt.date} às ${appt.time}.`;
     window.open(`https://wa.me/${phone}?text=${encodeURIComponent(text)}`, '_blank');
   };
 
@@ -297,7 +297,7 @@ const AdminBookings: React.FC<AdminBookingsProps> = ({ appointments, role, salon
                 </div>
                 <h3 className="text-xl font-display font-black text-white italic tracking-tighter mb-1 uppercase leading-tight">{appt.clientName || "Cliente Aura"}</h3>
                 <div className="flex items-center gap-2">
-                  <p className="text-[10px] font-black text-primary uppercase tracking-widest">{appt.serviceName}</p>
+                  <p className="text-[10px] font-black text-primary uppercase tracking-widest">{appt.service_names || appt.serviceName}</p>
                   <span className="text-slate-700">•</span>
                   <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">
                     {appt.professionalName || "Sem Profissional"}

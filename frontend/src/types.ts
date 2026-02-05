@@ -34,7 +34,7 @@ export interface Salon {
   mp_public_key?: string; // Chave pública do Mercado Pago salva no banco
   mp_access_token?: string; // Access Token privado do Mercado Pago
   paga_no_local?: boolean; // Opção de desabilitar cobrança antecipada
-  subscription_plan?: 'free' | 'pro' | 'premium';
+  subscription_plan?: 'free' | 'starter' | 'pro' | 'premium' | 'lifetime';
   trial_ends_at?: string;
   subscription_status?: 'trialing' | 'active' | 'past_due' | 'canceled';
 }

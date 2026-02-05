@@ -135,119 +135,96 @@ const Checkout: React.FC<CheckoutProps> = ({ bookingDraft, salons, onConfirm, se
   const handleFinalConfirm = async (paymentDataOrMethodId?: any) => {
     if (!userId) return;
 
-    const currentIsPix = paymentDataOrMethodId === 'pix' || paymentDataOrMethodId === 'bank_transfer' || (typeof paymentDataOrMethodId === 'object' && paymentDataOrMethodId.payment_method_id === 'pix');
-    setIsPix(currentIsPix);
+    const mpObject = typeof paymentDataOrMethodId === 'object' ? paymentDataOrMethodId : null;
+    const explicitMethod = typeof paymentDataOrMethodId === 'string' ? paymentDataOrMethodId : null;
 
-    // Validate total is a valid number
-    if (isNaN(total) || total <= 0) {
-      showToast('Erro: Valor total inválido. Por favor, adicione serviços ou produtos.', 'error');
-      return;
-    }
-
-    // Convert date to ISO format if needed
-    let isoDate = bookingDraft.date;
-
-    // Se a data vier no formato PT-BR ou texto, vamos garantir o formato YYYY-MM-DD
-    if (!isoDate || typeof isoDate !== 'string' || !isoDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
-      const d = new Date();
-      isoDate = d.toISOString().split('T')[0];
-    }
-
-    const finalTotal = total;
-    const finalServices = [...services];
-    const finalProducts = [...products];
-    const finalSalonName = bookingDraft.salonName || salonInfo?.nome;
-    const finalEndereco = salonInfo?.endereco;
-    const finalTelefone = salonInfo?.telefone;
+    // Detecção robusta se é PIX
+    const isPixMethod =
+      explicitMethod === 'pix' ||
+      explicitMethod === 'bank_transfer' ||
+      (mpObject && (
+        mpObject.payment_method_id === 'pix' ||
+        mpObject.payment_method_id === 'bank_transfer' ||
+        mpObject.formData?.payment_method_id === 'pix' ||
+        mpObject.formData?.payment_method_id === 'bank_transfer'
+      ));
 
     setIsProcessing(true);
     try {
+      const finalServices = [...services];
+      const finalProducts = [...products];
+      const finalTotal = total;
       const totalDuration = finalServices.reduce((acc: number, curr: any) => acc + (curr.duration_min || 30), 0);
 
-      const orderSnapshot = {
-        salonName: finalSalonName,
-        endereco: finalEndereco,
-        services: finalServices,
-        products: finalProducts,
-        total: finalTotal,
-        date: isoDate,
-        time: bookingDraft.time || '10:00',
-        telefone: finalTelefone,
-        isPix: currentIsPix
-      };
-
-      setLastOrder(orderSnapshot);
-
-      // --- INTEGRAÇÃO REAL COM MERCADO PAGO ORDERS API ---
+      // 1. Tentar criar o pedido no Mercado Pago se houver dados
       let pixData = null;
-      if (typeof paymentDataOrMethodId === 'object' && activeSalon) {
+      if (mpObject && activeSalon) {
         try {
-          // Garantir que temos o email do payer (exigido pela API)
-          if (!paymentDataOrMethodId.payer) paymentDataOrMethodId.payer = {};
-          if (!paymentDataOrMethodId.payer.email) paymentDataOrMethodId.payer.email = userEmail;
+          if (!mpObject.payer) mpObject.payer = {};
+          if (!mpObject.payer.email) mpObject.payer.email = userEmail;
 
-          const paymentResponse = await api.payments.createOrder(activeSalon, paymentDataOrMethodId);
+          const mpResponse = await api.payments.createOrder(activeSalon, mpObject);
 
-          // Verificar se é PIX e capturar QR Code
-          if (paymentResponse.point_of_interaction?.transaction_data) {
-            const tData = paymentResponse.point_of_interaction.transaction_data;
+          // Captura dados do PIX se existirem
+          if (mpResponse.point_of_interaction?.transaction_data) {
+            const tData = mpResponse.point_of_interaction.transaction_data;
             pixData = {
               qrCodeBase64: tData.qr_code_base64,
               copyPaste: tData.qr_code,
               ticketUrl: tData.ticket_url,
-              id: paymentResponse.id
+              id: mpResponse.id
             };
           }
-
-        } catch (paymentError: any) {
-          console.error("Falha no pagamento MP:", paymentError);
-          showToast(`Pagamento não processado: ${paymentError.message}`, 'error');
+        } catch (payErr: any) {
+          console.error("Erro MP:", payErr);
+          showToast(payErr.message || "Erro no processamento do pagamento", 'error');
           setIsProcessing(false);
           return;
         }
       }
 
-      // Se for PIX, paramos aqui e mostramos a tela de QR Code
-      if (pixData) {
-        setLastOrder(prev => ({ ...prev, pixData }));
-        setStep('waiting_pix');
-        setIsProcessing(false);
-        return;
-      }
+      // Snapshot para a tela de sucesso/Pix
+      const orderSnapshot = {
+        salonName: bookingDraft.salonName || salonInfo?.nome,
+        endereco: salonInfo?.endereco,
+        services: finalServices,
+        products: finalProducts,
+        total: finalTotal,
+        date: bookingDraft.date,
+        time: bookingDraft.time || '10:00',
+        telefone: salonInfo?.telefone,
+        isPix: isPixMethod,
+        pixData: pixData
+      };
+      setLastOrder(orderSnapshot);
 
-      // --- CORREÇÃO DE INTEGRIDADE: Garantir que o Profile existe ---
-      // Evita erro 23503 (Foreign Key Violation) se o perfil não tiver sido criado na auth
-      try {
-        await api.profiles.update(userId, {
-          email: userEmail,
-          updated_at: new Date().toISOString()
-        });
-      } catch (e) {
-        console.warn("Tentativa de autocorreção de perfil:", e);
-      }
-
+      // 2. CRIAR O AGENDAMENTO NO BANCO (Sempre cria, o status muda se for PIX)
       const newAppt = await api.appointments.create({
         salon_id: bookingDraft.salonId || '',
         client_id: userId,
         professional_id: bookingDraft.professionalId || null,
         service_names: finalServices.length > 0 ? finalServices.map((s: any) => s.name).join(', ') : 'Shopping Boutique',
         valor: Number(finalTotal.toFixed(2)),
-        date: isoDate,
-        time: bookingDraft.time || '10:00:00', // Formato HH:MM:SS para o Postgres
+        date: bookingDraft.date || new Date().toISOString().split('T')[0],
+        time: bookingDraft.time || '10:00:00',
         duration_min: totalDuration,
-        status: 'confirmed'
+        status: isPixMethod ? 'pending' : 'confirmed' // Pendente se for PIX
       });
-
       onConfirm(newAppt);
-      if (currentIsPix) {
+
+      // 3. DIRECIONAR PARA A TELA CORRETA
+      if (isPixMethod) {
         setStep('waiting_pix');
       } else {
         setStep('success');
       }
+
+      // Limpa o rascunho
       setBookingDraft({ services: [], products: [] });
+
     } catch (error: any) {
-      console.error('Erro ao criar agendamento:', error);
-      showToast("Erro ao finalizar reserva: " + (error.message || 'Erro desconhecido'), 'error');
+      console.error('Erro no checkout:', error);
+      showToast("Falha ao finalizar: " + error.message, 'error');
     } finally {
       setIsProcessing(false);
     }
@@ -294,7 +271,7 @@ const Checkout: React.FC<CheckoutProps> = ({ bookingDraft, salons, onConfirm, se
   }, []); // Sem dependências = referência fixa
 
 
-  if (!services.length && !products.length && step !== 'success') {
+  if (!services.length && !products.length && step !== 'success' && step !== 'waiting_pix') {
     return (
       <div className="h-full flex flex-col items-center justify-center p-8 text-center bg-background-dark animate-fade-in">
         <span className="material-symbols-outlined text-6xl text-primary/20 mb-4 scale-150">shopping_bag</span>
@@ -581,32 +558,9 @@ const Checkout: React.FC<CheckoutProps> = ({ bookingDraft, salons, onConfirm, se
                     handleFinalConfirm={stableSubmit}
                   />
                 ) : (
-                  <div className="space-y-6 py-4">
-                    <div className="bg-gradient-to-br from-surface-dark to-black border border-white/10 p-8 rounded-3xl text-center space-y-6 shadow-2xl">
-                      <div className="inline-flex size-16 items-center justify-center rounded-full bg-yellow-500/10 text-yellow-500 mb-2 ring-1 ring-yellow-500/20">
-                        <span className="material-symbols-outlined text-3xl">integration_instructions</span>
-                      </div>
-                      <div className="space-y-2">
-                        <h3 className="text-white font-display font-black uppercase tracking-widest text-lg italic">Modo de Simulação</h3>
-                        <p className="text-slate-400 text-[10px] font-bold uppercase tracking-wide max-w-xs mx-auto leading-relaxed">
-                          O Checkout Seguro do Mercado Pago ainda não foi configurado pelo estabelecimento.
-                        </p>
-                      </div>
-
-                      <div className="text-[10px] bg-white/5 p-4 rounded-xl text-slate-400 border border-white/5">
-                        <p className="mb-2 font-black uppercase tracking-wider text-slate-500">Fluxo de Teste</p>
-                        <ul className="text-left space-y-2 pl-4 list-disc marker:text-primary">
-                          <li>Confirmação instantânea do agendamento</li>
-                          <li>Nenhuma cobrança será efetuada</li>
-                          <li>Acesso à tela de sucesso e WhatsApp</li>
-                        </ul>
-                      </div>
-
-                      <button onClick={handleFinalConfirm} className="w-full gold-gradient text-background-dark font-black py-5 rounded-[24px] uppercase tracking-[0.3em] text-[10px] active:scale-95 transition-all shadow-[0_10px_30px_rgba(212,175,55,0.2)] flex items-center justify-center gap-3">
-                        <span className="material-symbols-outlined">check_circle</span>
-                        Simular Pagamento Aprovado
-                      </button>
-                    </div>
+                  <div className="flex flex-col items-center justify-center space-y-4 py-12">
+                    <div className="size-12 border-4 border-[#c1a571]/20 border-t-[#c1a571] rounded-full animate-spin"></div>
+                    <p className="text-[10px] text-[#c1a571] font-black uppercase tracking-widest animate-pulse">Iniciando Checkout Seguro...</p>
                   </div>
                 )}
               </div>
@@ -633,24 +587,44 @@ const Checkout: React.FC<CheckoutProps> = ({ bookingDraft, salons, onConfirm, se
         )}
       </main>
 
+
+
       {step === 'success' && (
-        <div className="absolute inset-0 z-[99999] bg-background-dark flex flex-col items-center justify-center p-10 text-center animate-fade-in shadow-[inset_0_0_100px_rgba(0,0,0,0.8)]">
-          <div className="size-32 rounded-full gold-gradient flex items-center justify-center mb-10 shadow-[0_25px_60px_rgba(193,165,113,0.4)] animate-bounce relative">
-            <span className="material-symbols-outlined text-6xl text-background-dark font-black">verified</span>
-            <div className="absolute -inset-4 border border-primary/20 rounded-full animate-ping"></div>
+        <div className="absolute inset-0 z-[99999] bg-background-dark flex flex-col items-center justify-center p-8 text-center overflow-hidden">
+          {/* Background Glow Effect */}
+          <div className="absolute inset-0 bg-gradient-radial from-[#D4AF37]/5 via-transparent to-transparent opacity-50 pointer-events-none"></div>
+
+          {/* Ícone de Sucesso Animado - Estilo Neon Brilhando */}
+          <div className="relative mb-12 pt-6">
+            <span
+              className="material-symbols-outlined text-[#c1a571] drop-shadow-[0_0_35px_rgba(236,211,165,0.9)] relative z-10 animate-pulse"
+              style={{ fontSize: '180px', fontVariationSettings: "'FILL' 0, 'wght' 300" }}
+            >
+              verified
+            </span>
           </div>
-          <h2 className="text-5xl font-display font-black text-white italic mb-4 uppercase tracking-tighter leading-[0.9]">Sua Aura <br /> Brilha!</h2>
+          <h2 className="text-5xl font-display font-black text-white italic mb-4 uppercase tracking-tighter leading-[0.9] animate-slide-up">Sua Aura <br /> Brilha!</h2>
           <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.4em] mb-12 max-w-[280px] leading-relaxed">Reserva confirmada em<br /><span className="text-white">{lastOrder?.salonName || bookingDraft.salonName}</span>.</p>
 
-          <div className="w-full space-y-5 px-4 max-w-sm">
+          <div className="w-full space-y-5 px-4 max-w-sm relative z-10">
             <button
               onClick={handleWhatsAppConfirmation}
-              className="w-full gold-gradient text-background-dark py-6 rounded-[32px] font-black uppercase text-[11px] tracking-[0.4em] flex items-center justify-center gap-3 shadow-[0_20px_40px_rgba(193,165,113,0.3)] active:scale-95 transition-all"
+              className="w-full gold-gradient text-[#202020] py-6 rounded-[32px] font-black uppercase text-[11px] tracking-[0.4em] flex items-center justify-center gap-3 shadow-[0_20px_40px_rgba(193,165,113,0.3)] active:scale-95 transition-all cursor-pointer relative z-20"
             >
               <WhatsAppIcon className="size-7" /> NOTIFICAR ESTABELECIMENTO
             </button>
-            <button onClick={() => navigate('/my-appointments')} className="w-full bg-white/5 border border-white/10 text-white/60 py-6 rounded-[32px] font-black uppercase text-[10px] tracking-[0.3em] hover:bg-white/10 active:scale-95 transition-all shadow-lg">MEUS AGENDAMENTOS</button>
-            <button onClick={() => navigate('/explore')} className="w-full text-slate-700 font-black uppercase text-[9px] tracking-[0.4em] py-4 active:opacity-50 transition-opacity">Voltar para o Início</button>
+            <button
+              onClick={() => navigate('/my-appointments')}
+              className="w-full bg-white/5 border border-white/10 text-white/60 py-6 rounded-[32px] font-black uppercase text-[10px] tracking-[0.3em] hover:bg-white/10 active:scale-95 transition-all shadow-lg cursor-pointer relative z-20"
+            >
+              MEUS AGENDAMENTOS
+            </button>
+            <button
+              onClick={() => navigate('/explore')}
+              className="w-full text-slate-700 font-black uppercase text-[9px] tracking-[0.4em] py-4 active:opacity-50 transition-opacity cursor-pointer relative z-20"
+            >
+              Voltar para o Início
+            </button>
           </div>
         </div>
       )}
@@ -667,6 +641,7 @@ const Checkout: React.FC<CheckoutProps> = ({ bookingDraft, salons, onConfirm, se
                 <span className="text-white bg-green-500/20 border border-green-500/30 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 shadow-[0_0_15px_rgba(34,197,94,0.1)]">
                   Secured <span className="material-symbols-outlined text-sm">verified_user</span>
                 </span>
+
               </div>
             </div>
             {/* Botão Finalizar - Oculto durante o checkout MP */}
@@ -711,6 +686,13 @@ const Checkout: React.FC<CheckoutProps> = ({ bookingDraft, salons, onConfirm, se
 
 // Componente auxiliar para memoizar props e evitar re-render loop do Mercado Pago
 const MPPaymentWrapper: React.FC<{ total: number, handleFinalConfirm: (param: any) => Promise<void> }> = React.memo(({ total, handleFinalConfirm }) => {
+  const [shouldRender, setShouldRender] = React.useState(false);
+
+  React.useEffect(() => {
+    const timer = setTimeout(() => setShouldRender(true), 1200);
+    return () => clearTimeout(timer);
+  }, []);
+
   const initialization = React.useMemo(() => ({
     amount: Number(total.toFixed(2)),
   }), [total]);
@@ -723,65 +705,118 @@ const MPPaymentWrapper: React.FC<{ total: number, handleFinalConfirm: (param: an
       debitCard: "all" as const,
       mercadoPago: "all" as const,
     },
-    texts: {
-      paymentsTitle: ' ',
-    },
     visual: {
+      theme: 'dark' as const,
       style: {
-        theme: 'dark' as const, /* VOLTANDO PARA DARK para garantir textos brancos */
+        theme: 'dark' as const,
         customVariables: {
-          baseColor: '#c1a571', /* Nova base color Khaki */
-          baseColorFirstVariant: '#c1a571',
-
-          formBackgroundColor: '#121212',
-          inputBackgroundColor: '#1A1B25',
-          inputTextColor: '#FFFFFF',
-
-          outlinePrimaryColor: '#c1a571',
+          baseColor: "#c1a571",
+          borderRadiusSmall: "8px",
+          borderRadiusMedium: "16px",
+          borderRadiusLarge: "24px",
         }
       }
     }
   }), []);
 
   return (
-    <div className="mp-brick-container min-h-[500px] rounded-[32px] border-2 border-[#D4AF37]/40 shadow-[0_0_30px_rgba(212,175,55,0.15)] overflow-hidden bg-[#121212] p-4">
+    <div
+      className="mp-brick-container min-h-[600px] w-full max-w-full rounded-[40px] border border-[#c1a571]/20 shadow-2xl overflow-hidden bg-[#0c0d10] flex flex-col items-center justify-start relative transition-all duration-1000"
+      style={{ opacity: shouldRender ? 1 : 0, transform: shouldRender ? 'translateY(0)' : 'translateY(20px)' }}
+    >
       <style>{`
-        /* --- MP PREMIUM GOLD STYLE OVERRIDE vFINAL (MATCHING APP THEME) --- */
-        
-        /* 1. CORREÇÃO DE TEXTO DA BADGE (Parcelamento) - SELETORES NUCLEARES */
-        .mp-payment-brick [class*="installments"], 
-        .mp-payment-brick [class*="badge"], 
-        .mp-payment-brick span[style*="color: #009ee3"], 
-        .mp-payment-brick .mp-text-color-success,
-        [class*="mp-payment-brick"][class*="pill"],
-        /* Força Bruta para qualquer pill verde dentro do brick */
-        .mp-payment-brick__payment-method-option-tag {
-            background-color: rgba(193, 165, 113, 0.2) !important; 
-            background: rgba(193, 165, 113, 0.2) !important;
-            color: #ecd3a5 !important;
-            border: 1px solid rgba(193, 165, 113, 0.4) !important;
-            font-size: 10px !important;
-            font-weight: 700 !important;
-            text-transform: uppercase !important;
-            padding: 4px 8px !important;
-            border-radius: 4px !important;
-            text-shadow: none !important;
+        /* 1. FUNDO E BORDAS - ESPECÍFICO */
+        .mp-payment-brick,
+        .mp-payment-brick__container,
+        .mp-payment-method-option,
+        .mp-payment-method-option--selected,
+        .mp-payment-method-option-header,
+        .mp-payment-method-option-header--selected,
+        .mp-form-container {
+            background-color: #0c0d10 !important;
+            background: #0c0d10 !important;
         }
 
-        /* Removendo qualquer azul remanescente - NUCLEAR OPTION */
-        .mp-payment-brick *[style*="#009ee3"], 
-        .mp-payment-brick *[style*="rgb(0, 158, 227)"],
-        .svelte-1mcg7o8 {
+        .mp-payment-method-option--selected {
+            border: 1px solid #c1a571 !important;
+        }
+
+        /* 2. TIPOGRAFIA - APENAS ELEMENTOS DE TEXTO */
+        .mp-method-title, 
+        .mp-method-description,
+        .mp-payment-brick .mp-text,
+        .mp-payment-brick p,
+        .mp-payment-brick span,
+        .mp-payment-brick label {
+            font-family: 'Outfit', sans-serif !important;
+        }
+
+        .mp-method-title, 
+        .mp-method-description,
+        .mp-payment-brick p,
+        .mp-payment-brick span,
+        .mp-text-color-primary,
+        .mp-text-color-secondary {
+            color: #ffffff !important;
+        }
+
+        .mp-payment-brick label, .mp-form-label {
             color: #c1a571 !important;
+            font-weight: 800 !important;
+            text-transform: uppercase !important;
+            font-size: 10px !important;
+            letter-spacing: 2px !important;
+        }
+
+        /* 3. CONTROLES - RADIO BUTTONS */
+        .mp-radio-button__outer-circle {
+            border-color: rgba(193, 165, 113, 0.5) !important;
+        }
+
+        .mp-radio-button--checked .mp-radio-button__outer-circle {
             border-color: #c1a571 !important;
-            background-color: transparent !important;
+        }
+
+        .mp-radio-button__inner-circle {
+            background-color: #c1a571 !important;
+        }
+
+        /* 4. FORMULÁRIO - SEM INTERFERIR EM SVG */
+        .mp-input-text,
+        .mp-payment-brick input:not([type="radio"]):not([type="checkbox"]),
+        .mp-payment-brick select {
+            background-color: rgba(255, 255, 255, 0.05) !important;
+            border: 1px solid rgba(193, 165, 113, 0.3) !important;
+            color: #ffffff !important;
+            border-radius: 12px !important;
+        }
+
+        /* 5. AÇÃO FINAL */
+        .mp-payment-brick__submit-button,
+        .mp-payment-brick button[type="submit"] {
+            background: linear-gradient(135deg, #b1945f 0%, #ecd3a5 50%, #b1945f 100%) !important;
+            color: #000000 !important;
+            font-weight: 900 !important;
+            border-radius: 20px !important;
+            box-shadow: 0 15px 40px rgba(177, 148, 95, 0.3) !important;
+            border: none !important;
         }
       `}</style>
-      <Payment
-        initialization={initialization}
-        customization={customization}
-        onSubmit={handleFinalConfirm}
-      />
+
+      {!shouldRender ? (
+        <div className="absolute inset-0 flex flex-col items-center justify-center space-y-4">
+          <div className="size-12 border-4 border-[#c1a571]/20 border-t-[#c1a571] rounded-full animate-spin"></div>
+          <p className="text-[10px] text-[#c1a571] font-black uppercase tracking-widest animate-pulse">Personalizando sua Aura...</p>
+        </div>
+      ) : (
+        <div className="w-full h-full animate-slide-up">
+          <Payment
+            initialization={initialization}
+            customization={customization}
+            onSubmit={handleFinalConfirm}
+          />
+        </div>
+      )}
     </div>
   );
 });

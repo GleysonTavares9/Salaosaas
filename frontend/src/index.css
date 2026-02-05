@@ -119,6 +119,35 @@
   animation: fadeIn 0.4s ease-out forwards;
 }
 
+/* CARIMBO ANIMATION - DOUBLE HIT */
+@keyframes stamp-double {
+  0% {
+    opacity: 0;
+    transform: scale(3);
+  }
+
+  40% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  60% {
+    transform: scale(1.2);
+  }
+
+  80% {
+    transform: scale(1);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+.animate-stamp-double {
+  animation: stamp-double 0.6s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
 /* Utilitário para imagens clicáveis */
 .direct-image-link {
   @apply cursor-zoom-in active:scale-[0.98] transition-transform;

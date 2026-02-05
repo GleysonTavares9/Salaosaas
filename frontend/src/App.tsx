@@ -350,6 +350,25 @@ const AppContent: React.FC = () => {
     }
   };
 
+
+  const isSubscriptionValid = (salon?: Salon) => {
+    if (!salon) return true; // Deixa o fluxo normal tratar ausência de salão
+    // Status Ativo ou Vitalício (future proof)
+    if (salon.subscription_status === 'active' || salon.subscription_plan === 'lifetime') return true;
+
+    // Período de Testes
+    if (salon.subscription_status === 'trialing') {
+      if (!salon.trial_ends_at) return true; // Sem data definida, libera
+      // Verifica se ainda está no prazo (com tolerância de dia)
+      const now = new Date();
+      const end = new Date(salon.trial_ends_at);
+      return now <= end;
+    }
+
+    // Bloqueado (past_due, canceled, unpaid)
+    return false;
+  };
+
   return (
     <div className="flex-1 flex flex-col min-h-full bg-background-dark">
       <ScrollToTop />
@@ -403,22 +422,22 @@ const AppContent: React.FC = () => {
               : <Navigate to="/login-user" replace />
           } />
 
-          {/* Rotas Administrativas Protegidas */}
+          {/* Rotas Administrativas Protegidas com Guard de Assinatura */}
           <Route path="/pro" element={
             (role === 'admin' || role === 'pro')
-              ? <Dashboard role={role} salon={salons[0]} userId={currentUserId} appointments={appointments} isMaster={isMaster} />
+              ? (isSubscriptionValid(salons[0]) ? <Dashboard role={role} salon={salons[0]} userId={currentUserId} appointments={appointments} isMaster={isMaster} /> : <Navigate to="/pro/billing" replace />)
               : <Navigate to="/login" replace />
           } />
 
           <Route path="/pro/schedule" element={
             (role === 'admin' || role === 'pro')
-              ? <Schedule appointments={appointments} salon={salons[0]} onUpdateStatus={updateAppointmentStatus} />
+              ? (isSubscriptionValid(salons[0]) ? <Schedule appointments={appointments} salon={salons[0]} onUpdateStatus={updateAppointmentStatus} /> : <Navigate to="/pro/billing" replace />)
               : <Navigate to="/login" replace />
           } />
 
           <Route path="/pro/admin-bookings" element={
             (role === 'admin' || role === 'pro')
-              ? <AdminBookings
+              ? (isSubscriptionValid(salons[0]) ? <AdminBookings
                 appointments={appointments}
                 role={role}
                 salon={salons[0]}
@@ -426,22 +445,48 @@ const AppContent: React.FC = () => {
                 onUpdateStatus={updateAppointmentStatus}
                 onUpdateAppointment={updateAppointment}
                 onDeleteAppointment={(id) => setAppointments(prev => prev.filter(a => a.id !== id))}
-              />
+              /> : <Navigate to="/pro/billing" replace />)
               : <Navigate to="/login" replace />
           } />
 
           <Route path="/pro/analytics" element={
             (role === 'admin' || role === 'pro')
-              ? <Analytics appointments={appointments} role={role} salon={salons[0]} userId={currentUserId} />
+              ? (isSubscriptionValid(salons[0]) ? <Analytics appointments={appointments} role={role} salon={salons[0]} userId={currentUserId} /> : <Navigate to="/pro/billing" replace />)
               : <Navigate to="/login" replace />
           } />
 
           {/* Rotas exclusivas do Administrador */}
-          <Route path="/pro/team" element={role === 'admin' ? <TeamManagement salon={salons[0]} /> : <Navigate to="/login" replace />} />
-          <Route path="/pro/catalog" element={role === 'admin' ? <ServiceCatalog salon={salons[0]} /> : <Navigate to="/login" replace />} />
-          <Route path="/pro/products" element={role === 'admin' ? <ProductCatalog salon={salons[0]} /> : <Navigate to="/login" replace />} />
-          <Route path="/pro/business-setup" element={role === 'admin' ? <BusinessSetup salon={salons[0]} userId={currentUserId} onSave={handleUpdateSalon} /> : <Navigate to="/login" replace />} />
-          <Route path="/pro/operating-hours" element={role === 'admin' ? <OperatingHours salon={salons[0]} userId={currentUserId} onSave={handleUpdateSalon} /> : <Navigate to="/login" replace />} />
+          <Route path="/pro/team" element={
+            role === 'admin'
+              ? (isSubscriptionValid(salons[0]) ? <TeamManagement salon={salons[0]} /> : <Navigate to="/pro/billing" replace />)
+              : <Navigate to="/login" replace />
+          } />
+
+          <Route path="/pro/catalog" element={
+            role === 'admin'
+              ? (isSubscriptionValid(salons[0]) ? <ServiceCatalog salon={salons[0]} /> : <Navigate to="/pro/billing" replace />)
+              : <Navigate to="/login" replace />
+          } />
+
+          <Route path="/pro/products" element={
+            role === 'admin'
+              ? (isSubscriptionValid(salons[0]) ? <ProductCatalog salon={salons[0]} /> : <Navigate to="/pro/billing" replace />)
+              : <Navigate to="/login" replace />
+          } />
+
+          <Route path="/pro/business-setup" element={
+            role === 'admin'
+              ? (isSubscriptionValid(salons[0]) ? <BusinessSetup salon={salons[0]} userId={currentUserId} onSave={handleUpdateSalon} /> : <Navigate to="/pro/billing" replace />)
+              : <Navigate to="/login" replace />
+          } />
+
+          <Route path="/pro/operating-hours" element={
+            role === 'admin'
+              ? (isSubscriptionValid(salons[0]) ? <OperatingHours salon={salons[0]} userId={currentUserId} onSave={handleUpdateSalon} /> : <Navigate to="/pro/billing" replace />)
+              : <Navigate to="/login" replace />
+          } />
+
+          {/* Billing: ABERTA para permitir pagamento */}
           <Route path="/pro/billing" element={
             (role === 'admin' || role === 'pro')
               ? <Billing />

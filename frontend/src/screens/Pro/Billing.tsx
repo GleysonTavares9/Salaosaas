@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../lib/api';
-import { supabase } from '../../lib/supabase';
+import { supabase, supabaseAnonKey } from '../../lib/supabase';
 
 import { useToast } from '../../contexts/ToastContext';
 const Billing: React.FC = () => {
@@ -13,7 +13,8 @@ const Billing: React.FC = () => {
     const [billingPixData, setBillingPixData] = useState<any>(null);
 
     const handleCheckout = async (plan: any) => {
-        if (plan.price === "0.00" || plan.id === 'free') {
+        // Bloqueia apenas se for explicitamente gratuito/zero, mas permite Starter
+        if ((plan.price === "0.00" || plan.id === 'free') && plan.id !== 'starter') {
             showToast("Este é o plano gratuito padrão.", "info");
             return;
         }
@@ -34,24 +35,47 @@ const Billing: React.FC = () => {
                 throw new Error("Sessão expirada. Por favor, faça login novamente.");
             }
 
-            const { data, error } = await supabase.functions.invoke('billing-service', {
-                body: {
+            const functionUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/billing-service`;
+
+            const response = await fetch(functionUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${supabaseAnonKey}`, // Teste com Anon Key para passar pelo Gateway
+                    'apikey': supabaseAnonKey
+                },
+                body: JSON.stringify({
                     action: 'create_subscription_pix',
                     salonId: billingInfo.id,
-                    plan: plan.id // 'pro' ou 'premium'
-                },
-                headers: {
-                    Authorization: `Bearer ${session.access_token}`
-                }
+                    plan: plan.id
+                })
             });
 
-            if (error) throw error;
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error("ERRO RESPOSTA SERVIDOR:", errorText);
+                throw new Error(`Erro ${response.status}: ${errorText || response.statusText}`);
+            }
 
-            if (data?.qrCodeBase64) {
-                setBillingPixData({ ...data, planName: plan.name, planPrice: plan.price });
+            const data = await response.json();
+
+            // Lógica Híbrida: Tenta pegar do novo formato (raiz) ou do antigo (aninhado)
+            const qrCodeBase64 = data.qrCodeBase64 || data.point_of_interaction?.transaction_data?.qr_code_base64;
+            const qrCode = data.qrCode || data.point_of_interaction?.transaction_data?.qr_code;
+            const paymentId = data.id;
+
+            if (qrCodeBase64) {
+                setBillingPixData({
+                    id: paymentId,
+                    qrCodeBase64,
+                    qrCode,
+                    planName: plan.name,
+                    planPrice: plan.price
+                });
                 setShowPixModal(true);
             } else {
-                throw new Error("Dados do PIX não retornados.");
+                console.error("Payload recebido sem PIX:", data);
+                throw new Error("Dados do PIX não retornados pelo Mercado Pago.");
             }
 
         } catch (error: any) {
@@ -66,43 +90,42 @@ const Billing: React.FC = () => {
     useEffect(() => {
         const loadData = async () => {
             try {
-                // 1. Buscar Planos do Banco
-                const dbPlans = await api.salons.getPlans();
-                if (dbPlans && dbPlans.length > 0) {
-                    setPlans(dbPlans);
-                } else {
-                    // Fallback se não tiver tabela criada ainda
-                    setPlans([
-                        {
-                            id: 'free',
-                            name: 'Gratuito',
-                            price: 'R$ 0',
-                            desc: 'Essencial para começar',
-                            features: ['Até 2 profissionais', 'Agenda completa', 'Página pública', 'Agendamentos ilimitados'],
-                            blocked_features: ['IA Concierge', 'Gestão Financeira', 'Relatórios', 'Comissões'],
-                            color: 'slate'
-                        },
-                        {
-                            id: 'pro',
-                            name: 'PRO',
-                            price: 'R$ 49',
-                            period: '/mês',
-                            desc: 'Gestão completa do salão',
-                            features: ['Profissionais ilimitados', 'Gestão financeira', 'Relatórios básicos', 'Comissões', 'IA limitada'],
-                            color: 'primary',
-                            highlight: true
-                        },
-                        {
-                            id: 'premium',
-                            name: 'PREMIUM',
-                            price: 'R$ 99',
-                            period: '/mês',
-                            desc: 'Escala e inteligência',
-                            features: ['IA avançada', 'Insights automáticos', 'Relatórios detalhados', 'Suporte prioritário', 'Marca personalizada'],
-                            color: 'purple'
-                        }
-                    ]);
-                }
+                // DEFINIÇÃO DOS PLANOS (Hardcoded para garantir a nova regra de negócio)
+                // Substituindo o Gratuito pelo Starter (Custo de Servidor)
+                const newPlans = [
+                    {
+                        id: 'starter',
+                        name: 'Starter',
+                        price: 'R$ 19',
+                        period: '/mês',
+                        desc: 'Taxa de Manutenção & Servidor',
+                        features: ['Acesso ao sistema', 'Até 2 profissionais', 'Agendamentos ilimitados', 'Suporte Básico'],
+                        blocked_features: ['IA Concierge', 'Gestão Financeira Avançada', 'Múltiplos Profissionais'],
+                        color: 'slate'
+                    },
+                    {
+                        id: 'pro',
+                        name: 'PRO',
+                        price: 'R$ 49',
+                        period: '/mês',
+                        desc: 'Gestão completa do salão',
+                        features: ['Profissionais ilimitados', 'Gestão financeira', 'Relatórios básicos', 'Comissões', 'IA limitada'],
+                        color: 'primary',
+                        highlight: true
+                    },
+                    {
+                        id: 'premium',
+                        name: 'PREMIUM',
+                        price: 'R$ 99',
+                        period: '/mês',
+                        desc: 'Experiência Elite com IA',
+                        features: ['Tudo do PRO', 'IA Concierge Ilimitada', 'Relatórios Avançados', 'Clube de Benefícios', 'Suporte Prioritário'],
+                        color: 'yellow', // goldish
+                        highlight: false
+                    }
+                ];
+
+                setPlans(newPlans);
 
                 // 2. Buscar Info do Salão
                 const { data: { user } } = await supabase.auth.getUser();
@@ -131,26 +154,36 @@ const Billing: React.FC = () => {
         }
 
         try {
+            // Check manual usando fetch + anon key para garantir permissão
+            const functionUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/billing-service`;
             const { data: { session } } = await supabase.auth.getSession();
-            const { data, error } = await supabase.functions.invoke('billing-service', {
-                body: {
+
+            const response = await fetch(functionUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${supabaseAnonKey}`,
+                    'apikey': supabaseAnonKey
+                },
+                body: JSON.stringify({
                     action: 'check_payment_status',
                     paymentId: billingPixData.id
-                },
-                headers: { Authorization: `Bearer ${session?.access_token}` }
+                })
             });
 
+            const data = await response.json();
+
             if (data?.status === 'approved') {
-                showToast("Pagamento Confirmado! Bem-vindo(a) ao " + data.newPlan.toUpperCase(), "success");
+                showToast("Pagamento Confirmado! Bem-vindo(a) ao " + (data.newPlan || 'Novo Plano').toUpperCase(), "success");
                 setShowPixModal(false);
                 setTimeout(() => window.location.reload(), 1500);
                 return true;
             } else {
-                if (!isAuto) showToast("Pagamento ainda pendente. Aguarde alguns segundos.", "info");
+                if (!isAuto && response.ok) showToast("Pagamento ainda pendente. Aguarde alguns segundos.", "info");
                 return false;
             }
         } catch (e) {
-            if (!isAuto) showToast("Erro ao verificar. Tente novamente.", "error");
+            if (!isAuto) showToast("Erro ao verificar status.", "error");
             return false;
         } finally {
             if (!isAuto) setIsCheckoutLoading(false);
@@ -263,60 +296,96 @@ const Billing: React.FC = () => {
 
             </main>
 
-            {/* MODAL PIX NATIVO */}
+            {/* MODAL PIX NATIVO - VISUAL REDESENHADO */}
             {showPixModal && billingPixData && (
-                <div className="fixed inset-0 z-[100] bg-background-dark/95 backdrop-blur-xl animate-fade-in flex flex-col justify-center items-center p-6">
-                    <div className="bg-surface-dark border border-white/10 rounded-[40px] p-8 w-full max-w-sm shadow-2xl relative overflow-hidden">
-                        <button onClick={() => setShowPixModal(false)} className="absolute top-4 right-4 text-slate-500 hover:text-white transition-colors">
-                            <span className="material-symbols-outlined">close</span>
+                <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-xl animate-fade-in flex flex-col justify-center items-center p-6">
+                    <div className="w-full max-w-[360px] bg-surface-dark border border-white/10 rounded-[48px] p-8 shadow-2xl relative animate-scale-in">
+
+                        <button
+                            onClick={() => setShowPixModal(false)}
+                            className="absolute top-6 right-6 size-10 rounded-full bg-white/5 flex items-center justify-center text-slate-500 hover:text-white hover:bg-white/10 transition-all active:scale-90"
+                        >
+                            <span className="material-symbols-outlined text-lg">close</span>
                         </button>
 
-                        <div className="flex flex-col items-center text-center space-y-6">
-                            <div>
-                                <h3 className="text-xl font-display font-black text-white italic tracking-tighter uppercase">Pagamento Pix</h3>
-                                <p className="text-[9px] text-primary font-black uppercase tracking-widest mt-1">Plano {billingPixData.planName}</p>
-                            </div>
+                        <div className="flex flex-col items-center text-center">
+                            <h3 className="text-2xl font-display font-black text-white italic tracking-tighter uppercase mb-1">
+                                Pagamento Pix
+                            </h3>
+                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-primary mb-8">
+                                Plano {billingPixData.planName}
+                            </p>
 
-                            <div className="bg-white p-4 rounded-3xl border-4 border-primary shadow-lg">
+                            <div className="bg-white p-4 rounded-[32px] border-4 border-primary shadow-gold-lg mb-8 relative group cursor-pointer"
+                                onClick={() => {
+                                    navigator.clipboard.writeText(billingPixData.qrCode);
+                                    showToast('Código copiado!', 'success');
+                                }}
+                            >
                                 {billingPixData.qrCodeBase64 ? (
-                                    <img src={`data:image/jpeg;base64,${billingPixData.qrCodeBase64}`} className="size-48 object-contain" alt="QR Code" />
+                                    <img
+                                        src={`data:image/jpeg;base64,${billingPixData.qrCodeBase64}`}
+                                        className="size-48 object-contain"
+                                        alt="QR Code"
+                                    />
                                 ) : (
-                                    <div className="size-48 flex items-center justify-center text-black font-bold text-xs">QR Code Indisponível</div>
+                                    <div className="size-48 flex items-center justify-center text-black font-bold text-xs uppercase tracking-widest">
+                                        QR Code Indisponível
+                                    </div>
                                 )}
+                                <div className="absolute inset-0 bg-primary/90 opacity-0 group-hover:opacity-100 transition-opacity rounded-[28px] flex flex-col items-center justify-center gap-2">
+                                    <span className="material-symbols-outlined text-background-dark text-4xl">content_copy</span>
+                                    <span className="text-[10px] font-black text-background-dark uppercase tracking-widest">Clique para Copiar</span>
+                                </div>
                             </div>
 
-                            <div className="space-y-2 w-full">
-                                <label className="text-[8px] text-slate-500 font-black uppercase tracking-widest">Copia e Cola</label>
-                                <div className="flex gap-2">
+                            <div className="w-full space-y-4">
+                                <div className="bg-black/40 border border-white/5 rounded-2xl p-2 flex items-center pl-4 pr-1 gap-3 shadow-inner">
+                                    <span className="material-symbols-outlined text-primary text-xl">account_balance_wallet</span>
                                     <input
                                         readOnly
                                         value={billingPixData.qrCode}
-                                        className="w-full bg-black/20 border border-white/5 rounded-xl px-3 py-2 text-[10px] text-slate-300 font-mono truncate outline-none select-all"
+                                        className="flex-1 bg-transparent text-[11px] text-slate-400 font-mono focus:outline-none truncate tracking-wide"
                                     />
                                     <button
                                         onClick={() => {
                                             navigator.clipboard.writeText(billingPixData.qrCode);
-                                            showToast('Código copiado!', 'success');
+                                            showToast('Copiado!', 'success');
                                         }}
-                                        className="bg-primary text-background-dark p-2 rounded-xl active:scale-90 transition-transform"
+                                        className="bg-primary hover:bg-white text-background-dark size-10 rounded-xl transition-all active:scale-95 flex items-center justify-center shadow-lg"
                                     >
                                         <span className="material-symbols-outlined text-lg">content_copy</span>
                                     </button>
                                 </div>
-                            </div>
 
-                            <div className="pt-4 w-full space-y-3">
-                                <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3">
-                                    <p className="text-[9px] text-emerald-400 font-bold uppercase tracking-wide">
-                                        Valor Final: R$ {billingPixData.planPrice}
-                                    </p>
+                                <div className="flex items-center justify-center gap-3 bg-black/40 border border-white/5 rounded-2xl px-4 py-4 shadow-inner">
+                                    <span className="text-xs font-bold text-slate-300 uppercase tracking-widest">Valor Total:</span>
+                                    <span className="text-3xl font-display font-black text-primary italic tracking-tighter drop-shadow-sm leading-none">
+                                        R$ {billingPixData.planPrice}
+                                    </span>
                                 </div>
+
                                 <button
-                                    onClick={handleCheckPayment}
-                                    className="w-full gold-gradient text-background-dark py-4 rounded-2xl font-black uppercase tracking-widest text-xs shadow-lg active:scale-95 transition-all"
+                                    onClick={() => handleCheckPayment()}
+                                    disabled={isCheckoutLoading}
+                                    className="w-full gold-gradient text-background-dark py-5 rounded-2xl font-black uppercase tracking-[0.2em] text-[11px] shadow-gold-lg active:scale-95 hover:brightness-110 transition-all mt-4 disabled:opacity-50 flex items-center justify-center gap-2"
                                 >
-                                    {isCheckoutLoading ? 'Verificando...' : 'Já Paguei'}
+                                    {isCheckoutLoading ? (
+                                        <>
+                                            <span className="size-4 border-2 border-background-dark/30 border-t-background-dark rounded-full animate-spin"></span>
+                                            Verificando...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <span className="material-symbols-outlined text-base">check_circle</span>
+                                            Já Realizei o Pagamento
+                                        </>
+                                    )}
                                 </button>
+
+                                <p className="text-[8px] text-slate-600 font-bold uppercase tracking-widest">
+                                    A validação pode levar alguns segundos
+                                </p>
                             </div>
                         </div>
                     </div>

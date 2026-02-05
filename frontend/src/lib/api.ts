@@ -369,42 +369,74 @@ export const api = {
     // --- Pagamentos (Mercado Pago API) ---
     payments: {
         async createOrder(salon: Salon, paymentData: any) {
-            let accessToken = salon.mp_access_token;
-            if (!accessToken) {
-                const { data } = await supabase.from('salons').select('mp_access_token').eq('id', salon.id).single();
-                if (data?.mp_access_token) accessToken = data.mp_access_token;
-            }
-            if (!accessToken) throw new Error("Acesso negado ao Mercado Pago.");
             const amount = paymentData.transaction_amount || paymentData.amount || (paymentData.formData && paymentData.formData.transaction_amount);
             const token = paymentData.token || (paymentData.formData && paymentData.formData.token);
             const paymentMethodId = paymentData.payment_method_id || (paymentData.formData && paymentData.formData.payment_method_id);
             const isPix = paymentMethodId === 'pix';
+
             if (!amount || (!token && !isPix)) throw new Error("Dados de pagamento incompletos.");
+
             const payload: any = {
                 transaction_amount: Number(amount),
                 description: paymentData.description || `Pagamento em ${salon.nome}`,
                 payment_method_id: paymentMethodId,
                 installments: Number(paymentData.installments || 1),
-                payer: { email: paymentData.payer?.email || 'cliente@aura.com' }
+                payer: {
+                    ...paymentData.payer,
+                    email: paymentData.payer?.email || 'cliente@aura.com'
+                }
             };
             if (token) payload.token = token;
-            const mpEndpoint = 'https://api.mercadopago.com/v1/payments';
-            const targetUrl = 'https://corsproxy.io/?' + encodeURIComponent(mpEndpoint);
-            const response = await fetch(targetUrl, {
+
+            // Chamada Direta via Fetch (Autenticada com apikey para evitar 403)
+            const functionUrl = `https://sycwdapzkvzvjedowfjq.supabase.co/functions/v1/billing-service`;
+            const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+            const response = await fetch(functionUrl, {
                 method: 'POST',
-                headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
+                headers: {
+                    'Content-Type': 'application/json',
+                    'apikey': anonKey,
+                    'Authorization': `Bearer ${anonKey}`
+                },
+                body: JSON.stringify({
+                    action: 'process_client_payment',
+                    salonId: salon.id,
+                    paymentData: payload,
+                    userId: paymentData.metadata?.userId // Passa o ID pra buscar nome real
+                })
             });
+
+            if (!response.ok) {
+                const errData = await response.json().catch(() => ({}));
+                throw new Error(errData.error || `Erro no servidor de pagamento (${response.status})`);
+            }
+
             return await response.json();
         },
-        async checkStatus(paymentId: string | number, accessToken: string) {
-            const mpEndpoint = `https://api.mercadopago.com/v1/payments/${paymentId}`;
-            const targetUrl = 'https://corsproxy.io/?' + encodeURIComponent(mpEndpoint);
-            const response = await fetch(targetUrl, {
-                method: 'GET',
-                headers: { 'Authorization': `Bearer ${accessToken}` }
-            });
-            return await response.json();
+        async checkStatus(paymentId: string | number, salonId?: string) {
+            try {
+                const functionUrl = `https://sycwdapzkvzvjedowfjq.supabase.co/functions/v1/billing-service`;
+                const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+                const response = await fetch(functionUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'apikey': anonKey,
+                        'Authorization': `Bearer ${anonKey}`
+                    },
+                    body: JSON.stringify({
+                        action: 'check_client_payment_status',
+                        paymentId: paymentId,
+                        salonId: salonId
+                    })
+                });
+                if (!response.ok) return { status: 'pending' };
+                return await response.json();
+            } catch (e) {
+                return { status: 'pending' };
+            }
         }
     },
 
