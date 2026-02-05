@@ -1,359 +1,426 @@
+-- ==========================================================
+-- LUXE AURA PREMIUM - SCHEMA FINAL CONSOLIDADO (v3.0)
+-- Data: 2026-02-04
+-- Contém: Estrutura, Segurança, RPCs Blindadas e Planos
+-- ==========================================================
 
--- ======================================================
--- AURA ELITE SaaS - SCHEMA MESTRE CONSOLIDADO (v1.1)
--- ======================================================
+-- 1. EXTENSÕES E CONFIGURAÇÃO
+CREATE SCHEMA IF NOT EXISTS extensions;
+GRANT USAGE ON SCHEMA extensions TO postgres, anon, authenticated, service_role;
 
--- Ativa extensão para UUID e Criptografia
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+CREATE EXTENSION IF NOT EXISTS pgcrypto SCHEMA extensions;
 
--- ==========================================
--- 1. TABELAS PRINCIPAIS
--- ==========================================
+-- Forçar search_path seguro
+ALTER DATABASE postgres SET search_path TO "$user", public, extensions;
 
--- SALÕES (TENANTS/UNIDADES)
-CREATE TABLE IF NOT EXISTS public.salons (
-    id uuid NOT NULL DEFAULT uuid_generate_v4() PRIMARY KEY,
-    nome text NOT NULL,
-    slug_publico text NOT NULL UNIQUE,
-    segmento text NOT NULL,
-    descricao text,
-    logo_url text,
-    banner_url text,
-    endereco text,
-    cidade text,
-    rating numeric DEFAULT 5.0,
-    reviews integer DEFAULT 0,
-    telefone text,
-    amenities text[] DEFAULT '{}',
-    gallery_urls text[] DEFAULT '{}',
-    location jsonb DEFAULT '{"lat": -23.55052, "lng": -46.633308}'::jsonb,
-    horario_funcionamento jsonb,
-    mp_public_key text,
-    mp_access_token text,
-    paga_no_local boolean DEFAULT false,
-    created_at timestamp with time zone DEFAULT now(),
-    
-    -- SaaS & Monetização
-    subscription_plan text DEFAULT 'free' CHECK (subscription_plan IN ('free', 'pro', 'premium')),
-    subscription_status text DEFAULT 'trialing' CHECK (subscription_status IN ('trialing', 'active', 'past_due', 'canceled')),
-    trial_start_at timestamp with time zone DEFAULT now(),
-    trial_ends_at timestamp with time zone DEFAULT (now() + interval '30 days')
+-- 2. TABELAS ESTRUTURAIS
+
+CREATE TABLE public.subscription_plans (
+  id text NOT NULL,
+  name text NOT NULL,
+  price numeric NOT NULL DEFAULT 0,
+  period text DEFAULT '/mês'::text,
+  description text,
+  features jsonb DEFAULT '[]'::jsonb,
+  blocked_features jsonb DEFAULT '[]'::jsonb,
+  limits jsonb DEFAULT '{}'::jsonb,
+  highlight boolean DEFAULT false,
+  color text DEFAULT 'slate'::text,
+  active boolean DEFAULT true,
+  created_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT subscription_plans_pkey PRIMARY KEY (id)
 );
 
--- PERFIS DE USUÁRIOS
-CREATE TABLE IF NOT EXISTS public.profiles (
-    id uuid NOT NULL PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-    email text,
-    full_name text,
-    phone text,
-    avatar_url text,
-    role text DEFAULT 'client' CHECK (role = ANY (ARRAY['client', 'pro', 'admin'])),
-    is_master boolean DEFAULT false, -- Acesso administrativo global
-    created_at timestamp with time zone DEFAULT now(),
-    updated_at timestamp with time zone
+CREATE TABLE public.salons (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  nome text NOT NULL,
+  slug_publico text NOT NULL UNIQUE,
+  segmento text NOT NULL,
+  descricao text,
+  logo_url text,
+  banner_url text,
+  endereco text,
+  cidade text,
+  rating numeric DEFAULT 0,
+  reviews integer DEFAULT 0,
+  telefone text,
+  amenities text[],
+  gallery_urls text[],
+  location jsonb,
+  horario_funcionamento jsonb,
+  created_at timestamp with time zone DEFAULT now(),
+  mp_public_key text,
+  mp_access_token text,
+  paga_no_local boolean DEFAULT false,
+  subscription_plan text DEFAULT 'starter'::text,
+  trial_start_at timestamp with time zone,
+  trial_ends_at timestamp with time zone,
+  subscription_status text DEFAULT 'trialing'::text,
+  CONSTRAINT salons_pkey PRIMARY KEY (id)
 );
 
--- PROFISSIONAIS (TIME/ARTISTAS)
-CREATE TABLE IF NOT EXISTS public.professionals (
-    id uuid NOT NULL DEFAULT uuid_generate_v4() PRIMARY KEY,
-    salon_id uuid REFERENCES public.salons(id) ON DELETE CASCADE,
-    user_id uuid REFERENCES auth.users(id) ON DELETE SET NULL,
-    name text NOT NULL,
-    role text,
-    image text,
-    email text,
-    productivity integer DEFAULT 0,
-    rating numeric DEFAULT 5.0,
-    status text DEFAULT 'active' CHECK (status = ANY (ARRAY['active', 'away'])),
-    comissao numeric DEFAULT 30,
-    horario_funcionamento jsonb,
-    created_at timestamp with time zone DEFAULT now()
+CREATE TABLE public.billing_history (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  salon_id uuid REFERENCES public.salons(id),
+  amount numeric NOT NULL,
+  plan_charged text NOT NULL,
+  payment_status text DEFAULT 'pending'::text,
+  payment_method text,
+  memo text,
+  created_at timestamp with time zone DEFAULT now(),
+  paid_at timestamp with time zone,
+  CONSTRAINT billing_history_pkey PRIMARY KEY (id)
 );
 
--- SERVIÇOS (CATÁLOGO)
-CREATE TABLE IF NOT EXISTS public.services (
-    id uuid NOT NULL DEFAULT uuid_generate_v4() PRIMARY KEY,
-    salon_id uuid REFERENCES public.salons(id) ON DELETE CASCADE,
-    name text NOT NULL,
-    duration_min integer NOT NULL DEFAULT 30,
-    price numeric NOT NULL,
-    category text,
-    description text,
-    image text,
-    premium boolean DEFAULT false,
-    created_at timestamp with time zone DEFAULT now()
+CREATE TABLE public.profiles (
+  id uuid NOT NULL PRIMARY KEY REFERENCES auth.users(id),
+  email text,
+  full_name text,
+  phone text,
+  avatar_url text,
+  role text DEFAULT 'client'::text CHECK (role = ANY (ARRAY['client'::text, 'pro'::text, 'admin'::text])),
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone,
+  is_master boolean DEFAULT false
 );
 
--- AGENDAMENTOS (AGENDA)
-CREATE TABLE IF NOT EXISTS public.appointments (
-    id uuid NOT NULL DEFAULT uuid_generate_v4() PRIMARY KEY,
-    salon_id uuid REFERENCES public.salons(id) ON DELETE CASCADE,
-    client_id uuid REFERENCES public.profiles(id) ON DELETE CASCADE,
-    professional_id uuid REFERENCES public.professionals(id) ON DELETE SET NULL,
-    service_names text,
-    valor numeric NOT NULL,
-    date date NOT NULL,
-    time time without time zone NOT NULL,
-    status text DEFAULT 'pending' CHECK (status = ANY (ARRAY['confirmed', 'pending', 'completed', 'canceled'])),
-    duration_min integer DEFAULT 30,
-    created_at timestamp with time zone DEFAULT now()
+CREATE TABLE public.professionals (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  salon_id uuid REFERENCES public.salons(id),
+  user_id uuid REFERENCES auth.users(id),
+  name text NOT NULL,
+  role text,
+  image text,
+  productivity integer DEFAULT 0,
+  rating numeric DEFAULT 0,
+  status text DEFAULT 'active'::text,
+  comissao numeric DEFAULT 0,
+  created_at timestamp with time zone DEFAULT now(),
+  email text,
+  horario_funcionamento jsonb,
+  CONSTRAINT professionals_pkey PRIMARY KEY (id)
 );
 
--- PRODUTOS (ESTOQUE/BOUTIQUE)
-CREATE TABLE IF NOT EXISTS public.products (
-    id uuid NOT NULL DEFAULT uuid_generate_v4() PRIMARY KEY,
-    salon_id uuid REFERENCES public.salons(id) ON DELETE CASCADE,
-    name text NOT NULL,
-    description text,
-    price numeric NOT NULL,
-    image text,
-    category text,
-    stock integer NOT NULL DEFAULT 0,
-    created_at timestamp with time zone DEFAULT now()
+CREATE TABLE public.services (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  salon_id uuid REFERENCES public.salons(id),
+  name text NOT NULL,
+  duration_min integer NOT NULL,
+  price numeric NOT NULL,
+  category text,
+  description text,
+  image text,
+  premium boolean DEFAULT false,
+  created_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT services_pkey PRIMARY KEY (id)
 );
 
--- CHAT (CONVERSAS & MENSAGENS)
-CREATE TABLE IF NOT EXISTS public.conversations (
-    id uuid NOT NULL DEFAULT uuid_generate_v4() PRIMARY KEY,
-    user1_id uuid REFERENCES auth.users(id) ON DELETE CASCADE,
-    user2_id uuid REFERENCES auth.users(id) ON DELETE CASCADE,
-    last_message text,
-    unread_count integer DEFAULT 0,
-    updated_at timestamp with time zone DEFAULT now()
+CREATE TABLE public.products (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  salon_id uuid REFERENCES public.salons(id),
+  name text NOT NULL,
+  description text,
+  price numeric NOT NULL,
+  image text,
+  category text,
+  stock integer NOT NULL DEFAULT 0,
+  created_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT products_pkey PRIMARY KEY (id)
 );
 
-CREATE TABLE IF NOT EXISTS public.messages (
-    id uuid NOT NULL DEFAULT uuid_generate_v4() PRIMARY KEY,
-    conversation_id uuid REFERENCES public.conversations(id) ON DELETE CASCADE,
-    sender_id uuid REFERENCES auth.users(id) ON DELETE CASCADE,
-    text text NOT NULL,
-    timestamp timestamp with time zone DEFAULT now()
+CREATE TABLE public.appointments (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  salon_id uuid REFERENCES public.salons(id),
+  client_id uuid REFERENCES public.profiles(id),
+  professional_id uuid REFERENCES public.professionals(id),
+  service_names text,
+  valor numeric NOT NULL,
+  date date NOT NULL,
+  time time without time zone NOT NULL,
+  status text DEFAULT 'pending'::text,
+  created_at timestamp with time zone DEFAULT now(),
+  duration_min integer DEFAULT 30,
+  CONSTRAINT appointments_pkey PRIMARY KEY (id)
 );
 
--- REVIEWS / AVALIAÇÕES
-CREATE TABLE IF NOT EXISTS public.reviews (
-    id uuid NOT NULL DEFAULT uuid_generate_v4() PRIMARY KEY,
-    appointment_id uuid REFERENCES public.appointments(id) ON DELETE CASCADE,
-    salon_id uuid REFERENCES public.salons(id) ON DELETE CASCADE,
-    professional_id uuid REFERENCES public.professionals(id) ON DELETE SET NULL,
-    client_id uuid REFERENCES public.profiles(id) ON DELETE CASCADE,
-    rating integer CHECK (rating >= 1 AND rating <= 5),
-    comment text,
-    created_at timestamp with time zone DEFAULT now()
+CREATE TABLE public.reviews (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  appointment_id uuid REFERENCES public.appointments(id),
+  salon_id uuid REFERENCES public.salons(id),
+  professional_id uuid REFERENCES public.professionals(id),
+  client_id uuid REFERENCES public.profiles(id),
+  rating integer CHECK (rating >= 1 AND rating <= 5),
+  comment text,
+  created_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT reviews_pkey PRIMARY KEY (id)
 );
 
--- GALERIA DE FOTOS
-CREATE TABLE IF NOT EXISTS public.gallery_items (
-    id uuid NOT NULL DEFAULT uuid_generate_v4() PRIMARY KEY,
-    salon_id uuid REFERENCES public.salons(id) ON DELETE CASCADE,
-    url text NOT NULL,
-    category text,
-    title text,
-    created_at timestamp with time zone DEFAULT now()
+CREATE TABLE public.ai_usage (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  user_id uuid REFERENCES auth.users(id),
+  month character NOT NULL,
+  count integer DEFAULT 0,
+  created_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT ai_usage_pkey PRIMARY KEY (id)
 );
 
--- ==========================================
--- 2. TABELAS DE GESTÃO SaaS
--- ==========================================
-
--- USO DE IA (CONTROLE DE LIMITES)
-CREATE TABLE IF NOT EXISTS public.ai_usage (
-    id uuid NOT NULL DEFAULT uuid_generate_v4() PRIMARY KEY,
-    salon_id uuid REFERENCES public.salons(id) ON DELETE CASCADE UNIQUE,
-    count integer DEFAULT 0,
-    last_reset timestamp with time zone DEFAULT now()
+CREATE TABLE public.conversations (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  user1_id uuid REFERENCES auth.users(id),
+  user2_id uuid REFERENCES auth.users(id),
+  last_message text,
+  unread_count integer DEFAULT 0,
+  updated_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT conversations_pkey PRIMARY KEY (id)
 );
 
--- HISTÓRICO DE FATURAMENTO (MONETIZAÇÃO)
-CREATE TABLE IF NOT EXISTS public.billing_history (
-    id uuid NOT NULL DEFAULT uuid_generate_v4() PRIMARY KEY,
-    salon_id uuid REFERENCES public.salons(id) ON DELETE CASCADE,
-    amount numeric NOT NULL,
-    plan_charged text NOT NULL,
-    payment_status text DEFAULT 'pending',
-    payment_method text,
-    memo text,
-    paid_at timestamp with time zone,
-    created_at timestamp with time zone DEFAULT now()
+CREATE TABLE public.messages (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  conversation_id uuid REFERENCES public.conversations(id),
+  sender_id uuid REFERENCES auth.users(id),
+  text text NOT NULL,
+  timestamp timestamp with time zone DEFAULT now(),
+  CONSTRAINT messages_pkey PRIMARY KEY (id)
 );
 
--- ==========================================
--- 3. FUNÇÕES E SEGURANÇA (RPC & TRIGGERS)
--- ==========================================
+CREATE TABLE public.gallery_items (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  salon_id uuid REFERENCES public.salons(id),
+  url text NOT NULL,
+  category text,
+  title text,
+  created_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT gallery_items_pkey PRIMARY KEY (id)
+);
 
--- [NOVO] Função God Mode para Gerir Acesso de Colaboradores
-CREATE OR REPLACE FUNCTION public.admin_manage_user_access(p_email TEXT, p_password TEXT, p_full_name TEXT)
-RETURNS UUID
+-- 3. SEEDING DE DADOS (PLANOS OFICIAIS)
+DELETE FROM public.subscription_plans WHERE id = 'free';
+
+INSERT INTO public.subscription_plans (id, name, price, period, description, features, blocked_features, limits, highlight, color, active)
+VALUES
+(
+  'starter', 'Starter', 19.00, '/mês', 'Taxa de Manutenção & Hospedagem',
+  '["Acesso ao Sistema", "Agenda Inteligente", "Até 2 Profissionais", "Link de Agendamento", "Suporte Básico"]'::jsonb,
+  '["IA Concierge", "Gestão Financeira Completa", "Comissões Automáticas"]'::jsonb,
+  '{"max_professionals": 2, "financial_enabled": false, "ai_enabled": false, "max_services": 30, "max_products": 30}'::jsonb,
+  false, 'slate', true
+),
+(
+  'pro', 'PRO', 49.00, '/mês', 'Gestão completa do salão',
+  '["Profissionais Ilimitados", "Gestão Financeira", "Relatórios Básicos", "Comissões", "IA Limitada"]'::jsonb,
+  '[]'::jsonb,
+  '{"max_professionals": 999, "financial_enabled": true, "ai_enabled": true, "ai_monthly_limit": 100}'::jsonb,
+  true, 'primary', true
+),
+(
+  'premium', 'PREMIUM', 99.00, '/mês', 'Experiência Elite com IA',
+  '["Tudo do PRO", "IA Concierge Ilimitada", "Relatórios Avançados", "Clube de Benefícios", "Suporte Prioritário"]'::jsonb,
+  '[]'::jsonb,
+  '{"max_professionals": 999, "financial_enabled": true, "ai_enabled": true, "ai_monthly_limit": 9999}'::jsonb,
+  false, 'gold', true
+)
+ON CONFLICT (id) DO UPDATE SET 
+  price = EXCLUDED.price,
+  features = EXCLUDED.features,
+  limits = EXCLUDED.limits;
+
+-- 4. FUNÇÕES RPC (BUSINESS LOGIC)
+
+-- 4.1. Faturamento e Limites (Com Fallback e Proteção de Search Path)
+CREATE OR REPLACE FUNCTION public.get_salon_billing_info(p_salon_id uuid)
+RETURNS jsonb
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = public, auth, extensions
-AS $$
+SET search_path = public
+AS $function$
 DECLARE
-    new_user_id UUID;
-    clean_email TEXT := LOWER(TRIM(p_email));
+    v_plan_id text;
+    v_subscription_status text;
+    v_trial_ends_at timestamptz;
+    v_plan_data jsonb;
+    v_limits jsonb;
+    v_is_trial_active boolean;
 BEGIN
-    -- 1. Verifica se já existe na auth.users
-    SELECT id INTO new_user_id FROM auth.users WHERE email = clean_email;
+    SELECT subscription_plan, subscription_status, trial_ends_at
+    INTO v_plan_id, v_subscription_status, v_trial_ends_at
+    FROM public.salons WHERE id = p_salon_id;
 
-    IF new_user_id IS NULL THEN
-        -- CRIA USUÁRIO SE NÃO EXISTIR
-        INSERT INTO auth.users (email, encrypted_password, email_confirmed_at, raw_user_meta_data, created_at, updated_at, aud, role)
-        VALUES (
-            clean_email,
-            extensions.crypt(p_password, extensions.gen_salt('bf')),
-            now(),
-            jsonb_build_object('name', p_full_name, 'role', 'pro'),
-            now(), now(), 'authenticated', 'authenticated'
-        ) RETURNING id INTO new_user_id;
+    IF NOT FOUND THEN RETURN NULL; END IF;
 
-        -- Garante a criação da identidade do Supabase
-        INSERT INTO auth.identities (id, user_id, identity_data, provider, last_sign_in_at, created_at, updated_at)
-        VALUES (uuid_generate_v4(), new_user_id, jsonb_build_object('sub', new_user_id, 'email', clean_email), 'email', now(), now(), now());
-    ELSE
-        -- ATUALIZA SENHA SE JÁ EXISTIR
-        UPDATE auth.users 
-        SET encrypted_password = extensions.crypt(p_password, extensions.gen_salt('bf')),
-            updated_at = now()
-        WHERE id = new_user_id;
+    SELECT to_jsonb(sp.*) INTO v_plan_data FROM public.subscription_plans sp WHERE sp.id = v_plan_id;
+    
+    IF v_plan_data IS NULL THEN
+         SELECT to_jsonb(sp.*) INTO v_plan_data FROM public.subscription_plans sp WHERE sp.id = 'starter';
+         v_plan_id := 'starter';
     END IF;
 
-    RETURN new_user_id;
-END;
-$$;
+    v_limits := v_plan_data->'limits';
+    v_is_trial_active := (v_subscription_status = 'trialing' AND v_trial_ends_at > now());
 
--- Função de Registro Mestre (Salão + Proprietário + Trial PRO)
-CREATE OR REPLACE FUNCTION public.register_new_salon_and_owner(
-    p_user_id UUID,
-    p_salon_name TEXT,
-    p_segment TEXT,
-    p_owner_name TEXT,
-    p_slug TEXT,
-    p_email TEXT,
-    p_logo_url TEXT,
-    p_banner_url TEXT,
-    p_initial_hours JSONB
+    RETURN jsonb_build_object(
+        'plan_id', v_plan_id,
+        'subscription_status', v_subscription_status,
+        'trial_ends_at', v_trial_ends_at,
+        'is_trial_active', v_is_trial_active,
+        'plan_name', v_plan_data->>'name',
+        'price', v_plan_data->>'price',
+        'limits', v_limits,
+        'features', v_plan_data->'features',
+        'blocked_features', v_plan_data->'blocked_features'
+    );
+END;
+$function$;
+
+-- 4.2. Atualização de Dados (Mega Update)
+CREATE OR REPLACE FUNCTION public.mega_update_salon(p_id uuid, p_data jsonb)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+DECLARE v_updated_id uuid;
+BEGIN
+    UPDATE public.salons SET
+        nome = COALESCE((p_data->>'nome'), nome),
+        slug_publico = COALESCE((p_data->>'slug_publico'), slug_publico),
+        segmento = COALESCE((p_data->>'segmento'), segmento),
+        descricao = COALESCE((p_data->>'descricao'), descricao),
+        telefone = COALESCE((p_data->>'telefone'), telefone),
+        endereco = COALESCE((p_data->>'endereco'), endereco),
+        cidade = COALESCE((p_data->>'cidade'), cidade),
+        paga_no_local = COALESCE((p_data->>'paga_no_local')::boolean, paga_no_local),
+        mp_public_key = COALESCE((p_data->>'mp_public_key'), mp_public_key),
+        mp_access_token = COALESCE((p_data->>'mp_access_token'), mp_access_token),
+        amenities = COALESCE((p_data->'amenities'), amenities),
+        gallery_urls = COALESCE((p_data->'gallery_urls'), gallery_urls),
+        location = COALESCE((p_data->'location'), location),
+        horario_funcionamento = COALESCE((p_data->'horario_funcionamento'), horario_funcionamento),
+        updated_at = now()
+    WHERE id = p_id RETURNING id INTO v_updated_id;
+    RETURN jsonb_build_object('id', v_updated_id, 'status', 'success');
+END; $$;
+
+-- 4.3. Agendamento Inteligente (Timezone Fix & Past Block)
+CREATE OR REPLACE FUNCTION public.get_available_slots_rpc(
+    p_pro_id uuid,
+    p_date date,
+    p_duration_min integer,
+    p_client_now_min integer DEFAULT 0
 )
-RETURNS UUID 
+RETURNS jsonb
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = public, auth, extensions
-AS $$
+SET search_path = public
+AS $function$
 DECLARE
-    new_salon_id UUID;
+    v_conf jsonb;
+    v_day_of_week text;
+    v_open_str text;
+    v_close_str text;
+    v_start_min integer;
+    v_end_min integer;
+    v_slots text[] := ARRAY[]::text[];
+    v_curr_min integer;
+    v_slot_str text;
+    v_busy_ranges int4range[];
+    v_is_today boolean;
+    v_timezone text := 'America/Sao_Paulo'; 
 BEGIN
-    INSERT INTO public.salons (
-        nome, slug_publico, segmento, logo_url, banner_url, horario_funcionamento,
-        subscription_plan, subscription_status, trial_ends_at
-    ) VALUES (
-        p_salon_name, p_slug, p_segment, p_logo_url, p_banner_url, p_initial_hours,
-        'pro', 'trialing', now() + interval '30 days'
-    ) RETURNING id INTO new_salon_id;
+    v_day_of_week := CASE extract(isodow from p_date)
+        WHEN 1 THEN 'segunda' WHEN 2 THEN 'terca' WHEN 3 THEN 'quarta' WHEN 4 THEN 'quinta'
+        WHEN 5 THEN 'sexta' WHEN 6 THEN 'sabado' WHEN 7 THEN 'domingo'
+    END;
 
-    INSERT INTO public.professionals (
-        salon_id, user_id, name, role, email, status, comissao
-    ) VALUES (
-        new_salon_id, p_user_id, p_owner_name, 'Proprietário', p_email, 'active', 100
-    );
+    SELECT horario_funcionamento INTO v_conf FROM public.professionals WHERE id = p_pro_id;
+    IF v_conf IS NULL OR v_conf->v_day_of_week IS NULL THEN
+         SELECT s.horario_funcionamento INTO v_conf FROM public.salons s JOIN public.professionals p ON p.salon_id = s.id WHERE p.id = p_pro_id;
+    END IF;
 
-    INSERT INTO public.ai_usage (salon_id, count) VALUES (new_salon_id, 0);
+    IF v_conf IS NULL OR (v_conf->v_day_of_week->>'closed')::boolean IS TRUE THEN
+        RETURN jsonb_build_object('slots', v_slots);
+    END IF;
 
-    RETURN new_salon_id;
+    v_open_str := v_conf->v_day_of_week->>'open';
+    v_close_str := v_conf->v_day_of_week->>'close';
+    IF v_open_str IS NULL OR v_close_str IS NULL THEN
+        RETURN jsonb_build_object('slots', v_slots);
+    END IF;
+
+    v_start_min := (split_part(v_open_str, ':', 1)::int * 60) + split_part(v_open_str, ':', 2)::int;
+    v_end_min := (split_part(v_close_str, ':', 1)::int * 60) + split_part(v_close_str, ':', 2)::int;
+
+    SELECT array_agg(int4range(
+        (extract(hour from time)::int * 60 + extract(minute from time)::int),
+        (extract(hour from time)::int * 60 + extract(minute from time)::int + duration_min)
+    )) INTO v_busy_ranges
+    FROM public.appointments
+    WHERE professional_id = p_pro_id AND date = p_date AND status NOT IN ('canceled', 'declined', 'reagendado');
+
+    v_is_today := (p_date = (now() AT TIME ZONE v_timezone)::date);
+    IF p_date < (now() AT TIME ZONE v_timezone)::date THEN
+         RETURN jsonb_build_object('slots', v_slots);
+    END IF;
+
+    v_curr_min := v_start_min;
+    WHILE (v_curr_min + p_duration_min) <= v_end_min LOOP
+        IF v_is_today AND v_curr_min < p_client_now_min THEN
+            v_curr_min := v_curr_min + 30;
+            CONTINUE;
+        END IF;
+
+        DECLARE
+            is_busy boolean := false;
+            range_check int4range;
+            i int4range;
+        BEGIN
+            range_check := int4range(v_curr_min, v_curr_min + p_duration_min);
+            IF v_busy_ranges IS NOT NULL THEN
+                FOREACH i IN ARRAY v_busy_ranges LOOP
+                    IF i && range_check THEN is_busy := true; EXIT; END IF;
+                END LOOP;
+            END IF;
+            IF NOT is_busy THEN
+                v_slot_str := to_char((v_curr_min || ' minutes')::interval, 'HH24:MI');
+                v_slots := array_append(v_slots, v_slot_str);
+            END IF;
+        END;
+        v_curr_min := v_curr_min + 30; 
+    END LOOP;
+    RETURN jsonb_build_object('slots', v_slots);
 END;
-$$;
+$function$;
 
--- Trigger para sincronização automática de Profiles
-CREATE OR REPLACE FUNCTION public.handle_new_user()
-RETURNS trigger AS $$
-BEGIN
-  INSERT INTO public.profiles (id, email, full_name, role, phone)
-  VALUES (
-    new.id,
-    new.email,
-    COALESCE(new.raw_user_meta_data->>'name', new.raw_user_meta_data->>'full_name', 'Novo Usuário'),
-    COALESCE(new.raw_user_meta_data->>'role', 'client'),
-    new.raw_user_meta_data->>'phone'
-  )
-  ON CONFLICT (id) DO UPDATE SET
-    full_name = EXCLUDED.full_name,
-    role = EXCLUDED.role,
-    email = EXCLUDED.email;
-  RETURN new;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
-DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
-CREATE TRIGGER on_auth_user_created AFTER INSERT ON auth.users FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
-
--- ============================================
--- 4. POLÍTICAS DE RLS (SEGURANÇA)
--- ============================================
-
-ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Profiles viewable by everyone" ON public.profiles FOR SELECT USING (true);
-CREATE POLICY "Users manage own profile" ON public.profiles FOR ALL USING (auth.uid() = id);
-
+-- 5. POLÍTICAS DE SEGURANÇA (RLS)
 ALTER TABLE public.salons ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Public salons viewable by everyone" ON public.salons FOR SELECT USING (true);
-CREATE POLICY "Admins manage own salon" ON public.salons FOR UPDATE TO authenticated USING (
-    EXISTS (SELECT 1 FROM public.professionals WHERE salon_id = salons.id AND user_id = auth.uid() AND role = 'Proprietário')
-);
-
+ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.professionals ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Professionals viewable by everyone" ON public.professionals FOR SELECT USING (true);
-CREATE POLICY "Admins manage salon professionals" ON public.professionals FOR ALL TO authenticated USING (
-    EXISTS (SELECT 1 FROM public.professionals p2 WHERE p2.salon_id = professionals.salon_id AND p2.user_id = auth.uid())
-);
-
-ALTER TABLE public.services ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Services viewable by everyone" ON public.services FOR SELECT USING (true);
-CREATE POLICY "Admins manage salon services" ON public.services FOR ALL TO authenticated USING (
-    EXISTS (SELECT 1 FROM public.professionals WHERE salon_id = services.salon_id AND user_id = auth.uid())
-);
-
-ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Products viewable by everyone" ON public.products FOR SELECT USING (true);
-CREATE POLICY "Admins manage salon products" ON public.products FOR ALL TO authenticated USING (
-    EXISTS (SELECT 1 FROM public.professionals WHERE salon_id = products.salon_id AND user_id = auth.uid())
-);
-
-ALTER TABLE public.appointments ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Clients view own appointments" ON public.appointments FOR SELECT USING (auth.uid() = client_id);
-CREATE POLICY "Pros view salon appointments" ON public.appointments FOR SELECT USING (
-    EXISTS (SELECT 1 FROM public.professionals WHERE salon_id = appointments.salon_id AND user_id = auth.uid())
-);
-CREATE POLICY "Clients create appointments" ON public.appointments FOR INSERT TO authenticated WITH CHECK (auth.uid() = client_id);
-CREATE POLICY "Pros update salon appointments" ON public.appointments FOR UPDATE TO authenticated USING (
-    EXISTS (SELECT 1 FROM public.professionals WHERE salon_id = appointments.salon_id AND user_id = auth.uid())
-);
-
-ALTER TABLE public.conversations ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Users view own conversations" ON public.conversations FOR SELECT USING (auth.uid() = user1_id OR auth.uid() = user2_id);
-CREATE POLICY "Users create conversations" ON public.conversations FOR INSERT TO authenticated WITH CHECK (auth.uid() = user1_id OR auth.uid() = user2_id);
-
-ALTER TABLE public.messages ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Users view conversation messages" ON public.messages FOR SELECT USING (
-    EXISTS (SELECT 1 FROM public.conversations WHERE id = messages.conversation_id AND (user1_id = auth.uid() OR user2_id = auth.uid()))
-);
-CREATE POLICY "Users send messages" ON public.messages FOR INSERT TO authenticated WITH CHECK (auth.uid() = sender_id);
-
-ALTER TABLE public.ai_usage ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Admins view salon AI usage" ON public.ai_usage FOR SELECT TO authenticated USING (
-    EXISTS (SELECT 1 FROM public.professionals WHERE salon_id = ai_usage.salon_id AND user_id = auth.uid())
-);
-
 ALTER TABLE public.billing_history ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Admins view salon billing" ON public.billing_history FOR SELECT TO authenticated USING (
-    EXISTS (SELECT 1 FROM public.professionals WHERE salon_id = billing_history.salon_id AND user_id = auth.uid())
+
+-- 5.1. Salões
+DROP POLICY IF EXISTS "Leitura pública total" ON public.salons;
+CREATE POLICY "Leitura pública total" ON public.salons FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Authenticated users can create salons" ON public.salons;
+CREATE POLICY "Authenticated users can create salons" ON public.salons FOR INSERT TO authenticated WITH CHECK (auth.uid() IS NOT NULL);
+
+DROP POLICY IF EXISTS "Update para autenticados" ON public.salons;
+CREATE POLICY "Update para autenticados" ON public.salons FOR UPDATE TO authenticated USING (
+  EXISTS (SELECT 1 FROM public.professionals WHERE professionals.salon_id = salons.id AND professionals.user_id = auth.uid() AND professionals.status = 'active')
 );
 
--- Liberação de acesso para Master (Visão Global)
-CREATE POLICY "Master access all salons" ON public.salons FOR ALL TO authenticated USING (
-    EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND is_master = true)
+-- 5.2. Perfis (Login Seguro)
+DROP POLICY IF EXISTS "Visualização de perfis" ON public.profiles;
+CREATE POLICY "Visualização de perfis" ON public.profiles FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Edição de perfis próprios" ON public.profiles;
+CREATE POLICY "Edição de perfis próprios" ON public.profiles FOR UPDATE USING (auth.uid() = id);
+
+DROP POLICY IF EXISTS "Users can create profile" ON public.profiles;
+CREATE POLICY "Users can create profile" ON public.profiles FOR INSERT WITH CHECK (auth.uid() = id);
+
+-- 5.3. Faturamento
+DROP POLICY IF EXISTS "Ver faturas do próprio salão" ON public.billing_history;
+CREATE POLICY "Ver faturas do próprio salão" ON public.billing_history FOR SELECT USING (
+  salon_id IN (SELECT salon_id FROM public.professionals WHERE user_id = auth.uid())
 );
-CREATE POLICY "Master access all professionals" ON public.professionals FOR ALL TO authenticated USING (
-    EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND is_master = true)
-);
-CREATE POLICY "Master access all appointments" ON public.appointments FOR ALL TO authenticated USING (
-    EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND is_master = true)
-);
+
+-- Permissões Gerais
+GRANT ALL ON ALL TABLES IN SCHEMA public TO postgres, anon, authenticated, service_role;
+GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA public TO anon, authenticated, service_role;
