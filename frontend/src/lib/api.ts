@@ -237,16 +237,42 @@ export const api = {
             })) as Appointment[];
         },
         async update(id: string, updates: Partial<Appointment>) {
+            console.log('🔄 API: Iniciando update do agendamento:', { id, updates });
             const { data, error } = await supabase.from('appointments').update(updates).eq('id', id).select().single();
-            if (error) throw error;
+            console.log('🔄 API: Resultado do update:', { data, error });
+            if (error) {
+                console.error('🔄 API: ERRO ao atualizar:', error);
+                throw error;
+            }
+            console.log('🔄 API: Update concluído com sucesso!');
             return data as Appointment;
         },
         async updateStatus(id: string, status: Appointment['status']) {
+            console.log('📊 API: Atualizando status para:', { id, status });
             return this.update(id, { status });
         },
         async delete(id: string) {
-            const { error } = await supabase.from('appointments').delete().eq('id', id);
-            if (error) throw error;
+            console.log('🔥 API: Iniciando delete do agendamento:', id);
+            const { data, error } = await supabase.from('appointments').delete().eq('id', id).select();
+            console.log('🔥 API: Resultado do delete:', { data, error });
+
+            if (error) {
+                console.error('🔥 API: ERRO ao deletar:', error);
+                throw error;
+            }
+
+            // VERIFICAÇÃO CRÍTICA: Se data está vazio, nada foi deletado!
+            if (!data || data.length === 0) {
+                const errorMsg = '❌ NENHUM registro foi deletado! Possíveis causas:\n' +
+                    '1. RLS (Row Level Security) bloqueando a operação\n' +
+                    '2. Registro não existe\n' +
+                    '3. Usuário sem permissão para deletar';
+                console.error('🔥 API:', errorMsg);
+                throw new Error('Não foi possível deletar: sem permissão ou registro não encontrado');
+            }
+
+            console.log('🔥 API: Delete concluído com sucesso!', data.length, 'registro(s) deletado(s)');
+            return { success: true, deleted: data };
         }
     },
 

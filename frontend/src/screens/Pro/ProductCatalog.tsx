@@ -19,6 +19,7 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({ salonId }) => {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('Todos');
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [billingInfo, setBillingInfo] = useState<any>(null);
 
   const categories = ['Todos', 'Cabelo', 'Barba', 'Rosto', 'Corpo', 'Kits', 'Acessório', 'Perfumes'];
@@ -104,20 +105,19 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({ salonId }) => {
     }
   };
 
-  const handleDelete = async () => {
+  const confirmDelete = async () => {
     if (!editingProduct) return;
-    if (window.confirm('Tem certeza que deseja excluir este produto?')) {
-      setIsLoading(true);
-      try {
-        await api.products.delete(editingProduct.id);
-        setProducts(products.filter(p => p.id !== editingProduct.id));
-        showToast("🗑️ Produto excluído!", 'success');
-        closeModal();
-      } catch (error: any) {
-        showToast("Erro ao excluir produto: " + error.message, 'error');
-      } finally {
-        setIsLoading(false);
-      }
+    setIsLoading(true);
+    try {
+      await api.products.delete(editingProduct.id);
+      setProducts(products.filter(p => p.id !== editingProduct.id));
+      showToast("🗑️ Produto excluído!", 'success');
+      setShowDeleteConfirm(false);
+      closeModal();
+    } catch (error: any) {
+      showToast("Erro ao excluir produto: " + error.message, 'error');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -343,7 +343,7 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({ salonId }) => {
                   {editingProduct && (
                     <button
                       type="button"
-                      onClick={handleDelete}
+                      onClick={() => setShowDeleteConfirm(true)}
                       disabled={isLoading}
                       className="w-full bg-red-500/10 border border-red-500/20 text-red-500 font-black py-4 rounded-2xl uppercase tracking-widest text-[10px] active:scale-95 transition-all"
                     >
@@ -352,6 +352,41 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({ salonId }) => {
                   )}
                 </div>
               </form>
+            </div>
+          </div>
+        )}
+
+        {/* Modal de Confirmação de Exclusão */}
+        {showDeleteConfirm && (
+          <div className="fixed inset-0 z-[70] bg-black/80 backdrop-blur-xl flex items-center justify-center p-6 animate-fade-in">
+            <div className="bg-surface-dark border border-red-500/20 rounded-[32px] p-8 max-w-sm w-full space-y-6 shadow-2xl shadow-red-500/10">
+              <div className="text-center space-y-4">
+                <div className="size-16 mx-auto rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center">
+                  <span className="material-symbols-outlined text-red-500 text-3xl">warning</span>
+                </div>
+                <h3 className="text-xl font-display font-black text-white italic tracking-tight uppercase">
+                  Excluir Produto?
+                </h3>
+                <p className="text-slate-400 text-sm">
+                  Esta ação não pode ser desfeita. O produto será removido permanentemente do estoque.
+                </p>
+              </div>
+              <div className="space-y-3">
+                <button
+                  onClick={confirmDelete}
+                  disabled={isLoading}
+                  className="w-full bg-red-500 text-white font-black py-4 rounded-2xl uppercase tracking-widest text-xs active:scale-95 transition-all shadow-lg shadow-red-500/20"
+                >
+                  {isLoading ? <div className="size-4 border-2 border-white/30 border-t-white rounded-full animate-spin mx-auto"></div> : 'Sim, Excluir'}
+                </button>
+                <button
+                  onClick={() => setShowDeleteConfirm(false)}
+                  disabled={isLoading}
+                  className="w-full bg-white/5 border border-white/10 text-white font-black py-4 rounded-2xl uppercase tracking-widest text-xs active:scale-95 transition-all"
+                >
+                  Cancelar
+                </button>
+              </div>
             </div>
           </div>
         )}

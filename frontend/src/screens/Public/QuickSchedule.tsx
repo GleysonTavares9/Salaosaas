@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { api } from '../../lib/api';
 import { supabase } from '../../lib/supabase';
@@ -44,15 +44,16 @@ const TypewriterText = React.memo(({ text }: { text: string }) => {
         if (currentIndex < text.length) {
             const char = text[currentIndex];
 
-            // Cálculo de atraso "Humano"
-            let nextDelay = 35; // Base: 35ms por letra
+            // Super rápido - quase instantâneo
+            let nextDelay = 8; // Base ultra rápida (8ms)
 
-            if (char === '.' || char === '!' || char === '?') nextDelay = 700; // Fim de frase: Pausa longa
-            else if (char === ',') nextDelay = 300; // Vírgula: Pausa média
-            else if (char === '\n') nextDelay = 500; // Quebra de linha: Pausa
+            // Pausas mínimas apenas para legibilidade
+            if (char === '.' || char === '!' || char === '?') nextDelay = 150; // Pausa curta
+            else if (char === ',') nextDelay = 60; // Micro-pausa
+            else if (char === '\n') nextDelay = 100; // Quebra de linha
 
-            // Adiciona um pouco de aleatoriedade (5-15ms) para não ser perfeito
-            const variance = Math.floor(Math.random() * 15);
+            // Variação mínima (0-5ms)
+            const variance = Math.floor(Math.random() * 5);
 
             const timeout = setTimeout(() => {
                 setDisplayedText(prev => prev + char);
@@ -63,8 +64,8 @@ const TypewriterText = React.memo(({ text }: { text: string }) => {
         }
     }, [currentIndex, text]);
 
-    return renderText(displayedText);
-});
+    return useMemo(() => renderText(displayedText), [displayedText]);
+}, (prevProps, nextProps) => prevProps.text === nextProps.text);
 
 const TypingIndicator = () => (
     <div className="flex justify-start animate-fade-in">
@@ -110,6 +111,17 @@ const QuickSchedule: React.FC = () => {
 
     const scrollRef = useRef<HTMLDivElement>(null);
     const initialized = useRef(false);
+
+    // Optimized handlers with useCallback
+    const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        setInputValue(e.target.value);
+    }, []);
+
+    const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter') {
+            handleSend();
+        }
+    }, []);
 
     const checkIsClosed = (salonData: Salon | null, d: Date): boolean => {
         if (!salonData?.horario_funcionamento) return false;
@@ -213,29 +225,30 @@ const QuickSchedule: React.FC = () => {
                 const text = botQueue[0];
                 setBotQueue(prev => prev.slice(1));
 
-                // 1. Mostrar os 3 pontinhos (Pensando)
+                // 1. Mostrar os 3 pontinhos (Pensando) - Rápido
                 setIsTyping(true);
-                const dotsTime = typeof text === 'string' ? Math.min(Math.max(text.length * 8, 400), 800) : 600;
+                const dotsTime = typeof text === 'string' ? Math.min(text.length * 3, 300) : 200;
                 await new Promise(r => setTimeout(r, dotsTime));
                 setIsTyping(false);
 
                 // 2. Adicionar a mensagem à lista (Inicia Typewriter)
                 setMessages(prev => [...prev, { id: `${Date.now()}-${Math.random()}`, text, sender: 'bot' }]);
 
-                // 3. Estimar tempo de digitação para a próxima frase esperar
+                // 3. ESPERAR o typewriter terminar antes da próxima mensagem
                 if (typeof text === 'string') {
-                    const pauses = (text.match(/[.!?]/g) || []).length * 700 + (text.match(/[,]/g) || []).length * 300;
-                    const totalTypingTime = (text.length * 45) + pauses + 800; // Tempo total + margem de fôlego
+                    // Calcula tempo total de digitação (8ms por letra + pausas)
+                    const pauses = (text.match(/[.!?]/g) || []).length * 150 + (text.match(/[,]/g) || []).length * 60;
+                    const totalTypingTime = (text.length * 8) + pauses + 100; // Tempo real do typewriter
                     await new Promise(r => setTimeout(r, totalTypingTime));
                 } else {
-                    await new Promise(r => setTimeout(r, 1000));
+                    await new Promise(r => setTimeout(r, 400));
                 }
 
                 setIsProcessingQueue(false);
             };
             processNext();
         } else if (!isProcessingQueue && botQueue.length === 0) {
-            // Se a fila acabou e não estamos processando, garante que os elementos apareçam
+            // APENAS quando a fila acabou, mostra os elementos (serviços, etc)
             setShowElements(true);
         }
     }, [botQueue, isProcessingQueue]);
@@ -698,7 +711,9 @@ const QuickSchedule: React.FC = () => {
                     {['PHONE', 'AUTH_CHECK', 'PASSWORD', 'REGISTER_NAME', 'REGISTER_EMAIL', 'REGISTER_PASSWORD'].includes(step) && (
                         <div className="flex gap-3 relative">
                             <input type={step.includes('PASSWORD') ? 'password' : 'text'}
-                                value={inputValue} onChange={e => setInputValue(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSend()}
+                                value={inputValue}
+                                onChange={handleInputChange}
+                                onKeyDown={handleKeyDown}
                                 placeholder="Digite aqui..."
                                 autoFocus
                                 className="flex-1 bg-[#0a0a0b] border border-white/10 rounded-2xl px-5 py-4 text-white text-sm focus:outline-none placeholder-slate-600 transition-colors"

@@ -33,6 +33,36 @@ const AdminBookings: React.FC<AdminBookingsProps> = ({ appointments, role, salon
     onConfirm: () => void;
   }>({ show: false, title: '', message: '', onConfirm: () => { } });
 
+  // Estado para drag-to-scroll
+  const filterScrollRef = React.useRef<HTMLDivElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
+
+  // Handlers para drag-to-scroll
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!filterScrollRef.current) return;
+    setIsDragging(true);
+    setStartX(e.pageX - filterScrollRef.current.offsetLeft);
+    setScrollLeft(filterScrollRef.current.scrollLeft);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging || !filterScrollRef.current) return;
+    e.preventDefault();
+    const x = e.pageX - filterScrollRef.current.offsetLeft;
+    const walk = (x - startX) * 2; // Multiplicador para velocidade do scroll
+    filterScrollRef.current.scrollLeft = scrollLeft - walk;
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  const handleMouseLeave = () => {
+    setIsDragging(false);
+  };
+
   // Buscar dados completos dos clientes (OTIMIZADO - uma única query)
   useEffect(() => {
     const fetchClientData = async () => {
@@ -202,6 +232,7 @@ const AdminBookings: React.FC<AdminBookingsProps> = ({ appointments, role, salon
         title: 'Cancelar Agendamento',
         message: `Deseja cancelar o agendamento de ${appt.clientName}?`,
         onConfirm: async () => {
+          console.log('📋 AdminBookings: Cancelando agendamento...', id);
           onUpdateStatus(id, 'canceled');
           showToast('Agendamento cancelado.', 'success');
           setConfirmDialog({ show: false, title: '', message: '', onConfirm: () => { } });
@@ -213,7 +244,9 @@ const AdminBookings: React.FC<AdminBookingsProps> = ({ appointments, role, salon
         title: 'Excluir Permanente',
         message: 'Esta ação não pode ser desfeita. Excluir agora?',
         onConfirm: () => {
+          console.log('🗑️ AdminBookings: Deletando agendamento...', id);
           onDeleteAppointment?.(id);
+          console.log('🗑️ AdminBookings: Callback onDeleteAppointment chamado!');
           showToast('Agendamento removido permanentemente.', 'success');
           setConfirmDialog({ show: false, title: '', message: '', onConfirm: () => { } });
         }
@@ -261,7 +294,14 @@ const AdminBookings: React.FC<AdminBookingsProps> = ({ appointments, role, salon
           </button>
         </div>
 
-        <div className="flex gap-2 overflow-x-auto no-scrollbar">
+        <div
+          ref={filterScrollRef}
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseLeave}
+          className={`flex gap-2 overflow-x-auto no-scrollbar select-none ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+        >
           {['all', 'confirmed', 'pending', 'completed', 'canceled'].map(f => (
             <button
               key={f}

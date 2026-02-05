@@ -12,6 +12,7 @@ interface TeamManagementProps {
 
 const TeamManagement: React.FC<TeamManagementProps> = ({ salon, salonId: explicitId }) => {
   const salonId = salon?.id || explicitId;
+
   const navigate = useNavigate();
   const [team, setTeam] = useState<Professional[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -101,11 +102,15 @@ const TeamManagement: React.FC<TeamManagementProps> = ({ salon, salonId: explici
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
+
     if (newPro.password !== newPro.confirmPassword) {
+      console.log('❌ Senhas não coincidem');
       showNotification('error', "As senhas não coincidem.");
       return;
     }
-    if (!salonId) return;
+    if (!salonId) {
+      return;
+    }
 
     // Bloqueio de Plano Elite (Limits - Calculado pelo Banco)
     const maxPros = billingInfo?.limits?.max_professionals || 2;
@@ -149,7 +154,6 @@ const TeamManagement: React.FC<TeamManagementProps> = ({ salon, salonId: explici
       };
 
       // 1. GESTÃO DE ACESSO (God Mode)
-      console.log("Ativando God Mode para criação de acesso...");
       let finalId: string | undefined = undefined;
 
       try {
@@ -161,7 +165,6 @@ const TeamManagement: React.FC<TeamManagementProps> = ({ salon, salonId: explici
 
         if (rpcError) throw rpcError;
         finalId = v_user_id;
-        console.log("Acesso garantido via RPC. ID:", finalId);
       } catch (authError: any) {
         console.warn("Falha no God Mode de criação:", authError.message);
       }
@@ -243,7 +246,6 @@ const TeamManagement: React.FC<TeamManagementProps> = ({ salon, salonId: explici
       });
 
     } catch (error: any) {
-      console.error("Erro completo ao cadastrar:", error);
       const errorMessage = error.message || error.details || "Erro desconhecido";
       if (errorMessage.includes("already registered")) {
         showNotification('error', "Este e-mail já tem uma conta na Aura. Se ele já trabalha aqui, use a edição.");
@@ -258,7 +260,6 @@ const TeamManagement: React.FC<TeamManagementProps> = ({ salon, salonId: explici
   const handleUpdate = async () => {
     if (!selectedProId) return;
     setIsLoading(true);
-    console.log("Iniciando atualização do profissional:", selectedProId);
 
     try {
       const selectedPro = team.find(p => p.id === selectedProId);
@@ -269,7 +270,6 @@ const TeamManagement: React.FC<TeamManagementProps> = ({ salon, salonId: explici
 
       // Estado inicial do vínculo de acesso
       let finalUserId: string | null = selectedPro.user_id || null;
-      console.log("Dados atuais - Email:", cleanEmail, "User ID:", finalUserId);
 
       // --- PASSO 1: ATUALIZAR DADOS BÁSICOS (Sempre primeiro) ---
       const { data: updatedBasic, error: basicError } = await supabase
@@ -280,7 +280,6 @@ const TeamManagement: React.FC<TeamManagementProps> = ({ salon, salonId: explici
         .maybeSingle();
 
       if (basicError) {
-        console.error("Erro no Passo 1 (Dados Básicos):", basicError);
         throw new Error("Erro ao salvar dados básicos: " + basicError.message);
       }
 
@@ -293,7 +292,6 @@ const TeamManagement: React.FC<TeamManagementProps> = ({ salon, salonId: explici
       const hasNewPassword = (password && password.length > 0);
 
       if (hasNewPassword || emailChanged) {
-        console.log("Ativando God Mode para gestão de acesso...");
         try {
           // Chamada mestre que cria, atualiza e confirma o usuário em um só passo (Bypassa 429)
           const { data: v_user_id, error: rpcError } = await supabase.rpc('admin_manage_user_access', {
@@ -304,25 +302,21 @@ const TeamManagement: React.FC<TeamManagementProps> = ({ salon, salonId: explici
 
           if (rpcError) throw rpcError;
           finalUserId = v_user_id;
-          console.log("Acesso garantido via RPC. ID:", finalUserId);
 
           // C. Vincular ID ao registro do profissional (Com Sincronia Inteligente)
           if (finalUserId && finalUserId !== selectedPro.user_id) {
-            console.log("Sincronizando vínculo com o servidor...");
             const { error: linkError } = await supabase.rpc('safe_link_professional', {
               p_pro_id: selectedProId,
               p_user_id: finalUserId
             });
 
             if (linkError) {
-              console.error("Falha na sincronia final:", linkError);
               await supabase.from('professionals').update({ user_id: finalUserId }).eq('id', selectedProId);
             }
 
             setTeam(prev => prev.map(p => p.id === selectedProId ? { ...p, user_id: finalUserId! } : p));
           }
         } catch (authError: any) {
-          console.error("Erro no God Mode:", authError);
           showNotification('error', "Os dados foram salvos, mas o login não pôde ser ativado automaticamente.");
         }
       }
@@ -331,7 +325,6 @@ const TeamManagement: React.FC<TeamManagementProps> = ({ salon, salonId: explici
       showNotification('success', 'Cadastro atualizado com sucesso!');
 
     } catch (error: any) {
-      console.error("Erro fatal no update:", error);
       showNotification('error', error.message || 'Erro inesperado ao salvar.');
     } finally {
       setIsLoading(false);

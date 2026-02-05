@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ChatMessage } from '../../types';
 import { api } from '../../lib/api';
@@ -30,8 +30,8 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ userId }) => {
       const subscription = api.chat.subscribeToMessages(id, (payload) => {
         const newMessage = payload.new as ChatMessage;
         setMessages(prev => {
-          // Evitar duplicados se o remetente for "eu"
-          if (prev.find(m => m.id === newMessage.id)) return prev;
+          // Evitar duplicados
+          if (prev.find(m => m.id === newMessage.id || (m as any).tempId === newMessage.id)) return prev;
           return [...prev, { ...newMessage, is_me: newMessage.sender_id === userId }];
         });
       });
@@ -43,28 +43,50 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ userId }) => {
   }, [id, userId]);
 
   useEffect(() => {
-    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
+    // Scroll suave e otimizado
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
   }, [messages]);
 
-  const handleSend = async (e: React.FormEvent) => {
+  const handleSend = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     if (!messageText.trim() || !id || !userId) return;
 
     const textToSubmit = messageText;
     setMessageText('');
 
+    // OPTIMISTIC UPDATE: Adiciona mensagem instantaneamente na UI
+    const tempId = `temp-${Date.now()}`;
+    const optimisticMessage: ChatMessage = {
+      id: tempId as any,
+      conversation_id: id,
+      sender_id: userId,
+      text: textToSubmit,
+      timestamp: new Date().toISOString(),
+      is_me: true,
+      tempId // Marca como temporária
+    } as any;
+
+    setMessages(prev => [...prev, optimisticMessage]);
+
     try {
-      await api.chat.sendMessage({
+      const sentMessage = await api.chat.sendMessage({
         conversation_id: id,
         sender_id: userId,
         text: textToSubmit
       });
-      // O Supabase Realtime cuidará de adicionar o item na lista se configurado corretamente,
-      // mas se houver delay, podemos otimizar aqui se necessário.
+
+      // Substitui mensagem temporária pela real
+      setMessages(prev => prev.map(m =>
+        (m as any).tempId === tempId ? { ...sentMessage, is_me: true } : m
+      ));
     } catch (error: any) {
+      // Remove mensagem temporária em caso de erro
+      setMessages(prev => prev.filter(m => (m as any).tempId !== tempId));
       showToast("Erro ao enviar mensagem: " + error.message, 'error');
     }
-  };
+  }, [messageText, id, userId, showToast]);
 
   return (
     <div className="flex-1 bg-background-dark min-h-screen flex flex-col overflow-hidden">

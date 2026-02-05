@@ -18,6 +18,8 @@ const ServiceCatalog: React.FC<ServiceCatalogProps> = ({ salon }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [isAdding, setIsAdding] = useState(false);
   const [editingService, setEditingService] = useState<Service | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [serviceToDelete, setServiceToDelete] = useState<string | null>(null);
 
   const [activeCategory, setActiveCategory] = useState('Todos');
   const categories = ['Todos', 'Cabelo', 'Barba', 'Unhas', 'Estética', 'Sobrancelha', 'Estilo', 'Outros'];
@@ -90,15 +92,25 @@ const ServiceCatalog: React.FC<ServiceCatalogProps> = ({ salon }) => {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!window.confirm("Deseja realmente excluir este ritual? Esta ação é permanente.")) return;
+  const confirmDelete = async () => {
+    if (!serviceToDelete) return;
     try {
-      await api.services.delete(id);
-      setServices(services.filter(s => s.id !== id));
+      setIsLoading(true);
+      await api.services.delete(serviceToDelete);
+      setServices(services.filter(s => s.id !== serviceToDelete));
       showToast("🗑️ Ritual removido.", 'success');
+      setShowDeleteConfirm(false);
+      setServiceToDelete(null);
     } catch (error: any) {
       showToast("Erro ao excluir: " + error.message, 'error');
+    } finally {
+      setIsLoading(false);
     }
+  };
+
+  const handleDelete = (id: string) => {
+    setServiceToDelete(id);
+    setShowDeleteConfirm(true);
   };
 
   const openEdit = (s: Service) => {
@@ -331,6 +343,44 @@ const ServiceCatalog: React.FC<ServiceCatalogProps> = ({ salon }) => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Confirmação de Exclusão */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-[70] bg-black/80 backdrop-blur-xl flex items-center justify-center p-6 animate-fade-in">
+          <div className="bg-surface-dark border border-red-500/20 rounded-[32px] p-8 max-w-sm w-full space-y-6 shadow-2xl shadow-red-500/10">
+            <div className="text-center space-y-4">
+              <div className="size-16 mx-auto rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center">
+                <span className="material-symbols-outlined text-red-500 text-3xl">warning</span>
+              </div>
+              <h3 className="text-xl font-display font-black text-white italic tracking-tight uppercase">
+                Excluir Ritual?
+              </h3>
+              <p className="text-slate-400 text-sm italic">
+                Esta ação não pode ser desfeita. O ritual será removido permanentemente do seu catálogo.
+              </p>
+            </div>
+            <div className="space-y-3">
+              <button
+                onClick={confirmDelete}
+                disabled={isLoading}
+                className="w-full bg-red-500 text-white font-black py-4 rounded-2xl uppercase tracking-widest text-xs active:scale-95 transition-all shadow-lg shadow-red-500/20"
+              >
+                {isLoading ? <div className="size-4 border-2 border-white/30 border-t-white rounded-full animate-spin mx-auto"></div> : 'Sim, Excluir'}
+              </button>
+              <button
+                onClick={() => {
+                  setShowDeleteConfirm(false);
+                  setServiceToDelete(null);
+                }}
+                disabled={isLoading}
+                className="w-full bg-white/5 border border-white/10 text-white font-black py-4 rounded-2xl uppercase tracking-widest text-xs active:scale-95 transition-all"
+              >
+                Cancelar
+              </button>
+            </div>
           </div>
         </div>
       )}

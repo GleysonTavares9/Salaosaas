@@ -444,7 +444,14 @@ const AppContent: React.FC = () => {
                 userId={currentUserId}
                 onUpdateStatus={updateAppointmentStatus}
                 onUpdateAppointment={updateAppointment}
-                onDeleteAppointment={(id) => setAppointments(prev => prev.filter(a => a.id !== id))}
+                onDeleteAppointment={async (id) => {
+                  try {
+                    await api.appointments.delete(id);
+                    setAppointments(prev => prev.filter(a => a.id !== id));
+                  } catch (error: any) {
+                    // Silently fail or handle error
+                  }
+                }}
               /> : <Navigate to="/pro/billing" replace />)
               : <Navigate to="/login" replace />
           } />
@@ -470,7 +477,7 @@ const AppContent: React.FC = () => {
 
           <Route path="/pro/products" element={
             role === 'admin'
-              ? (isSubscriptionValid(salons[0]) ? <ProductCatalog salon={salons[0]} /> : <Navigate to="/pro/billing" replace />)
+              ? (isSubscriptionValid(salons[0]) ? <ProductCatalog salonId={salons[0]?.id} /> : <Navigate to="/pro/billing" replace />)
               : <Navigate to="/login" replace />
           } />
 

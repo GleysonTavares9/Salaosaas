@@ -13,6 +13,7 @@ const Billing: React.FC = () => {
     const [billingPixData, setBillingPixData] = useState<any>(null);
 
     const handleCheckout = async (plan: any) => {
+
         // Bloqueia apenas se for explicitamente gratuito/zero, mas permite Starter
         if ((plan.price === "0.00" || plan.id === 'free') && plan.id !== 'starter') {
             showToast("Este é o plano gratuito padrão.", "info");
@@ -53,7 +54,6 @@ const Billing: React.FC = () => {
 
             if (!response.ok) {
                 const errorText = await response.text();
-                console.error("ERRO RESPOSTA SERVIDOR:", errorText);
                 throw new Error(`Erro ${response.status}: ${errorText || response.statusText}`);
             }
 
@@ -74,7 +74,6 @@ const Billing: React.FC = () => {
                 });
                 setShowPixModal(true);
             } else {
-                console.error("Payload recebido sem PIX:", data);
                 throw new Error("Dados do PIX não retornados pelo Mercado Pago.");
             }
 
@@ -127,13 +126,30 @@ const Billing: React.FC = () => {
 
                 setPlans(newPlans);
 
-                // 2. Buscar Info do Salão
+                // 2. Buscar Info do Salão (Admin ou Profissional)
                 const { data: { user } } = await supabase.auth.getUser();
+
                 if (user) {
-                    const { data: pro } = await supabase.from('professionals').select('salon_id').eq('user_id', user.id).maybeSingle();
-                    if (pro?.salon_id) {
-                        const info = await api.salons.getBilling(pro.salon_id);
-                        setBillingInfo(info);
+                    // Primeiro, verificar se é admin através do profile
+                    const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).maybeSingle();
+
+                    let salonId = null;
+
+                    if (profile?.role === 'admin') {
+                        // Admin: buscar salon através da tabela salons
+                        const salons = await api.salons.getAll();
+                        if (salons && salons.length > 0) {
+                            salonId = salons[0].id;
+                        }
+                    } else {
+                        // Profissional: buscar através da tabela professionals
+                        const { data: pro } = await supabase.from('professionals').select('salon_id').eq('user_id', user.id).maybeSingle();
+                        salonId = pro?.salon_id;
+                    }
+
+                    if (salonId) {
+                        const info = await api.salons.getBilling(salonId);
+                        setBillingInfo({ ...info, id: salonId }); // Garante que o ID do salão esteja presente
                     }
                 }
             } catch (err) {
@@ -276,11 +292,11 @@ const Billing: React.FC = () => {
                                 </div>
 
                                 <button
-                                    onClick={() => isCurrent ? null : handleCheckout(p)}
-                                    disabled={isCurrent}
-                                    className={`w-full py-5 rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] shadow-xl active:scale-95 transition-all ${isCurrent ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : p.highlight ? 'gold-gradient text-background-dark' : 'bg-white/5 border border-white/10 text-white'}`}
+                                    onClick={() => (isCurrent || isLoading) ? null : handleCheckout(p)}
+                                    disabled={isCurrent || isLoading}
+                                    className={`w-full py-5 rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] shadow-xl active:scale-95 transition-all ${isCurrent ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : p.highlight ? 'gold-gradient text-background-dark' : 'bg-white/5 border border-white/10 text-white'} ${(isLoading && !isCurrent) ? 'opacity-50 cursor-wait' : ''}`}
                                 >
-                                    {isCurrent ? 'Plano Ativo' : 'Migrar Plano'}
+                                    {isLoading ? 'Carregando...' : (isCurrent ? 'Plano Ativo' : 'Migrar Plano')}
                                 </button>
                             </div>
                         );

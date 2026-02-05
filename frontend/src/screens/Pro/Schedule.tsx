@@ -183,19 +183,37 @@ const Schedule: React.FC<ScheduleProps> = ({ appointments: initialAppointments, 
     const { id, actionType } = confirmModal;
     if (!id || !actionType) return;
 
+    console.log('🔄 Executando ação:', { id, actionType }); // LOG
+
     try {
       if (actionType === 'finish') {
-        await api.appointments.updateStatus(id, 'completed');
+        console.log('✅ Finalizando agendamento...', id);
+        const result = await api.appointments.updateStatus(id, 'completed');
+        console.log('✅ Resultado:', result);
         setAppointments(prev => prev.map(a => a.id === id ? { ...a, status: 'completed' } : a));
+        showToast('Agendamento finalizado com sucesso!', 'success');
       } else if (actionType === 'cancel') {
-        await api.appointments.updateStatus(id, 'canceled');
+        console.log('❌ Cancelando agendamento...', id);
+        const result = await api.appointments.updateStatus(id, 'canceled');
+        console.log('❌ Resultado:', result);
         setAppointments(prev => prev.map(a => a.id === id ? { ...a, status: 'canceled' } : a));
+        showToast('Agendamento cancelado!', 'success');
       } else if (actionType === 'delete') {
+        console.log('🗑️ Deletando agendamento...', id);
         await api.appointments.delete(id);
+        console.log('🗑️ Deletado com sucesso!');
         setAppointments(prev => prev.filter(a => a.id !== id));
+        showToast('Agendamento excluído!', 'success');
       }
-    } catch (error) {
-      showToast("Erro ao processar ação: " + error, 'error');
+    } catch (error: any) {
+      console.error('❌ ERRO DETALHADO:', {
+        message: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint,
+        full: error
+      });
+      showToast(`Erro ao processar ação: ${error.message || error}`, 'error');
     } finally {
       setConfirmModal({ ...confirmModal, show: false });
     }
