@@ -1,5 +1,5 @@
 
-// Luxe Aura Premium - v1.0.1 - Deploy Automático Ativo
+// Luxe Aura Premium - v1.0.4 - Deploy Automático Ativo
 import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { HashRouter as Router, Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { ViewRole, Appointment, Service, Salon, Product, Professional, GalleryItem } from './types.ts';
