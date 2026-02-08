@@ -81,9 +81,7 @@ const AuraMap: React.FC<AuraMapProps> = ({
                         key={m.id}
                         position={m.position}
                         icon={m.icon}
-                        eventHandlers={{
-                            click: m.onClick,
-                        }}
+                        eventHandlers={m.onClick ? { click: m.onClick } : undefined}
                     >
                         {m.popup}
                     </Marker>

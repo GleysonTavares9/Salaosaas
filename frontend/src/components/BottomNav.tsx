@@ -10,7 +10,10 @@ const BottomNav: React.FC<BottomNavProps> = ({ role }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const isActive = (path: string) => location.pathname === path;
+  const isActive = (path: string) => {
+    if (path === '/pro') return location.pathname === '/pro' || location.pathname.startsWith('/pro/');
+    return location.pathname === path;
+  };
 
   const navClass = "flex justify-between items-center bg-background-dark/95 backdrop-blur-2xl border-t border-white/5 px-6 pb-[calc(1.5rem+var(--sab))] pt-4 shadow-[0_-10px_30px_rgba(0,0,0,0.5)]";
 
@@ -75,8 +78,8 @@ const BottomNav: React.FC<BottomNavProps> = ({ role }) => {
           <span className="text-[9px] font-black uppercase tracking-widest">Agenda</span>
         </button>
         <button onClick={() => navigate('/messages')} className={`flex flex-col items-center gap-1.5 transition-all ${isActive('/messages') ? 'text-primary' : 'text-slate-500 opacity-60'}`}>
-          <span className={`material-symbols-outlined text-2xl ${isActive('/messages') ? 'fill-1' : ''}`}>forum</span>
-          <span className="text-[10px] font-black uppercase tracking-widest">Mensagens</span>
+          <span className={`material-symbols-outlined text-2xl ${isActive('/messages') ? 'fill-1' : ''}`}>chat_bubble</span>
+          <span className="text-[9px] font-black uppercase tracking-widest">Mensagens</span>
         </button>
         <button onClick={() => navigate('/profile')} className={`flex flex-col items-center gap-1.5 transition-all ${isActive('/profile') ? 'text-primary' : 'text-slate-500 opacity-60'}`}>
           <span className={`material-symbols-outlined text-2xl ${isActive('/profile') ? 'fill-1' : ''}`}>account_circle</span>

@@ -88,78 +88,75 @@ const Billing: React.FC = () => {
 
     useEffect(() => {
         const loadData = async () => {
+            console.log("🚀 Iniciando carregamento de cobrança...");
             try {
-                // DEFINIÇÃO DOS PLANOS (Hardcoded para garantir a nova regra de negócio)
-                // Substituindo o Gratuito pelo Starter (Custo de Servidor)
-                const newPlans = [
-                    {
-                        id: 'starter',
-                        name: 'Starter',
-                        price: 'R$ 19',
-                        period: '/mês',
-                        desc: 'Taxa de Manutenção & Servidor',
-                        features: ['Acesso ao sistema', 'Até 2 profissionais', 'Agendamentos ilimitados', 'Suporte Básico'],
-                        blocked_features: ['IA Concierge', 'Gestão Financeira Avançada', 'Múltiplos Profissionais'],
-                        color: 'slate'
-                    },
-                    {
-                        id: 'pro',
-                        name: 'PRO',
-                        price: 'R$ 49',
-                        period: '/mês',
-                        desc: 'Gestão completa do salão',
-                        features: ['Profissionais ilimitados', 'Gestão financeira', 'Relatórios básicos', 'Comissões', 'IA limitada'],
-                        color: 'primary',
-                        highlight: true
-                    },
-                    {
-                        id: 'premium',
-                        name: 'PREMIUM',
-                        price: 'R$ 99',
-                        period: '/mês',
-                        desc: 'Experiência Elite com IA',
-                        features: ['Tudo do PRO', 'IA Concierge Ilimitada', 'Relatórios Avançados', 'Clube de Benefícios', 'Suporte Prioritário'],
-                        color: 'yellow', // goldish
-                        highlight: false
+                // 1. Tentar buscar Planos do Banco
+                let mappedPlans = [];
+                try {
+                    const dbPlans = await api.salons.getPlans();
+                    if (dbPlans && dbPlans.length > 0) {
+                        mappedPlans = dbPlans.map((p: any) => ({
+                            id: p.id,
+                            name: p.name,
+                            price: `R$ ${p.price}`,
+                            period: p.period || '/mês',
+                            desc: p.description,
+                            features: p.features || [],
+                            blocked_features: p.blocked_features || [],
+                            color: p.color || (p.id === 'pro' ? 'primary' : p.id === 'premium' ? 'yellow' : 'slate'),
+                            highlight: p.highlight || false
+                        }));
                     }
-                ];
+                } catch (planErr) {
+                    console.error("❌ Erro ao buscar planos do banco, usando fallback:", planErr);
+                }
 
-                setPlans(newPlans);
+                // Fallback se o banco estiver vazio ou falhar
+                if (mappedPlans.length === 0) {
+                    mappedPlans = [
+                        { id: 'starter', name: 'Starter', price: 'R$ 19', period: '/mês', desc: 'Manutenção & Servidor', features: ['Acesso ao sistema', 'Até 2 profissionais', 'Agendamentos ilimitados'], color: 'slate' },
+                        { id: 'pro', name: 'PRO', price: 'R$ 49', period: '/mês', desc: 'Gestão completa', features: ['Profissionais ilimitados', 'Gestão financeira', 'Relatórios', 'Comissões', 'IA limitada'], color: 'primary', highlight: true },
+                        { id: 'premium', name: 'PREMIUM', price: 'R$ 99', period: '/mês', desc: 'Elite com IA', features: ['IA Concierge Ilimitada', 'Relatórios Avançados', 'Suporte Prioritário'], color: 'yellow' }
+                    ];
+                }
+                setPlans(mappedPlans);
 
-                // 2. Buscar Info do Salão (Admin ou Profissional)
+                // 2. Buscar Info do Salão
                 const { data: { user } } = await supabase.auth.getUser();
-
                 if (user) {
-                    // Primeiro, verificar se é admin através do profile
-                    const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).maybeSingle();
+                    console.log("👤 Usuário identificado:", user.id);
 
+                    // Estratégia de busca de Salon ID mais segura
                     let salonId = null;
 
-                    if (profile?.role === 'admin') {
-                        // Admin: buscar salon através da tabela salons
-                        const salons = await api.salons.getAll();
-                        if (salons && salons.length > 0) {
-                            salonId = salons[0].id;
+                    // Tenta primeiro via Professionals (funciona para Admin e Pro)
+                    const { data: pro } = await supabase.from('professionals').select('salon_id').eq('user_id', user.id).maybeSingle();
+                    salonId = pro?.salon_id;
+
+                    if (!salonId) {
+                        // Se não for profissional, tenta ver se é admin master ou dono direto
+                        const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).maybeSingle();
+                        if (profile?.role === 'admin') {
+                            const salons = await api.salons.getAll();
+                            if (salons?.length > 0) salonId = salons[0].id;
                         }
-                    } else {
-                        // Profissional: buscar através da tabela professionals
-                        const { data: pro } = await supabase.from('professionals').select('salon_id').eq('user_id', user.id).maybeSingle();
-                        salonId = pro?.salon_id;
                     }
 
                     if (salonId) {
+                        console.log("🏢 Salão identificado:", salonId);
                         const info = await api.salons.getBilling(salonId);
-                        // Normaliza 'plan_id' para 'plan' caso o banco envie o nome antigo
                         setBillingInfo({
                             ...info,
-                            plan: info.plan || info.plan_id || 'starter',
+                            plan: info?.plan || info?.plan_id || 'starter',
                             id: salonId
                         });
                     }
                 }
             } catch (err) {
-                // Silencioso em produção
+                console.error("🔥 Erro crítico no faturamento:", err);
+                showToast("Erro ao carregar dados de assinatura.", "error");
             } finally {
+                console.log("✅ Fim do carregamento.");
                 setIsLoading(false);
             }
         };

@@ -229,13 +229,11 @@ const BusinessSetup: React.FC<BusinessSetupProps> = ({ salon, userId, onSave }) 
     // Endereço formatado
     finalData.endereco = `${street}, ${number} - ${district}`;
 
-    // PROTEÇÃO AGRESSIVA E WHITELIST: 
-    // Somente enviamos campos que sabemos que são seguros e necessários.
-    // Isso evita que campos calculados ou protegidos (que pedem criptografia) travem o banco.
+    // PROTEÇÃO AGRESSIVA: Não envia o slug se ele for igual ao original ou se estiver vazio
     const whitelist = [
-      'nome', 'slug_publico', 'segmento', 'descricao', 'logo_url',
+      'nome', 'segmento', 'descricao', 'logo_url',
       'banner_url', 'endereco', 'cidade', 'telefone', 'amenities',
-      'gallery_urls', 'location', 'paga_no_local', 'horario_funcionamento', 'id'
+      'location', 'paga_no_local', 'horario_funcionamento'
     ];
 
     let sanitizedData: any = {};
@@ -244,6 +242,16 @@ const BusinessSetup: React.FC<BusinessSetupProps> = ({ salon, userId, onSave }) 
         sanitizedData[key] = finalData[key];
       }
     });
+
+    // Só envia o slug_publico se ele existir e for DIFERENTE do atual
+    if (formData.slug_publico && formData.slug_publico !== salon?.slug_publico) {
+      sanitizedData.slug_publico = formData.slug_publico;
+    }
+
+    // Se gallery_urls mudou, envia também
+    if (formData.gallery_urls) {
+      sanitizedData.gallery_urls = formData.gallery_urls;
+    }
 
     // VALIDAÇÃO RIGOROSA MERCADO PAGO
     if (mpConfig.accessToken || mpConfig.publicKey) {
@@ -292,22 +300,21 @@ const BusinessSetup: React.FC<BusinessSetupProps> = ({ salon, userId, onSave }) 
     }
 
     // REMOVE O ID DO PAYLOAD PARA EVITAR CONFLITO NO UPDATE
-    const salonId = sanitizedData.id || finalData.id;
-    delete sanitizedData.id;
+    const salonIdToUpdate = formData.id;
 
-    console.log("🚀 Enviando atualização do salão:", { id: salonId, data: sanitizedData });
+    console.log("🚀 Enviando atualização do salão:", { id: salonIdToUpdate, data: sanitizedData });
 
     try {
       localStorage.setItem('aura_mp_config', JSON.stringify(mpConfig));
 
-      if (finalData.id) {
+      if (salonIdToUpdate) {
         // Update existing using ONLY sanitized data
-        const updated = await api.salons.update(finalData.id, sanitizedData);
+        const updated = await api.salons.update(salonIdToUpdate, sanitizedData);
 
         // FORÇA ATUALIZAÇÃO DO PAGA_NO_LOCAL (Garante que não seja ignorado pelo banco)
         try {
           await supabase.rpc('set_paga_no_local', {
-            p_salon_id: finalData.id,
+            p_salon_id: salonIdToUpdate,
             p_value: sanitizedData.paga_no_local
           });
         } catch (e) {

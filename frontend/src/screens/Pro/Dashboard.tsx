@@ -43,7 +43,10 @@ const Dashboard: React.FC<DashboardProps> = ({ role, salon, appointments, userId
 
         // Buscar billing info centralizado do banco
         api.salons.getBilling(salon.id).then(info => {
-          setBillingInfo(info);
+          setBillingInfo({
+            ...info,
+            plan: info.plan || info.plan_id
+          });
         }).catch(err => console.error("Erro billing rpc:", err));
       }
     }
@@ -232,7 +235,7 @@ const Dashboard: React.FC<DashboardProps> = ({ role, salon, appointments, userId
         </div>
       )}
 
-      {role === 'admin' && billingInfo?.plan === 'free' && !billingInfo?.is_trial_active && (
+      {role === 'admin' && (billingInfo?.plan === 'free' || billingInfo?.plan === 'starter') && !billingInfo?.is_trial_active && (
         <div className="mx-6 mt-4 p-3 bg-surface-dark border border-white/10 rounded-2xl flex items-center justify-between animate-fade-in shadow-lg">
           <div className="flex items-center gap-3">
             <div className="size-8 rounded-xl bg-white/5 flex items-center justify-center text-slate-500 border border-white/5">

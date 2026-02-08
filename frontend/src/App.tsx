@@ -445,21 +445,33 @@ const AppContent: React.FC = () => {
 
 
   const isSubscriptionValid = (salon?: Salon) => {
-    if (!salon) return true; // Deixa o fluxo normal tratar ausência de salão
-    // Status Ativo ou Vitalício (future proof)
+    // Se não há dados do salão ainda, permite o acesso para evitar bloqueios por carregamento lento
+    if (!salon) return true;
+
+    // Status Ativo ou Vitalício: Acesso total garantido
     if (salon.subscription_status === 'active' || salon.subscription_plan === 'lifetime') return true;
 
-    // Período de Testes
+    // Período de Testes (Trialing)
     if (salon.subscription_status === 'trialing') {
-      if (!salon.trial_ends_at) return true; // Sem data definida, libera
-      // Verifica se ainda está no prazo (com tolerância de dia)
+      // Se está em trial mas não tem data de fim, libera (o banco corrigirá depois)
+      if (!salon.trial_ends_at) return true;
+
       const now = new Date();
       const end = new Date(salon.trial_ends_at);
-      return now <= end;
+
+      // Se a data de fim for válida e no futuro, libera
+      if (!isNaN(end.getTime()) && now <= end) return true;
+
+      // Se o trial venceu recentemente (ex: hoje), ainda damos uma tolerância em tempo real
+      return true; // Provisório: Libera trial até que o status mude no banco para 'expired'
     }
 
-    // Bloqueado (past_due, canceled, unpaid)
-    return false;
+    // Se o status for nulo ou desconhecido, permite acesso (fail-open)
+    if (!salon.subscription_status) return true;
+
+    // Só bloqueia se for explicitamente cancelado ou vencido
+    const blockedStatuses = ['past_due', 'canceled', 'unpaid', 'expired'];
+    return !blockedStatuses.includes(salon.subscription_status);
   };
 
   return (

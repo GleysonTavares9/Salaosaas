@@ -75,7 +75,7 @@ const Discovery: React.FC<DiscoveryProps> = ({ salons: initialSalons, role }) =>
 
   const segments: (BusinessSegment | 'Todos')[] = ['Todos', 'Salão', 'Manicure', 'Sobrancelha', 'Barba', 'Estética', 'Spa'];
 
-  const handleDetectLocation = () => {
+  const handleDetectLocation = React.useCallback(() => {
     if (navigator.geolocation) {
       setIsLocating(true);
       navigator.geolocation.getCurrentPosition(
@@ -94,6 +94,7 @@ const Discovery: React.FC<DiscoveryProps> = ({ salons: initialSalons, role }) =>
             .finally(() => setIsLocating(false));
         },
         async (error) => {
+          console.warn("Localização negada ou falhou:", error);
           setHasLocation(false);
           setIsLocating(false);
           // Fallback: Tenta centrar no primeiro salão da lista se houver
@@ -104,7 +105,7 @@ const Discovery: React.FC<DiscoveryProps> = ({ salons: initialSalons, role }) =>
         { timeout: 10000, enableHighAccuracy: true }
       );
     }
-  };
+  }, [initialSalons]);
 
   useEffect(() => {
     const fetchLatestSalons = async () => {
@@ -125,7 +126,15 @@ const Discovery: React.FC<DiscoveryProps> = ({ salons: initialSalons, role }) =>
 
     fetchLatestSalons();
     fetchUserProfile();
-  }, []);
+    handleDetectLocation();
+  }, [handleDetectLocation]);
+
+  // Forçar detecção se mudar para o mapa e não tiver localização
+  useEffect(() => {
+    if (viewMode === 'map' && !hasLocation) {
+      handleDetectLocation();
+    }
+  }, [viewMode, hasLocation, handleDetectLocation]);
 
   const filteredSalons = useMemo(() => {
     let list = (dynamicSalons.length > 0 ? dynamicSalons : initialSalons).map(s => ({
