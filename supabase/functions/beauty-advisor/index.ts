@@ -11,24 +11,46 @@ serve(async (req) => {
 
     try {
         const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
-        const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
-        const supabase = createClient(supabaseUrl, supabaseKey);
+        const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
+        const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-        // 1. Validar AUTH
-        const authHeader = req.headers.get('Authorization');
-        if (!authHeader) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: corsHeaders });
-
-        const { data: { user }, error: authError } = await supabase.auth.getUser(authHeader.replace('Bearer ', ''));
-        if (authError || !user) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: corsHeaders });
-
-        // 2. Controle de Uso
-        const { data: canProcess, error: usageError } = await supabase.rpc('check_and_increment_usage', { p_max_limit: 100 });
-        if (usageError || !canProcess) {
-            return new Response(JSON.stringify({ error: 'Limite de mensagens da IA atingido.' }), { status: 429, headers: corsHeaders });
+        // 1. Validar AUTH de forma ultra-robusta
+        const authHeader = req.headers.get('Authorization') || req.headers.get('authorization');
+        if (!authHeader) {
+            return new Response(JSON.stringify({ error: 'Sessão não encontrada.' }), { status: 401, headers: corsHeaders });
         }
 
-        const API_KEY = Deno.env.get('GEMINI_API_KEY');
-        if (!API_KEY) throw new Error('GEMINI_API_KEY missing');
+        const token = authHeader.replace(/^[Bb]earer\s+/, '');
+        const { data: authData, error: authError } = await supabase.auth.getUser(token);
+        const user = authData?.user;
+
+        if (authError || !user) {
+            console.error("DEBUG Auth Error:", authError);
+            return new Response(JSON.stringify({ error: 'Sessão inválida ou expirada.' }), { status: 401, headers: corsHeaders });
+        }
+
+        // 2. Controle de Uso
+        const { data: canProcess, error: usageError } = await supabase.rpc('check_and_increment_usage', {
+            p_user_id: user.id,
+            p_max_limit: 100
+        });
+
+        if (usageError || !canProcess) {
+            console.error("DEBUG Usage Error:", usageError);
+            return new Response(JSON.stringify({ error: 'Limite de mensagens atingido ou erro no banco.' }), { status: 429, headers: corsHeaders });
+        }
+
+        let API_KEY = Deno.env.get('GEMINI_API_KEY')?.trim().replace(/^["']|["']$/g, '') || '';
+        if (!API_KEY) {
+            console.error("DEBUG: GEMINI_API_KEY is missing in Deno.env");
+            return new Response(JSON.stringify({ error: 'Configuração da IA ausente (Chave API).' }), { status: 500, headers: corsHeaders });
+        }
+
+        if (!API_KEY.startsWith('AIza')) {
+            console.warn("DEBUG: GEMINI_API_KEY does not start with AIza. This is highly unusual for Gemini keys.");
+        }
+
+        console.log("DEBUG: Key status:", API_KEY.substring(0, 4) + "..." + API_KEY.substring(API_KEY.length - 3));
 
         const { prompt } = await req.json();
 
@@ -84,21 +106,51 @@ REGRAS DE OURO:
 
 RESPONDA SEMPRE EM PORTUGUÊS (PT-BR).`;
 
-        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${API_KEY}`;
+        // TENTATIVA MULTI-MODELO (BATE EM UM, SE NÃO DER BATE NO OUTRO)
+        const models = ["gemini-2.0-flash-exp", "gemini-1.5-flash"];
+        let lastError = null;
+        let responseText = "";
 
-        const response = await fetch(geminiUrl, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                contents: [{ role: "user", parts: [{ text: `${systemRole}\n\nUsuário: ${prompt}` }] }],
-                generationConfig: { maxOutputTokens: 250, temperature: 0.7 }
-            })
-        });
+        for (const modelName of models) {
+            try {
+                const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${API_KEY}`;
+                console.log(`DEBUG: Tentando modelo ${modelName}...`);
 
-        const data = await response.json();
-        const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "Desculpe, estou com uma instabilidade momentânea. Pode repetir?";
+                const response = await fetch(geminiUrl, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [{ text: `${systemRole}\n\nPERGUNTA: ${prompt}` }]
+                        }]
+                    })
+                });
 
-        return new Response(JSON.stringify({ response: text.trim().replace(/\n+/g, ' ') }), {
+                const data = await response.json();
+
+                if (data.candidates?.[0]?.content?.parts?.[0]?.text) {
+                    responseText = data.candidates[0].content.parts[0].text;
+                    console.log(`DEBUG: Sucesso com o modelo ${modelName}`);
+                    break;
+                } else if (data.error) {
+                    console.warn(`DEBUG: Erro no modelo ${modelName}:`, data.error.message);
+                    lastError = data.error;
+                }
+            } catch (e) {
+                console.error(`DEBUG: Falha crítica no modelo ${modelName}:`, e);
+                lastError = e;
+            }
+        }
+
+        if (!responseText) {
+            return new Response(JSON.stringify({
+                error: "IA indisponível no momento.",
+                detail: lastError?.message || "Todos os modelos falharam.",
+                code: lastError?.status || 500
+            }), { status: 500, headers: corsHeaders });
+        }
+
+        return new Response(JSON.stringify({ response: responseText.trim().replace(/\n+/g, ' ') }), {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
 

@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabase';
 import { getBeautyAdvice } from '../lib/ai.ts';
 
 import { api } from '../lib/api';
+import { useToast } from '../contexts/ToastContext';
 
 const AIConcierge: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -13,6 +14,7 @@ const AIConcierge: React.FC = () => {
   const [response, setResponse] = useState<string | null>(null);
   const location = useLocation();
   const navigate = useNavigate();
+  const { showToast } = useToast();
 
   const hiddenPaths = ['/checkout', '/select-service', '/choose-time', '/evaluate', '/pro', '/login', '/register'];
 
@@ -56,11 +58,27 @@ const AIConcierge: React.FC = () => {
     setLoading(true);
     setResponse(null);
 
-    // Chamada à IA
-    const result = await getBeautyAdvice(input);
+    // Chamada à IA com Verificação de Sessão Robusta
+    try {
+      const { data, error: sessionError } = await supabase.auth.getSession();
+      const currentSession = data?.session;
 
-    setResponse(result || null);
-    setLoading(false);
+      if (sessionError || !currentSession) {
+        console.warn("Sessão não encontrada:", sessionError);
+        showToast("Sessão expirada ou não encontrada. Por favor, faça login novamente.", "error");
+        setLoading(false);
+        return;
+      }
+
+      // Se temos sessão, chamamos a IA
+      const result = await getBeautyAdvice(input);
+      setResponse(result || "Não consegui processar sua dúvida agora. Tente novamente.");
+    } catch (err) {
+      console.error("Erro ao validar acesso à IA:", err);
+      showToast("Erro ao conectar com a Aura. Verifique sua conexão.", "error");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

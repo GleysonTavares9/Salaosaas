@@ -7,7 +7,9 @@ interface ContextData {
 
 export async function getBeautyAdvice(prompt: string, context?: ContextData) {
   try {
-    console.log("Chamando AI via Edge Function...");
+    // Busca a sessão atual
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) throw new Error("Sessão não encontrada");
 
     const { data, error } = await supabase.functions.invoke('beauty-advisor', {
       body: { prompt, context }
