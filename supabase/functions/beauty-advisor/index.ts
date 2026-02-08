@@ -21,29 +21,68 @@ serve(async (req) => {
         const { data: { user }, error: authError } = await supabase.auth.getUser(authHeader.replace('Bearer ', ''));
         if (authError || !user) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: corsHeaders });
 
-        // 2. Controle de Uso (RPC OBRIGATÓRIO)
-        const { data: canProcess, error: usageError } = await supabase.rpc('check_and_increment_usage', { p_max_limit: 40 });
+        // 2. Controle de Uso
+        const { data: canProcess, error: usageError } = await supabase.rpc('check_and_increment_usage', { p_max_limit: 100 });
         if (usageError || !canProcess) {
-            return new Response(JSON.stringify({ error: 'Limite atingido' }), { status: 429, headers: corsHeaders });
+            return new Response(JSON.stringify({ error: 'Limite de mensagens da IA atingido.' }), { status: 429, headers: corsHeaders });
         }
 
         const API_KEY = Deno.env.get('GEMINI_API_KEY');
         if (!API_KEY) throw new Error('GEMINI_API_KEY missing');
 
-        const { prompt, context } = await req.json();
+        const { prompt } = await req.json();
 
-        // 3. Payload Mínimo para LLM (JSON Enxuto)
-        const llmContext = {
-            dia: context?.date || null,
-            horarios: context?.slots || [],
-            servico: context?.service || null,
-            profissional: context?.professional || null
+        // 3. BUSCAR CONTEXTO DO USUÁRIO (RICO)
+        // Perfil
+        const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+
+        // Histórico de Agendamentos (Últimos 5)
+        const { data: history } = await supabase
+            .from('appointments')
+            .select(`
+                *,
+                salons(nome),
+                services(nome)
+            `)
+            .eq('client_id', user.id)
+            .order('created_at', { ascending: false })
+            .limit(5);
+
+        // 4. PESQUISA INTELIGENTE NO ECOSSISTEMA
+        // Se o usuário pedir "agendar", "serviço" ou citar um nome, buscamos opções
+        let relevantSalons = [];
+        const lowerPrompt = prompt.toLowerCase();
+
+        if (lowerPrompt.includes('agendar') || lowerPrompt.includes('quero') || lowerPrompt.includes('corte') || lowerPrompt.includes('unha')) {
+            const { data } = await supabase
+                .from('salons')
+                .select('id, nome, slug_publico, segmento, cidade')
+                .limit(3);
+            relevantSalons = data || [];
+        }
+
+        // 5. CONSTRUIR O PROMPT PARA O GEMINI
+        const userContext = {
+            nome: profile?.full_name || 'Usuário',
+            historico: history?.map(h => `${h.services?.nome} na ${h.salons?.nome} em ${h.date}`).join(' | ') || 'Sem agendamentos recentes',
+            estabelecimentos_aura: relevantSalons.map(s => `${s.nome} (${s.segmento}) em ${s.cidade}`).join(' | ')
         };
 
-        const systemRole = `Você é um assistente de agendamento. Curto, direto, objetivo. 
-Regras: 1-3 frases. Sem emojis, sem markdown, sem cumprimentos longos.
-Fluxo: 1. Se serviço nulo -> peça apenas o serviço. 2. Se pro nulo -> peça apenas o pro. 3. Se horário nulo -> ofereça 3 slots. 4. Completo -> confirme: data, hora, serviço, pro. Pergunte: "Confirmar?".
-Dados: ${JSON.stringify(llmContext)}`;
+        const systemRole = `Você é a CONCIERGE AURA, uma IA de elite para gestão de beleza e bem-estar.
+Sua missão: Facilitar o agendamento e ser a secretária pessoal do usuário.
+
+CONTEXTO DO USUÁRIO:
+- Nome: ${userContext.nome}
+- Últimos atendimentos: ${userContext.historico}
+- Sugestões para agendar: ${userContext.estabelecimentos_aura}
+
+REGRAS DE OURO:
+1. Seja elegante, prestativa e rápida (1-3 frases).
+2. Sempre use o histórico do usuário para dar referências (ex: "Vi que você curte cortar na Salon X, quer repetir lá?").
+3. Se o usuário quiser agendar algo novo, sugira um dos estabelecimentos do ecossistema Aura acima.
+4. Para concluir um agendamento, diga ao usuário para clicar no link de agendamento rápido (ex: "/q/nome-do-salao"). Se ele quiser agendar o 'de sempre', diga que você já preparou o atalho para ele.
+
+RESPONDA SEMPRE EM PORTUGUÊS (PT-BR).`;
 
         const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${API_KEY}`;
 
@@ -52,19 +91,20 @@ Dados: ${JSON.stringify(llmContext)}`;
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 contents: [{ role: "user", parts: [{ text: `${systemRole}\n\nUsuário: ${prompt}` }] }],
-                generationConfig: { maxOutputTokens: 100, temperature: 0.1 }
+                generationConfig: { maxOutputTokens: 250, temperature: 0.7 }
             })
         });
 
         const data = await response.json();
-        const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "Erro.";
+        const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "Desculpe, estou com uma instabilidade momentânea. Pode repetir?";
 
         return new Response(JSON.stringify({ response: text.trim().replace(/\n+/g, ' ') }), {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
 
     } catch (error) {
-        return new Response(JSON.stringify({ error: 'Falha processamento' }), {
+        console.error("Erro na Edge Function:", error);
+        return new Response(JSON.stringify({ error: 'Erro ao processar sua solicitação.' }), {
             status: 500,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         });

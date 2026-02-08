@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { getBeautyAdvice } from '../lib/ai.ts';
 
@@ -9,10 +9,10 @@ import { api } from '../lib/api';
 const AIConcierge: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState('');
-  const [response, setResponse] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [contextData, setContextData] = useState<{ services: any[]; products: any[] }>({ services: [], products: [] });
+  const [response, setResponse] = useState<string | null>(null);
   const location = useLocation();
+  const navigate = useNavigate();
 
   const hiddenPaths = ['/checkout', '/select-service', '/choose-time', '/evaluate', '/pro', '/login', '/register'];
 
@@ -47,23 +47,6 @@ const AIConcierge: React.FC = () => {
     checkAvailability();
   }, [location.pathname]);
 
-  // 2. Carregar contexto (Serviços/Produtos) apenas se abrir
-  React.useEffect(() => {
-    if (isOpen && contextData.services.length === 0) {
-      const fetchData = async () => {
-        try {
-          const [services, products] = await Promise.all([
-            api.services.getAll().catch(err => { console.warn("Erro ao buscar serviços para IA", err); return []; }),
-            api.products.getAll().catch(err => { console.warn("Erro ao buscar produtos para IA", err); return []; })
-          ]);
-          setContextData({ services, products });
-        } catch (e) {
-          console.error("Falha ao carregar contexto da IA", e);
-        }
-      };
-      fetchData();
-    }
-  }, [isOpen]);
 
   if (shouldHide || !isVisible) return null;
 
@@ -73,8 +56,8 @@ const AIConcierge: React.FC = () => {
     setLoading(true);
     setResponse(null);
 
-    // Passamos o contexto do banco de dados para a IA
-    const result = await getBeautyAdvice(input, contextData);
+    // Chamada à IA
+    const result = await getBeautyAdvice(input);
 
     setResponse(result || null);
     setLoading(false);
@@ -129,7 +112,27 @@ const AIConcierge: React.FC = () => {
                   <p className="text-[7px] text-slate-600 font-black uppercase tracking-[0.4em] animate-pulse">Aura IA</p>
                 </div>
               ) : response ? (
-                <p className="text-white text-xs leading-relaxed italic px-2">{response}</p>
+                <div className="space-y-4">
+                  <p className="text-white text-xs leading-relaxed italic px-2">{response}</p>
+                  {/* Detecção de Link de Agendamento Rápido ou Normal */}
+                  {(response.includes('/q/') || response.includes('/salon/')) && (
+                    <button
+                      onClick={() => {
+                        const qSlug = response.match(/\/q\/[a-zA-Z0-9-]+/)?.[0];
+                        const normSlug = response.match(/\/salon\/[a-zA-Z0-9-]+/)?.[0];
+                        const slug = qSlug || normSlug;
+                        if (slug) {
+                          navigate(slug);
+                          setIsOpen(false);
+                        }
+                      }}
+                      className="w-full py-3 bg-primary/20 border border-primary/40 rounded-xl text-primary text-[10px] font-black uppercase tracking-widest hover:bg-primary/30 transition-all active:scale-95 shadow-lg shadow-primary/10 flex items-center justify-center gap-2"
+                    >
+                      <span className="material-symbols-outlined text-sm">bolt</span>
+                      Agendamento Rápido ✨
+                    </button>
+                  )}
+                </div>
               ) : (
                 <p className="text-slate-500 text-[9px] font-black uppercase tracking-[0.2em] leading-relaxed opacity-80">
                   Como posso ajudar?

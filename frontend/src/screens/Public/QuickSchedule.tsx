@@ -210,6 +210,31 @@ const QuickSchedule: React.FC = () => {
         }
     }, [slug]);
 
+    // Pre-fill from Query Params (AI Integration)
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        const serviceId = params.get('serviceId');
+        const proId = params.get('proId');
+        const date = params.get('date');
+        const time = params.get('time');
+
+        if (serviceId && services.length > 0) {
+            const svc = services.find(s => s.id === serviceId);
+            if (svc) setSelectedServices([svc]);
+        }
+        if (proId && professionals.length > 0) {
+            const pro = professionals.find(p => p.id === proId);
+            if (pro) setSelectedPro(pro);
+        }
+        if (date) setSelectedDate(date);
+        if (time) setSelectedTime(time);
+
+        // Se houver pré-preenchimento completo, pula para a confirmação
+        if (serviceId && proId && date && time) {
+            setStep('CONFIRM');
+        }
+    }, [services, professionals]);
+
     useEffect(() => {
         setTimeout(() => scrollRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
     }, [messages, step]);
