@@ -19,6 +19,17 @@ const TeamManagement: React.FC<TeamManagementProps> = ({ salon, salonId: explici
   const [isAdding, setIsAdding] = useState(false);
   const [selectedProId, setSelectedProId] = useState<string | null>(null);
   const [billingInfo, setBillingInfo] = useState<any>(null);
+  const [activeEditTab, setActiveEditTab] = useState<'info' | 'hours'>('info');
+
+  const DAYS_OF_WEEK = [
+    { key: 'segunda', label: 'Segunda-feira' },
+    { key: 'terca', label: 'Terça-feira' },
+    { key: 'quarta', label: 'Quarta-feira' },
+    { key: 'quinta', label: 'Quinta-feira' },
+    { key: 'sexta', label: 'Sexta-feira' },
+    { key: 'sabado', label: 'Sábado' },
+    { key: 'domingo', label: 'Domingo' }
+  ];
 
   const [newPro, setNewPro] = useState({
     name: '',
@@ -35,15 +46,16 @@ const TeamManagement: React.FC<TeamManagementProps> = ({ salon, salonId: explici
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const [editData, setEditData] = useState({
+  const [editData, setEditData] = useState<any>({
     name: '',
     role: '',
     productivity: 0,
     comissao: 0,
-    status: 'active' as 'active' | 'away',
+    status: 'active',
     image: '',
     email: '',
-    password: ''
+    password: '',
+    horario_funcionamento: {}
   });
 
   const [confirmDialog, setConfirmDialog] = useState<{
@@ -94,7 +106,8 @@ const TeamManagement: React.FC<TeamManagementProps> = ({ salon, salonId: explici
           status: selectedPro.status || 'active',
           image: selectedPro.image || '',
           email: selectedPro.email || '',
-          password: '' // Reset para evitar conflitos
+          password: '', // Reset para evitar conflitos
+          horario_funcionamento: selectedPro.horario_funcionamento || {}
         });
       }
     }
@@ -499,74 +512,153 @@ const TeamManagement: React.FC<TeamManagementProps> = ({ salon, salonId: explici
           return (
             <div className="fixed inset-0 z-[70] bg-background-dark/95 backdrop-blur-xl animate-fade-in flex flex-col items-center overflow-hidden">
               <div className="flex-1 flex flex-col bg-background-dark max-w-[450px] w-full h-full">
-                <header className="p-8 flex items-center justify-between">
-                  <h2 className="text-xl font-display font-black text-white italic tracking-tighter uppercase">Editar Perfil</h2>
+                <header className="px-8 pt-8 flex items-center justify-between">
+                  <h2 className="text-xl font-display font-black text-white italic tracking-tighter uppercase">Editar Artista</h2>
                   <button onClick={() => setSelectedProId(null)} className="text-slate-500">
                     <span className="material-symbols-outlined">close</span>
                   </button>
                 </header>
 
-                <div className="flex-1 overflow-y-auto p-8 space-y-6 pb-40 min-h-0">
-                  <div className="flex items-center gap-6">
-                    <div className="relative group shrink-0">
-                      <div className="size-24 rounded-3xl bg-cover bg-center border-2 border-primary/20 shadow-xl overflow-hidden" style={{ backgroundImage: `url('${editData.image}')` }}>
-                        <label htmlFor="edit-pro-photo" className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
-                          <span className="material-symbols-outlined text-white text-xl">add_a_photo</span>
-                        </label>
+                {/* Tabs de Edição */}
+                <div className="px-8 mt-6">
+                  <div className="flex bg-surface-dark p-1 rounded-2xl border border-white/5">
+                    <button onClick={() => setActiveEditTab('info')} className={`flex-1 py-3 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${activeEditTab === 'info' ? 'bg-primary text-background-dark shadow-lg' : 'text-slate-500'}`}>Perfil Básico</button>
+                    <button onClick={() => setActiveEditTab('hours')} className={`flex-1 py-3 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${activeEditTab === 'hours' ? 'bg-primary text-background-dark shadow-lg' : 'text-slate-500'}`}>Agenda Individual</button>
+                  </div>
+                </div>
+
+                <div className="flex-1 overflow-y-auto p-8 space-y-6 pb-40 min-h-0 no-scrollbar">
+                  {activeEditTab === 'info' ? (
+                    <div className="space-y-6 animate-fade-in">
+                      <div className="flex items-center gap-6">
+                        <div className="relative group shrink-0">
+                          <div className="size-24 rounded-3xl bg-cover bg-center border-2 border-primary/20 shadow-xl overflow-hidden" style={{ backgroundImage: `url('${editData.image}')` }}>
+                            <label htmlFor="edit-pro-photo" className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                              <span className="material-symbols-outlined text-white text-xl">add_a_photo</span>
+                            </label>
+                          </div>
+                          <input type="file" id="edit-pro-photo" accept="image/*" className="hidden" onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              try {
+                                const publicUrl = await api.storage.upload(file);
+                                setEditData({ ...editData, image: publicUrl });
+                                showNotification('success', 'Foto atualizada!');
+                              } catch (err) { showNotification('error', 'Falha no upload'); }
+                            }
+                          }} />
+                        </div>
+                        <div className="flex-1">
+                          <input type="text" value={editData.name} onChange={(e) => setEditData({ ...editData, name: e.target.value })} className="text-2xl font-display font-black text-white italic bg-transparent border-b border-white/20 outline-none w-full" />
+                          <input type="text" value={editData.role} onChange={(e) => setEditData({ ...editData, role: e.target.value })} className="text-primary text-xs font-black uppercase tracking-widest mt-1 bg-transparent border-b border-primary/20 outline-none w-full shadow-none" />
+                        </div>
                       </div>
-                      <input type="file" id="edit-pro-photo" accept="image/*" className="hidden" onChange={async (e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          try {
-                            const publicUrl = await api.storage.upload(file);
-                            setEditData({ ...editData, image: publicUrl });
-                            showNotification('success', 'Foto atualizada!');
-                          } catch (err) { showNotification('error', 'Falha no upload'); }
-                        }
-                      }} />
-                    </div>
-                    <div className="flex-1">
-                      <input type="text" value={editData.name} onChange={(e) => setEditData({ ...editData, name: e.target.value })} className="text-2xl font-display font-black text-white italic bg-transparent border-b border-white/20 outline-none w-full" />
-                      <input type="text" value={editData.role} onChange={(e) => setEditData({ ...editData, role: e.target.value })} className="text-primary text-xs font-black uppercase tracking-widest mt-1 bg-transparent border-b border-primary/20 outline-none w-full shadow-none" />
-                    </div>
-                  </div>
 
-                  <div className="bg-surface-dark border border-white/5 rounded-3xl p-6 space-y-5">
-                    <div className="space-y-1">
-                      <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-1 leading-none">E-mail de Acesso</p>
-                      <input type="email" value={editData.email} onChange={(e) => setEditData({ ...editData, email: e.target.value })} className="text-sm font-bold text-white italic bg-transparent border-b border-white/10 outline-none w-full py-1 focus:border-primary transition-colors" />
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-[8px] font-black text-primary uppercase tracking-widest mb-1 leading-none">Alterar Senha (Login)</p>
-                      <input type="password" value={editData.password} onChange={(e) => setEditData({ ...editData, password: e.target.value })} placeholder="•••••••• (vazio mantém a atual)" className="text-sm font-bold text-white italic bg-transparent border-b border-primary/20 outline-none w-full py-1 focus:border-primary transition-colors placeholder:text-white/20" />
-                    </div>
-                  </div>
+                      <div className="bg-surface-dark border border-white/5 rounded-3xl p-6 space-y-5">
+                        <div className="space-y-1">
+                          <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-1 leading-none">E-mail de Acesso</p>
+                          <input type="email" value={editData.email} onChange={(e) => setEditData({ ...editData, email: e.target.value })} className="text-sm font-bold text-white italic bg-transparent border-b border-white/10 outline-none w-full py-1 focus:border-primary transition-colors" />
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-[8px] font-black text-primary uppercase tracking-widest mb-1 leading-none">Alterar Senha (Login)</p>
+                          <input type="password" value={editData.password} onChange={(e) => setEditData({ ...editData, password: e.target.value })} placeholder="•••••••• (vazio mantém a atual)" className="text-sm font-bold text-white italic bg-transparent border-b border-primary/20 outline-none w-full py-1 focus:border-primary transition-colors placeholder:text-white/20" />
+                        </div>
+                      </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-surface-dark border border-white/5 rounded-3xl p-6">
-                      <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-2">Produtividade</p>
-                      <input type="number" value={editData.productivity} onChange={(e) => setEditData({ ...editData, productivity: parseInt(e.target.value) || 0 })} className="text-3xl font-display font-black text-primary italic bg-transparent outline-none w-full" />
-                    </div>
-                    <div className="bg-surface-dark border border-white/5 rounded-3xl p-6">
-                      <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-2">Comissão %</p>
-                      <input type="number" value={editData.comissao} onChange={(e) => setEditData({ ...editData, comissao: parseInt(e.target.value) || 0 })} className="text-3xl font-display font-black text-white italic bg-transparent outline-none w-full" />
-                    </div>
-                  </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="bg-surface-dark border border-white/5 rounded-3xl p-6">
+                          <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-2">Produtividade</p>
+                          <input type="number" value={editData.productivity} onChange={(e) => setEditData({ ...editData, productivity: parseInt(e.target.value) || 0 })} className="text-3xl font-display font-black text-primary italic bg-transparent outline-none w-full" />
+                        </div>
+                        <div className="bg-surface-dark border border-white/5 rounded-3xl p-6">
+                          <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-2">Comissão %</p>
+                          <input type="number" value={editData.comissao} onChange={(e) => setEditData({ ...editData, comissao: parseInt(e.target.value) || 0 })} className="text-3xl font-display font-black text-white italic bg-transparent outline-none w-full" />
+                        </div>
+                      </div>
 
-                  <div className="bg-surface-dark border border-white/5 rounded-3xl p-6">
-                    <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-3">Status</p>
-                    <div className="flex gap-4">
-                      <button onClick={() => setEditData({ ...editData, status: 'active' })} className={`flex-1 p-4 rounded-2xl border transition-all ${editData.status === 'active' ? 'bg-emerald-500/20 border-emerald-500 text-emerald-500' : 'border-white/10 text-slate-500'}`}>
-                        <span className="text-xs font-black uppercase">Ativo</span>
-                      </button>
-                      <button onClick={() => setEditData({ ...editData, status: 'away' })} className={`flex-1 p-4 rounded-2xl border transition-all ${editData.status === 'away' ? 'bg-red-500/10 border-red-500 text-red-400' : 'border-white/10 text-slate-500'}`}>
-                        <span className="text-xs font-black uppercase">Ausente</span>
-                      </button>
+                      <div className="bg-surface-dark border border-white/5 rounded-3xl p-6">
+                        <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-3">Status de Atendimento</p>
+                        <div className="flex gap-4">
+                          <button onClick={() => setEditData({ ...editData, status: 'active' })} className={`flex-1 p-4 rounded-2xl border transition-all ${editData.status === 'active' ? 'bg-emerald-500/20 border-emerald-500 text-emerald-500' : 'border-white/10 text-slate-500'}`}>
+                            <span className="text-xs font-black uppercase">Ativo</span>
+                          </button>
+                          <button onClick={() => setEditData({ ...editData, status: 'away' })} className={`flex-1 p-4 rounded-2xl border transition-all ${editData.status === 'away' ? 'bg-red-500/10 border-red-500 text-red-400' : 'border-white/10 text-slate-500'}`}>
+                            <span className="text-xs font-black uppercase">Ausente</span>
+                          </button>
+                        </div>
+                      </div>
                     </div>
-                  </div>
+                  ) : (
+                    <div className="space-y-6 animate-fade-in">
+                      <div className="bg-primary/5 border border-primary/20 rounded-[32px] p-6 mb-6">
+                        <p className="text-[9px] font-black text-primary uppercase tracking-[0.2em] mb-2">Personalização Aura</p>
+                        <p className="text-[10px] text-white/60 leading-relaxed font-bold">Defina horários específicos para este artista. Se deixado vazio, ele seguirá o horário padrão da unidade.</p>
+                      </div>
 
-                  <button onClick={handleUpdate} className="w-full gold-gradient text-background-dark py-5 rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl active:scale-95 transition-all">Salvar Alterações</button>
-                  <button onClick={handleDelete} className="w-full bg-red-500/10 border border-red-500/30 text-red-500 py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] active:scale-95 transition-all">Revogar Acesso</button>
+                      <div className="space-y-4">
+                        {DAYS_OF_WEEK.map(({ key, label }) => {
+                          const dayData = editData.horario_funcionamento?.[key] || { closed: true, open: '09:00', close: '18:00' };
+
+                          const toggleDay = () => {
+                            const newHours = { ...editData.horario_funcionamento };
+                            newHours[key] = dayData.closed ? { closed: false, open: '09:00', close: '18:00' } : { ...dayData, closed: true };
+                            setEditData({ ...editData, horario_funcionamento: newHours });
+                          };
+
+                          const updateTime = (field: 'open' | 'close', value: string) => {
+                            const newHours = { ...editData.horario_funcionamento };
+                            newHours[key] = { ...dayData, [field]: value };
+                            setEditData({ ...editData, horario_funcionamento: newHours });
+                          };
+
+                          return (
+                            <div key={key} className="bg-surface-dark border border-white/5 rounded-3xl p-5">
+                              <div className="flex items-center justify-between mb-4">
+                                <span className="text-white font-black text-[10px] uppercase tracking-widest">{label}</span>
+                                <button
+                                  type="button"
+                                  onClick={toggleDay}
+                                  className={`relative w-12 h-6 rounded-full transition-all ${!dayData.closed ? 'bg-primary' : 'bg-white/10'}`}
+                                >
+                                  <div className={`absolute top-1 size-4 rounded-full bg-white shadow-lg transition-all ${!dayData.closed ? 'left-7' : 'left-1'}`} />
+                                </button>
+                              </div>
+
+                              {!dayData.closed && (
+                                <div className="grid grid-cols-2 gap-4 animate-fade-in">
+                                  <div className="space-y-1">
+                                    <label className="text-[7px] font-black text-slate-500 uppercase tracking-widest ml-1">Início</label>
+                                    <input
+                                      type="time"
+                                      value={dayData.open}
+                                      onChange={(e) => updateTime('open', e.target.value)}
+                                      className="w-full bg-background-dark border border-white/10 rounded-xl p-3 text-white text-xs outline-none focus:border-primary"
+                                    />
+                                  </div>
+                                  <div className="space-y-1">
+                                    <label className="text-[7px] font-black text-slate-500 uppercase tracking-widest ml-1">Fim</label>
+                                    <input
+                                      type="time"
+                                      value={dayData.close}
+                                      onChange={(e) => updateTime('close', e.target.value)}
+                                      className="w-full bg-background-dark border border-white/10 rounded-xl p-3 text-white text-xs outline-none focus:border-primary"
+                                    />
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="pt-4 space-y-4">
+                    <button onClick={handleUpdate} className="w-full gold-gradient text-background-dark py-5 rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl active:scale-95 transition-all">Salvar Alterações</button>
+                    {activeEditTab === 'info' && (
+                      <button onClick={handleDelete} className="w-full bg-red-500/10 border border-red-500/30 text-red-500 py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] active:scale-95 transition-all">Revogar Acesso</button>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>

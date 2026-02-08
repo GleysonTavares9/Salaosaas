@@ -15,12 +15,54 @@ const ChatList: React.FC<ChatListProps> = ({ userId }) => {
 
   useEffect(() => {
     if (userId) {
+      // 1. Carregar inicial
       api.chat.getConversations(userId).then(data => {
-        // Mapeamento simulado: No mundo real, buscaríamos os nomes no banco
-        // Por agora, vamos garantir que o array exista
         setConversations(data || []);
         setIsLoading(false);
       });
+
+      // 2. Ouvir atualizações em tempo real (Novas mensagens mudam conversa)
+      const channel = api.supabase
+        .channel('public:conversations')
+        .on('postgres_changes', {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'conversations',
+          filter: `user1_id=eq.${userId}`
+        }, (payload) => {
+          setConversations(prev => prev.map(c => c.id === payload.new.id ? {
+            ...c,
+            ...payload.new,
+            unread_count: payload.new.user1_unread_count
+          } : c));
+
+          if (payload.new.user1_unread_count > (payload.old.user1_unread_count || 0)) {
+            const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3');
+            audio.play().catch(() => { });
+          }
+        })
+        .on('postgres_changes', {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'conversations',
+          filter: `user2_id=eq.${userId}`
+        }, (payload) => {
+          setConversations(prev => prev.map(c => c.id === payload.new.id ? {
+            ...c,
+            ...payload.new,
+            unread_count: payload.new.user2_unread_count
+          } : c));
+
+          if (payload.new.user2_unread_count > (payload.old.user2_unread_count || 0)) {
+            const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3');
+            audio.play().catch(() => { });
+          }
+        })
+        .subscribe();
+
+      return () => {
+        channel.unsubscribe();
+      };
     }
   }, [userId]);
 
@@ -57,23 +99,29 @@ const ChatList: React.FC<ChatListProps> = ({ userId }) => {
                 <button
                   key={chat.id}
                   onClick={() => navigate(`/chat/${chat.id}`)}
-                  className="w-full bg-surface-dark/40 border border-white/5 rounded-[40px] p-6 flex items-center gap-5 active:bg-white/5 transition-all group shadow-xl"
+                  className={`w-full border-2 rounded-[40px] p-6 flex items-center gap-5 active:scale-[0.98] transition-all group shadow-2xl relative ${chat.unread_count > 0
+                    ? 'bg-primary border-white shadow-[0_0_30px_rgba(193,165,113,0.4)]'
+                    : 'bg-surface-dark/40 border-white/5'}`}
                 >
                   <div className="relative shrink-0">
-                    <img src={chat.participant_image || "https://i.pravatar.cc/150?u=aura"} className="size-16 rounded-[24px] object-cover border border-white/10 shadow-lg" alt={chat.participant_name} />
+                    <img src={chat.participant_image || "https://i.pravatar.cc/150?u=aura"} className={`size-16 rounded-[24px] object-cover border-2 shadow-lg transition-all ${chat.unread_count > 0 ? 'border-background-dark' : 'border-white/10'}`} alt={chat.participant_name} />
                     {chat.unread_count > 0 && (
-                      <div className="absolute -top-1 -right-1 size-6 bg-primary rounded-full border-2 border-background-dark flex items-center justify-center text-[10px] font-black text-background-dark shadow-lg">
+                      <div className="absolute -top-1 -right-1 size-8 bg-background-dark rounded-full border-2 border-white flex items-center justify-center text-[12px] font-black text-white shadow-lg animate-bounce z-20">
                         {chat.unread_count}
                       </div>
                     )}
                   </div>
 
-                  <div className="flex-1 text-left min-w-0">
+                  <div className="flex-1 text-left min-w-0 relative z-10">
                     <div className="flex justify-between items-center mb-1.5">
-                      <h3 className="text-sm font-display font-black text-white group-hover:text-primary transition-colors italic tracking-tight truncate">{chat.participant_name || "Membro Aura"}</h3>
-                      <span className="text-[8px] font-black text-slate-600 uppercase tracking-widest">{chat.timestamp || "Agora"}</span>
+                      <h3 className={`text-sm font-display font-black group-hover:opacity-80 transition-colors italic tracking-tight truncate ${chat.unread_count > 0 ? 'text-background-dark' : 'text-white'}`}>
+                        {chat.participant_name || "Membro Aura"}
+                      </h3>
+                      <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-full ${chat.unread_count > 0 ? 'bg-background-dark text-white' : 'text-slate-600'}`}>
+                        {chat.unread_count > 0 ? 'MENSAGEM NOVA' : (chat.timestamp || "Agora")}
+                      </span>
                     </div>
-                    <p className={`text-[11px] line-clamp-1 italic ${chat.unread_count > 0 ? 'text-white font-black' : 'text-slate-500'}`}>
+                    <p className={`text-[12px] line-clamp-1 italic ${chat.unread_count > 0 ? 'text-background-dark font-black' : 'text-slate-500'}`}>
                       {chat.last_message || "Inicie um bate-papo..."}
                     </p>
                   </div>

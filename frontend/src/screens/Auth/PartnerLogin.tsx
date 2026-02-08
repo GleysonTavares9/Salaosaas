@@ -41,24 +41,23 @@ const PartnerLogin: React.FC<PartnerLoginProps> = ({ onLogin }) => {
 
           setIsLoading(false);
           setTimeout(async () => {
-            await api.auth.signOut();
-            navigate('/login-user', { replace: true });
+            navigate('/explore', { replace: true });
           }, 3500);
           return;
         }
 
         // 2. CORREÇÃO DE ABA (Barbeiro vs Gestor)
         if (loginRole !== realRole) {
-          await api.auth.signOut();
           const roleLabel = realRole === 'admin' ? 'Gestor' : 'Barbeiro';
 
-          setRedirectInfo({ role: realRole, message: `Perfil de ${roleLabel} identificado. Alternando para a aba correta...` });
+          setRedirectInfo({ role: realRole, message: `Perfil de ${roleLabel} identificado. Sincronizando acesso...` });
           setIsLoading(false);
 
           setTimeout(() => {
             setRedirectInfo(null);
             setLoginRole(realRole as ViewRole);
-          }, 3000);
+            onLogin(realRole as ViewRole, user.id);
+          }, 2000);
 
           return;
         }

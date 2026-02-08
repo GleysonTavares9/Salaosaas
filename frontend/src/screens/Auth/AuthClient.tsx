@@ -42,8 +42,7 @@ const AuthClient: React.FC<AuthClientProps> = ({ onLogin }) => {
           });
 
           setTimeout(async () => {
-            await api.auth.signOut();
-            navigate('/login');
+            navigate('/pro');
           }, 3500);
         }
       }
@@ -80,10 +79,9 @@ const AuthClient: React.FC<AuthClientProps> = ({ onLogin }) => {
             // Remove loading do form (pois o form vai sumir)
             setIsLoading(false);
 
-            // Aguarda com a TELA CHEIA VISÍVEL antes de trocar e DESLOGAR
+            // Aguarda com a TELA CHEIA VISÍVEL antes de trocar
             setTimeout(async () => {
-              await api.auth.signOut();
-              navigate('/login');
+              navigate('/pro');
             }, 3500);
 
             return;

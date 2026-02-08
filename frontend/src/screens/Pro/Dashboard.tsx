@@ -31,6 +31,7 @@ const Dashboard: React.FC<DashboardProps> = ({ role, salon, appointments, userId
   const [proProfile, setProProfile] = useState<any>(null);
   const [userProfile, setUserProfile] = useState<any>(null); // For Admin avatar
   const [billingInfo, setBillingInfo] = useState<any>(null);
+  const [totalUnreadMessages, setTotalUnreadMessages] = useState(0);
 
   useEffect(() => {
     if (salon?.id) {
@@ -51,6 +52,37 @@ const Dashboard: React.FC<DashboardProps> = ({ role, salon, appointments, userId
       api.profiles.getById(userId).then(profile => {
         if (profile) setUserProfile(profile);
       });
+
+      // Buscar total de mensagens não lidas para o Badge do Dashboard
+      const fetchUnread = () => {
+        api.chat.getConversations(userId).then(convs => {
+          const total = convs.reduce((acc, curr) => acc + (curr.unread_count || 0), 0);
+          setTotalUnreadMessages(total);
+        }).catch(err => console.warn("Erro ao buscar contador de mensagens:", err));
+      };
+
+      fetchUnread();
+
+      // Inscrição Realtime para atualizar o Badge do Dashboard
+      const channel = supabase
+        .channel('dashboard:messages')
+        .on('postgres_changes', {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'conversations',
+          filter: `user1_id=eq.${userId}`
+        }, () => fetchUnread())
+        .on('postgres_changes', {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'conversations',
+          filter: `user2_id=eq.${userId}`
+        }, () => fetchUnread())
+        .subscribe();
+
+      return () => {
+        channel.unsubscribe();
+      };
     }
 
     if (userId && role === 'pro') {
@@ -127,14 +159,14 @@ const Dashboard: React.FC<DashboardProps> = ({ role, salon, appointments, userId
     { label: 'Equipe', icon: 'groups', path: '/pro/team', color: 'purple', desc: 'Artistas e metas' },
     { label: 'Catálogo Serviços', icon: 'menu_book', path: '/pro/catalog', color: 'indigo', desc: 'Rituais e preços' },
     { label: 'Configurações', icon: 'settings', path: '/pro/business-setup', color: 'slate', desc: 'Branding da unidade' },
-    { label: 'Mensagens', icon: 'chat_bubble', path: '/messages', color: 'slate', desc: 'SAC Cliente' },
+    { label: 'Mensagens', icon: 'chat_bubble', path: '/messages', color: 'slate', desc: 'SAC Cliente', badge: totalUnreadMessages },
     ...(isMaster ? [{ label: '🛡️ SaaSMaster', icon: 'dashboard_customize', path: '/pro/master', color: 'amber', desc: 'Controle Global SaaS' }] : []),
   ];
 
   const proMenu: MenuItem[] = [
     { label: 'Minha Agenda', icon: 'event_note', path: '/pro/schedule', color: 'purple', desc: 'Ver atendimentos' },
     { label: 'Meus Ganhos', icon: 'monetization_on', path: '/pro/analytics', color: 'emerald', desc: 'Comissões & Relatórios' },
-    { label: 'Mensagens', icon: 'chat_bubble', path: '/messages', color: 'indigo', desc: 'Falar com Clientes' },
+    { label: 'Mensagens', icon: 'chat_bubble', path: '/messages', color: 'indigo', desc: 'Falar com Clientes', badge: totalUnreadMessages },
     { label: 'Perfil Profissional', icon: 'account_circle', path: '/profile', color: 'amber', desc: 'Ver meus dados' },
   ];
 
@@ -354,7 +386,7 @@ const Dashboard: React.FC<DashboardProps> = ({ role, salon, appointments, userId
                   `}
                 >
                   {item.badge && !isLocked && (
-                    <div className="absolute top-4 right-4 size-5 bg-red-500 rounded-full flex items-center justify-center text-[9px] font-black text-white border-2 border-surface-dark">
+                    <div className="absolute top-4 right-4 size-6 bg-red-600 rounded-full flex items-center justify-center text-[10px] font-black text-white border-2 border-surface-dark shadow-[0_0_15px_rgba(220,38,38,0.5)] animate-pulse z-20">
                       {item.badge}
                     </div>
                   )}

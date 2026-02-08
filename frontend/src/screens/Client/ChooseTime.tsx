@@ -71,6 +71,10 @@ const ChooseTime: React.FC<ChooseTimeProps> = ({ bookingDraft, setBookingDraft }
 
   const [salonData, setSalonData] = useState<any>(null);
 
+  const selectedPro = useMemo(() => {
+    return professionals.find(p => p.id === bookingDraft.professionalId);
+  }, [professionals, bookingDraft.professionalId]);
+
   const nextDays = useMemo(() => {
     return Array.from({ length: 14 }, (_, i) => {
       const d = new Date();
@@ -83,7 +87,12 @@ const ChooseTime: React.FC<ChooseTimeProps> = ({ bookingDraft, setBookingDraft }
       const monthLabel = d.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '').toUpperCase();
 
       const key = DAY_KEY_MAP[dayName] || dayName;
-      const isClosed = salonData?.horario_funcionamento?.[key]?.closed;
+
+      // Hierarquia de Fechamento: Pro > Salão
+      const proClosed = selectedPro?.horario_funcionamento?.[key]?.closed;
+      const salonClosed = salonData?.horario_funcionamento?.[key]?.closed;
+
+      const isClosed = proClosed !== undefined ? proClosed : (salonClosed === undefined ? true : salonClosed);
 
       return {
         label: i === 0 ? 'Hoje' : i === 1 ? 'Amanhã' : dayShort,
@@ -92,7 +101,7 @@ const ChooseTime: React.FC<ChooseTimeProps> = ({ bookingDraft, setBookingDraft }
         isClosed
       };
     });
-  }, [salonData]);
+  }, [salonData, selectedPro]);
 
   const [selectedDay, setSelectedDay] = useState(bookingDraft.date || (nextDays[0] ? nextDays[0].date : ''));
 

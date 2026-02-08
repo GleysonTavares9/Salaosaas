@@ -4,6 +4,13 @@ import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import 'leaflet/dist/leaflet.css';
 
+// Local Fonts (Optimization)
+import "@fontsource/manrope/400.css";
+import "@fontsource/manrope/600.css";
+import "@fontsource/manrope/700.css";
+import "@fontsource/manrope/800.css";
+import "@fontsource/material-symbols-outlined/index.css";
+
 interface ErrorBoundaryProps {
   children?: ReactNode;
 }
@@ -56,7 +63,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
 }
 
 const container = document.getElementById('root');
-const loader = document.getElementById('app-loader');
+const splash = document.getElementById('splash');
 
 // Supress Recharts defaultProps warning (known issue with React 18+)
 const error = console.error;
@@ -76,20 +83,26 @@ if (container) {
       </React.StrictMode>
     );
 
-    // Ocultar o loader apenas quando o React estiver pronto e a animação "respirar" um pouco
-    setTimeout(() => {
-      if (loader) {
-        loader.style.opacity = '0';
-        setTimeout(() => {
-          if (loader.parentNode) loader.parentNode.removeChild(loader);
-        }, 800);
+    // Hide splash screen when React is ready
+    window.addEventListener('load', () => {
+      if (splash) {
+        splash.style.opacity = '0';
+        setTimeout(() => splash.remove(), 500);
       }
-    }, 2500);
+    });
+
+    // Failsafe
+    setTimeout(() => {
+      if (splash) {
+        splash.style.opacity = '0';
+        setTimeout(() => splash.remove(), 500);
+      }
+    }, 5000);
 
   } catch (error) {
     console.error("Erro fatal na montagem:", error);
-    if (loader) {
-      loader.innerHTML = '<p style="color: #ef4444; text-align: center; padding: 20px;">Falha Crítica na Inicialização.</p>';
+    if (splash) {
+      splash.innerHTML = '<p style="color: #ef4444; text-align: center; padding: 20px;">Falha Crítica na Inicialização.</p>';
     }
   }
 }

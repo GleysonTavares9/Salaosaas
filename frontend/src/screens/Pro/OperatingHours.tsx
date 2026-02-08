@@ -10,13 +10,13 @@ interface OperatingHoursProps {
 }
 
 const DAYS_OF_WEEK = [
-  { key: 'monday', label: 'Segunda-feira' },
-  { key: 'tuesday', label: 'Terça-feira' },
-  { key: 'wednesday', label: 'Quarta-feira' },
-  { key: 'thursday', label: 'Quinta-feira' },
-  { key: 'friday', label: 'Sexta-feira' },
-  { key: 'saturday', label: 'Sábado' },
-  { key: 'sunday', label: 'Domingo' }
+  { key: 'segunda', label: 'Segunda-feira' },
+  { key: 'terca', label: 'Terça-feira' },
+  { key: 'quarta', label: 'Quarta-feira' },
+  { key: 'quinta', label: 'Quinta-feira' },
+  { key: 'sexta', label: 'Sexta-feira' },
+  { key: 'sabado', label: 'Sábado' },
+  { key: 'domingo', label: 'Domingo' }
 ];
 
 const OperatingHours: React.FC<OperatingHoursProps> = ({ salon, onSave }) => {

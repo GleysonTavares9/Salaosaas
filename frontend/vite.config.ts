@@ -18,6 +18,18 @@ export default defineConfig(({ mode }) => {
         alias: {
           '@': path.resolve(__dirname, '.'),
         }
-      }
+      },
+      build: {
+        target: "es2018",
+        cssCodeSplit: true,
+        rollupOptions: {
+          output: {
+            manualChunks: {
+              react: ["react", "react-dom"],
+              maps: ["leaflet", "react-leaflet"],
+            },
+          },
+        },
+      },
     };
 });

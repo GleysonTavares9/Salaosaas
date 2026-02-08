@@ -1,25 +1,13 @@
-
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useMemo, lazy, Suspense } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Salon, BusinessSegment } from '../../types.ts';
-import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
-import MarkerClusterGroup from 'react-leaflet-cluster';
 import L from 'leaflet';
-import 'leaflet.markercluster/dist/MarkerCluster.css';
-import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
+
+const AuraMap = lazy(() => import('../../components/AuraMap'));
 
 interface LandingProps {
   salons: Salon[];
 }
-
-// Helper to recenter map
-const RecenterMap: React.FC<{ lat: number; lng: number }> = ({ lat, lng }) => {
-  const map = useMap();
-  useEffect(() => {
-    map.setView([lat, lng], 13);
-  }, [lat, lng, map]);
-  return null;
-};
 
 // Custom salon marker factory with Luxe Aura branding
 const createSalonIcon = (logoUrl: string) => L.divIcon({
@@ -52,27 +40,42 @@ const createClusterCustomIcon = (cluster: any) => {
 
 const Landing: React.FC<LandingProps> = ({ salons }) => {
   const navigate = useNavigate();
-  const [userLocation, setUserLocation] = useState<string>("Buscando...");
+  const [userLocation, setUserLocation] = useState<string>("Brasil");
   const [coords, setCoords] = useState<{ lat: number; lng: number }>({ lat: -19.9167, lng: -43.9345 }); // Default BH
   const [activeSegment, setActiveSegment] = useState<BusinessSegment | 'Todos'>('Todos');
   const [selectedSalonId, setSelectedSalonId] = useState<string | null>(null);
+  const [isLocating, setIsLocating] = useState(false);
 
-  useEffect(() => {
+  const handleGetLocation = () => {
     if (navigator.geolocation) {
+      setIsLocating(true);
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const { latitude, longitude } = position.coords;
           setCoords({ lat: latitude, lng: longitude });
           setUserLocation(`${latitude.toFixed(2)}, ${longitude.toFixed(2)}`);
+          setIsLocating(false);
         },
-        () => setUserLocation("Brasil")
+        () => {
+          setUserLocation("Localização Negada");
+          setIsLocating(false);
+        }
       );
     }
-  }, []);
+  };
 
   const filteredSalons = useMemo(() => {
     return salons.filter(s => activeSegment === 'Todos' || s.segmento === activeSegment);
   }, [salons, activeSegment]);
+
+  const mapMarkers = useMemo(() => {
+    return filteredSalons.map(salon => ({
+      id: salon.id,
+      position: [salon.location?.lat || -19.91, salon.location?.lng || -43.93] as [number, number],
+      icon: createSalonIcon(salon.logo_url),
+      onClick: () => setSelectedSalonId(salon.id)
+    }));
+  }, [filteredSalons]);
 
   const selectedSalon = useMemo(() =>
     salons.find(s => s.id === selectedSalonId),
@@ -83,47 +86,14 @@ const Landing: React.FC<LandingProps> = ({ salons }) => {
 
       {/* MAPA REAL (Leaflet) DE FUNDO */}
       <div className="absolute inset-0 z-0 bg-[#0c0d10]">
-        <div className="h-full w-full">
-          <MapContainer
+        <Suspense fallback={<div className="h-full w-full bg-[#0c0d10] animate-pulse" />}>
+          <AuraMap
             center={[coords.lat, coords.lng]}
             zoom={13}
-            zoomControl={false}
-            attributionControl={false}
-            style={{ height: '100%', width: '100%', background: '#0c0d10' }}
-          >
-            <TileLayer
-              url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-            />
-            <RecenterMap lat={coords.lat} lng={coords.lng} />
-
-            <MarkerClusterGroup
-              chunkedLoading
-              iconCreateFunction={createClusterCustomIcon}
-              maxClusterRadius={40}
-              spiderfyOnMaxZoom={true}
-              showCoverageOnHover={false}
-            >
-              {filteredSalons.map((salon) => {
-                const lat = salon.location?.lat || -19.91;
-                const lng = salon.location?.lng || -43.93;
-
-                if (!lat && !lng) return null;
-
-                return (
-                  <Marker
-                    key={salon.id}
-                    position={[lat, lng]}
-                    icon={createSalonIcon(salon.logo_url)}
-                    eventHandlers={{
-                      click: () => setSelectedSalonId(salon.id),
-                    }}
-                  />
-                );
-              })}
-            </MarkerClusterGroup>
-          </MapContainer>
-        </div>
+            markers={mapMarkers}
+            clusterIconFactory={createClusterCustomIcon}
+          />
+        </Suspense>
       </div>
 
       {/* OVERLAY DE INTERFACE */}
@@ -131,7 +101,18 @@ const Landing: React.FC<LandingProps> = ({ salons }) => {
         <header className="p-6 pt-[calc(env(safe-area-inset-top)+2rem)] flex items-center justify-between bg-gradient-to-b from-background-dark via-background-dark/40 to-transparent pointer-events-auto">
           <div>
             <h1 className="text-xl font-display font-black text-white italic tracking-tighter leading-none mb-1">Luxe Aura</h1>
-            <p className="text-[7px] text-slate-500 font-black uppercase tracking-[0.2em]">{userLocation}</p>
+            <button
+              onClick={handleGetLocation}
+              disabled={isLocating}
+              className="flex items-center gap-1.5 opacity-60 hover:opacity-100 transition-opacity"
+            >
+              <p className="text-[7px] text-slate-500 font-black uppercase tracking-[0.2em]">
+                {isLocating ? 'Buscando...' : userLocation}
+              </p>
+              <span className={`material-symbols-outlined text-[8px] text-primary ${isLocating ? 'animate-spin' : ''}`}>
+                near_me
+              </span>
+            </button>
           </div>
           <button onClick={() => navigate('/login')} className="size-10 rounded-xl bg-white/5 backdrop-blur-md border border-white/10 flex items-center justify-center text-primary pointer-events-auto active:scale-95 transition-all shadow-xl">
             <span className="material-symbols-outlined text-xl">storefront</span>

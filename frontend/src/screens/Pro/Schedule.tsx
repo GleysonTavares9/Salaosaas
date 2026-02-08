@@ -130,14 +130,19 @@ const Schedule: React.FC<ScheduleProps> = ({ appointments: initialAppointments, 
 
   const dateParts = selectedDate.split('-').map(Number);
   const dateObj = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
-  const dayKeys = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+  const dayKeys = ['domingo', 'segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado'];
   const currentDayKey = dayKeys[dateObj.getDay()];
-  const daySchedule = salon?.horario_funcionamento?.[currentDayKey];
+
+  // Pegamos o horário do profissional se houver apenas um selecionado (visão Pro)
+  const isSinglePro = allProfessionals.length === 1;
+  const targetSchedule = (isSinglePro && allProfessionals[0].horario_funcionamento?.[currentDayKey])
+    ? allProfessionals[0].horario_funcionamento?.[currentDayKey]
+    : salon?.horario_funcionamento?.[currentDayKey];
 
   const todayAppointments = appointments.filter(a => a.date === selectedDate && a.status !== 'canceled');
 
-  const salonOpen = daySchedule?.enabled ? parseInt(daySchedule.open.split(':')[0]) : 8;
-  const salonClose = daySchedule?.enabled ? parseInt(daySchedule.close.split(':')[0]) : 20;
+  const salonOpen = (targetSchedule?.closed === false) ? parseInt(targetSchedule.open.split(':')[0]) : 8;
+  const salonClose = (targetSchedule?.closed === false) ? parseInt(targetSchedule.close.split(':')[0]) : 20;
 
   // Ajustar o range de horas baseado nos agendamentos reais (para não esconder nada)
   const apptHours = todayAppointments.map(a => parseInt(a.time.split(':')[0]));

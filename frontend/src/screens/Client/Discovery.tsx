@@ -1,13 +1,12 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, lazy, Suspense } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Salon, BusinessSegment, ViewRole } from '../../types.ts';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
-import MarkerClusterGroup from 'react-leaflet-cluster';
 import L from 'leaflet';
-import 'leaflet.markercluster/dist/MarkerCluster.css';
-import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
+import { Popup } from 'react-leaflet';
 import { supabase } from '../../lib/supabase';
 import { api } from '../../lib/api';
+
+const AuraMap = lazy(() => import('../../components/AuraMap'));
 
 const createSalonIcon = (logoUrl: string) => L.divIcon({
   className: 'custom-salon-marker',
@@ -61,29 +60,24 @@ interface DiscoveryProps {
   role: ViewRole | null;
 }
 
-const RecenterMap: React.FC<{ lat: number; lng: number }> = ({ lat, lng }) => {
-  const map = useMap();
-  useEffect(() => { map.setView([lat, lng], 13); }, [lat, lng, map]);
-  return null;
-};
-
 const Discovery: React.FC<DiscoveryProps> = ({ salons: initialSalons, role }) => {
   const navigate = useNavigate();
   const [activeSegment, setActiveSegment] = useState<BusinessSegment | 'Todos'>('Todos');
   const [search, setSearch] = useState('');
   const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
-  const [coords, setCoords] = useState<{ lat: number; lng: number }>({ lat: -15.7942, lng: -47.8822 }); // Default Brasília (Centro do BR)
+  const [coords, setCoords] = useState<{ lat: number; lng: number }>({ lat: -15.7942, lng: -47.8822 }); // Default Brasília
   const [hasLocation, setHasLocation] = useState(false);
   const [userAvatar, setUserAvatar] = useState<string | null>(null);
   const [userName, setUserName] = useState<string>('');
-  const [cityName, setCityName] = useState('SUA LOCALIDADE');
+  const [cityName, setCityName] = useState('BRASIL');
   const [dynamicSalons, setDynamicSalons] = useState<Salon[]>(initialSalons);
+  const [isLocating, setIsLocating] = useState(false);
 
   const segments: (BusinessSegment | 'Todos')[] = ['Todos', 'Salão', 'Manicure', 'Sobrancelha', 'Barba', 'Estética', 'Spa'];
 
-  useEffect(() => {
-    // Tenta obter posição com timeout
+  const handleDetectLocation = () => {
     if (navigator.geolocation) {
+      setIsLocating(true);
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const { latitude, longitude } = position.coords;
@@ -96,11 +90,12 @@ const Discovery: React.FC<DiscoveryProps> = ({ salons: initialSalons, role }) =>
               const city = data.city || data.locality || data.principalSubdivision || 'Sua localidade';
               setCityName(city.toUpperCase());
             })
-            .catch(() => setCityName('SUA LOCALIDADE'));
+            .catch(() => setCityName('SUA LOCALIDADE'))
+            .finally(() => setIsLocating(false));
         },
         async (error) => {
-          console.warn("Geolocation failed, trying to center on first salon...", error);
           setHasLocation(false);
+          setIsLocating(false);
           // Fallback: Tenta centrar no primeiro salão da lista se houver
           if (initialSalons.length > 0 && initialSalons[0].location) {
             setCoords({ lat: initialSalons[0].location.lat, lng: initialSalons[0].location.lng });
@@ -109,12 +104,14 @@ const Discovery: React.FC<DiscoveryProps> = ({ salons: initialSalons, role }) =>
         { timeout: 10000, enableHighAccuracy: true }
       );
     }
+  };
 
+  useEffect(() => {
     const fetchLatestSalons = async () => {
       try {
         const data = await api.salons.getAll();
         setDynamicSalons(data);
-      } catch (err) { console.error("Error updating salons list:", err); }
+      } catch (err) { }
     };
 
     const fetchUserProfile = async () => {
@@ -157,11 +154,16 @@ const Discovery: React.FC<DiscoveryProps> = ({ salons: initialSalons, role }) =>
             <div className="flex items-center gap-2 mt-2">
               <p className="text-[8px] font-black uppercase tracking-[0.3em] text-slate-500">{cityName}</p>
               <button
-                onClick={() => window.location.reload()}
+                onClick={handleDetectLocation}
+                disabled={isLocating}
                 className="flex items-center gap-1 group"
               >
-                <span className="material-symbols-outlined text-[10px] text-primary animate-pulse group-active:rotate-180 transition-transform">location_on</span>
-                <span className="text-[7px] font-black text-primary/60 uppercase tracking-widest border-b border-primary/20">Detectar</span>
+                <span className={`material-symbols-outlined text-[10px] text-primary ${isLocating ? 'animate-spin' : 'animate-pulse'} group-active:rotate-180 transition-transform`}>
+                  {isLocating ? 'refresh' : 'location_on'}
+                </span>
+                <span className="text-[7px] font-black text-primary/60 uppercase tracking-widest border-b border-primary/20">
+                  {isLocating ? 'Buscando...' : 'Detectar'}
+                </span>
               </button>
             </div>
           </div>
@@ -206,36 +208,31 @@ const Discovery: React.FC<DiscoveryProps> = ({ salons: initialSalons, role }) =>
       <main className="flex-1 overflow-y-auto px-6 pt-2 pb-32 space-y-8 no-scrollbar">
         {viewMode === 'map' ? (
           <div className="h-[520px] w-full rounded-[40px] overflow-hidden border border-white/5 shadow-2xl relative">
-            <MapContainer
-              center={[coords.lat, coords.lng]}
-              zoom={13}
-              className="h-full w-full"
-              style={{ background: '#0c0d10' }}
-              attributionControl={false}
-            >
-              <TileLayer
-                url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-              />
-              <RecenterMap lat={coords.lat} lng={coords.lng} />
-
-              <Marker position={[coords.lat, coords.lng]} icon={UserIcon}>
-                <Popup className="custom-popup">
-                  <div className="px-4 py-2 font-black text-[10px] uppercase tracking-widest text-primary">Você está aqui</div>
-                </Popup>
-              </Marker>
-              <MarkerClusterGroup iconCreateFunction={createClusterCustomIcon}>
-                {filteredSalons.map(salon => salon.location && (
-                  <Marker key={salon.id} position={[salon.location.lat, salon.location.lng]} icon={createSalonIcon(salon.logo_url)}>
+            <Suspense fallback={<div className="h-full w-full bg-[#0c0d10] animate-pulse" />}>
+              <AuraMap
+                center={[coords.lat, coords.lng]}
+                zoom={13}
+                userMarker={{
+                  position: [coords.lat, coords.lng],
+                  icon: UserIcon,
+                  popupContent: "Você está aqui"
+                }}
+                markers={filteredSalons.map(salon => ({
+                  id: salon.id,
+                  position: [salon.location?.lat || 0, salon.location?.lng || 0] as [number, number],
+                  icon: createSalonIcon(salon.logo_url),
+                  popup: (
                     <Popup className="custom-popup">
                       <div className="p-4 bg-surface-dark min-w-[200px]" onClick={() => navigate(`/salon/${salon.slug_publico}`)}>
                         <h3 className="font-display font-black italic text-white mb-2">{salon.nome}</h3>
                         <p className="text-[10px] text-primary font-black uppercase tracking-widest">{salon.segmento}</p>
                       </div>
                     </Popup>
-                  </Marker>
-                ))}
-              </MarkerClusterGroup>
-            </MapContainer>
+                  )
+                })).filter(m => m.position[0] !== 0)}
+                clusterIconFactory={createClusterCustomIcon}
+              />
+            </Suspense>
             <div className="absolute bottom-2 right-4 text-[6px] text-white/20 uppercase tracking-[0.4em] pointer-events-none z-[1000] italic">
               Aura Maps • © OSM • Carto
             </div>

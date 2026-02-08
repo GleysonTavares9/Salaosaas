@@ -279,9 +279,31 @@ export const api = {
     // --- Chat ---
     chat: {
         async getConversations(userId: string) {
-            const { data, error } = await supabase.from('conversations').select('*').or(`user1_id.eq.${userId}, user2_id.eq.${userId}`);
+            const { data, error } = await supabase
+                .from('conversations')
+                .select(`
+                    *,
+                    user1:profiles!user1_id(full_name, avatar_url),
+                    user2:profiles!user2_id(full_name, avatar_url)
+                `)
+                .or(`user1_id.eq.${userId}, user2_id.eq.${userId}`)
+                .order('updated_at', { ascending: false });
+
             if (error) throw error;
-            return data as Conversation[];
+
+            // Formata os dados para identificar o outro participante e o contador correto
+            return (data || []).map((c: any) => {
+                const isUser1 = c.user1_id === userId;
+                const otherProfile = isUser1 ? c.user2 : c.user1;
+                const correctUnreadCount = isUser1 ? c.user1_unread_count : c.user2_unread_count;
+
+                return {
+                    ...c,
+                    unread_count: correctUnreadCount || 0, // Mapeia para o nome simples que o UI já usa
+                    participant_name: otherProfile?.full_name || 'Membro Aura',
+                    participant_image: otherProfile?.avatar_url
+                };
+            }) as Conversation[];
         },
         async startConversation(currentUserId: string, targetUserId: string) {
             const { data: existing } = await supabase
@@ -305,15 +327,41 @@ export const api = {
             return data as ChatMessage[];
         },
         async sendMessage(message: Omit<ChatMessage, 'id' | 'timestamp'>) {
-            const { data, error } = await supabase.from('messages').insert(message).select().single();
+            const { data, error } = await supabase.rpc('send_chat_message', {
+                p_conv_id: message.conversation_id,
+                p_sender_id: message.sender_id,
+                p_text: message.text
+            });
             if (error) throw error;
             return data as ChatMessage;
         },
+        async markAsRead(conversationId: string) {
+            console.log('📖 Chat: Marcando como lido:', conversationId);
+            const { error } = await supabase.rpc('mark_chat_as_read', {
+                p_conversation_id: conversationId
+            });
+            if (error) console.warn('Falha ao zerar contador:', error.message);
+        },
         subscribeToMessages(conversationId: string, callback: (payload: any) => void) {
-            return supabase
+            console.log('📡 Chat: Iniciando inscrição Realtime para:', conversationId);
+            const channel = supabase
                 .channel(`messages:${conversationId}`)
-                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id = eq.${conversationId}` }, callback)
-                .subscribe();
+                .on('postgres_changes', {
+                    event: 'INSERT',
+                    schema: 'public',
+                    table: 'messages',
+                    filter: `conversation_id=eq.${conversationId}`
+                }, (payload) => {
+                    console.log('📬 Nova Mensagem Recebida via Realtime:', payload);
+                    callback(payload);
+                })
+                .subscribe((status) => {
+                    console.log(`🔌 Status da Conexão Realtime (${conversationId}):`, status);
+                    if (status === 'CHANNEL_ERROR') {
+                        console.error('❌ Erro Crítico: Falha ao conectar ao Realtime. Verifique se o Realtime está habilitado no Supabase para a tabela messages.');
+                    }
+                });
+            return channel;
         }
     },
 

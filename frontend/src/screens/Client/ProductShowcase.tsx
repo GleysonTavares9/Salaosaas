@@ -35,18 +35,6 @@ const ProductShowcase: React.FC<ProductShowcaseProps> = ({ bookingDraft, setBook
   const selectedProductIds = productsInDraft.map((p: Product) => p.id);
 
   useEffect(() => {
-    // Get user location
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setCoords({ lat: position.coords.latitude, lng: position.coords.longitude });
-        },
-        () => {
-          // Mantém localização padrão
-        }
-      );
-    }
-
     // Fetch products
     const fetchProducts = async () => {
       try {
@@ -60,6 +48,19 @@ const ProductShowcase: React.FC<ProductShowcaseProps> = ({ bookingDraft, setBook
     };
     fetchProducts();
   }, []);
+
+  const handleGetLocation = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setCoords({ lat: position.coords.latitude, lng: position.coords.longitude });
+        },
+        () => {
+          // Mantém localização padrão
+        }
+      );
+    }
+  };
 
   // Enrich products with salon distance
   const enrichedProducts = useMemo(() => {
@@ -131,7 +132,13 @@ const ProductShowcase: React.FC<ProductShowcaseProps> = ({ bookingDraft, setBook
         </button>
         <div className="text-center">
           <h1 className="text-xl font-display font-black text-white italic tracking-tighter uppercase leading-none">Aura Boutique</h1>
-          <p className="text-[7px] text-primary font-black uppercase tracking-[0.3em] mt-1">Produtos Próximos a Você</p>
+          <button
+            onClick={handleGetLocation}
+            className="flex items-center justify-center gap-1 mx-auto mt-1 opacity-60 hover:opacity-100 transition-opacity"
+          >
+            <p className="text-[7px] text-primary font-black uppercase tracking-[0.3em]">Produtos Próximos</p>
+            <span className="material-symbols-outlined text-[10px] text-primary">near_me</span>
+          </button>
         </div>
         <button onClick={() => setShowCart(true)} className="size-10 flex items-center justify-center text-primary relative active:scale-90 transition-all">
           <span className="material-symbols-outlined">shopping_bag</span>

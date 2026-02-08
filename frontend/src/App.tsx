@@ -1,6 +1,6 @@
 
 // Luxe Aura Premium - v1.0.1 - Deploy Automático Ativo
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { HashRouter as Router, Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { ViewRole, Appointment, Service, Salon, Product, Professional, GalleryItem } from './types.ts';
 import BottomNav from './components/BottomNav.tsx';
@@ -8,40 +8,42 @@ import AIConcierge from './components/AIConcierge.tsx';
 import { api } from './lib/api.ts';
 import { supabase } from './lib/supabase.ts';
 import { SplashScreen } from '@capacitor/splash-screen';
+import { LocalNotifications } from '@capacitor/local-notifications';
 
-// Screens
-import QuickSchedule from './screens/Public/QuickSchedule';
-import Landing from './screens/Public/Landing.tsx';
-import Discovery from './screens/Client/Discovery.tsx';
-import SalonPage from './screens/Client/SalonPage.tsx';
-import SelectService from './screens/Client/SelectService.tsx';
-import ChooseTime from './screens/Client/ChooseTime.tsx';
-import Checkout from './screens/Client/Checkout.tsx';
-import MyAppointments from './screens/Client/MyAppointments.tsx';
-import Profile from './screens/Client/Profile.tsx';
-import ProductShowcase from './screens/Client/ProductShowcase.tsx';
-import Evaluation from './screens/Client/Evaluation.tsx';
-import Gallery from './screens/Client/Gallery.tsx';
-import Dashboard from './screens/Pro/Dashboard.tsx';
-import Schedule from './screens/Pro/Schedule.tsx';
-import ServiceCatalog from './screens/Pro/ServiceCatalog.tsx';
-import AdminBookings from './screens/Pro/AdminBookings.tsx';
-import BusinessSetup from './screens/Pro/BusinessSetup.tsx';
-import TeamManagement from './screens/Pro/TeamManagement.tsx';
-import OperatingHours from './screens/Pro/OperatingHours.tsx';
-import ProductCatalog from './screens/Pro/ProductCatalog.tsx';
-import Analytics from './screens/Pro/Analytics.tsx';
-import AuthClient from './screens/Auth/AuthClient.tsx';
-import ChatList from './screens/Chat/ChatList.tsx';
-import ChatRoom from './screens/Chat/ChatRoom.tsx';
-import PartnerLogin from './screens/Auth/PartnerLogin.tsx';
-import PartnerRegister from './screens/Auth/PartnerRegister.tsx';
-import UserRegister from './screens/Auth/UserRegister.tsx';
-import ResetPassword from './screens/Auth/ResetPassword.tsx';
-import SaaSMaster from './screens/Pro/SaaSMaster.tsx';
-import Billing from './screens/Pro/Billing.tsx';
-import PrivacyPolicy from './screens/Public/PrivacyPolicy.tsx';
-import TermsOfUse from './screens/Public/TermsOfUse.tsx';
+// Screens Optimized with Lazy Loading
+const QuickSchedule = lazy(() => import('./screens/Public/QuickSchedule'));
+const Landing = lazy(() => import('./screens/Public/Landing'));
+const Discovery = lazy(() => import('./screens/Client/Discovery'));
+const SalonPage = lazy(() => import('./screens/Client/SalonPage'));
+const SelectService = lazy(() => import('./screens/Client/SelectService'));
+const ChooseTime = lazy(() => import('./screens/Client/ChooseTime'));
+const Checkout = lazy(() => import('./screens/Client/Checkout'));
+const MyAppointments = lazy(() => import('./screens/Client/MyAppointments'));
+const Profile = lazy(() => import('./screens/Client/Profile'));
+const ProductShowcase = lazy(() => import('./screens/Client/ProductShowcase'));
+const Evaluation = lazy(() => import('./screens/Client/Evaluation'));
+const Gallery = lazy(() => import('./screens/Client/Gallery'));
+const Dashboard = lazy(() => import('./screens/Pro/Dashboard'));
+const Schedule = lazy(() => import('./screens/Pro/Schedule'));
+const ServiceCatalog = lazy(() => import('./screens/Pro/ServiceCatalog'));
+const AdminBookings = lazy(() => import('./screens/Pro/AdminBookings'));
+const BusinessSetup = lazy(() => import('./screens/Pro/BusinessSetup'));
+const TeamManagement = lazy(() => import('./screens/Pro/TeamManagement'));
+const OperatingHours = lazy(() => import('./screens/Pro/OperatingHours'));
+const ProductCatalog = lazy(() => import('./screens/Pro/ProductCatalog'));
+const Analytics = lazy(() => import('./screens/Pro/Analytics'));
+const AuthClient = lazy(() => import('./screens/Auth/AuthClient'));
+const ChatList = lazy(() => import('./screens/Chat/ChatList'));
+const ChatRoom = lazy(() => import('./screens/Chat/ChatRoom'));
+const PartnerLogin = lazy(() => import('./screens/Auth/PartnerLogin'));
+const PartnerRegister = lazy(() => import('./screens/Auth/PartnerRegister'));
+const UserRegister = lazy(() => import('./screens/Auth/UserRegister'));
+const ResetPassword = lazy(() => import('./screens/Auth/ResetPassword'));
+const SaaSMaster = lazy(() => import('./screens/Pro/SaaSMaster'));
+const Billing = lazy(() => import('./screens/Pro/Billing'));
+const PrivacyPolicy = lazy(() => import('./screens/Public/PrivacyPolicy'));
+const TermsOfUse = lazy(() => import('./screens/Public/TermsOfUse'));
+
 import { ToastProvider, useToast } from './contexts/ToastContext.tsx';
 
 interface BookingDraft {
@@ -187,10 +189,22 @@ const AppContent: React.FC = () => {
           // Busca dados da unidade logada
           await fetchSalons(uId, uRole, false);
 
-          // Navegação Automática
+          // Navegação Automática Inteligente
           const isHome = ['', '/', '/explore', '/discovery', '/login', '/register', '/login-user'].includes(hashPath);
-          if ((uRole === 'admin' || uRole === 'pro') && isHome) {
-            navigate('/pro', { replace: true });
+          const isAuthPage = ['/login', '/login-user', '/register', '/register-user'].includes(hashPath);
+
+          if (isHome) {
+            // Se for login manual ou estivermos em página de auth já logado, 
+            // damos tempo para o feedback visual de redirecionamento.
+            const delay = (event === 'SIGNED_IN' || isAuthPage) ? 2500 : 0;
+
+            setTimeout(() => {
+              if (uRole === 'admin' || uRole === 'pro') {
+                navigate('/pro', { replace: true });
+              } else if (uRole === 'client' && isAuthPage) {
+                navigate('/', { replace: true });
+              }
+            }, delay);
           }
         } catch (err) {
         } finally {
@@ -224,6 +238,85 @@ const AppContent: React.FC = () => {
       subscription.unsubscribe();
     };
   }, []);
+
+  useEffect(() => {
+    // Solicitar permissão de notificação no Android
+    const requestPerms = async () => {
+      try {
+        const perm = await LocalNotifications.checkPermissions();
+        if (perm.display !== 'granted') {
+          await LocalNotifications.requestPermissions();
+        }
+      } catch (e) { }
+    };
+    requestPerms();
+  }, []);
+
+  // Global Chat Notifications
+  useEffect(() => {
+    if (currentUserId) {
+      const channel = supabase
+        .channel('global:conversations')
+        .on('postgres_changes', {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'conversations',
+          filter: `user1_id=eq.${currentUserId}`
+        }, async (payload) => {
+          const isCurrentChat = location.pathname.includes(`/chat/${payload.new.id}`);
+          if (payload.new.user1_unread_count > (payload.old.user1_unread_count || 0) && !isCurrentChat) {
+            // 1. Notificação Nativa (Barra do Topo)
+            try {
+              await LocalNotifications.schedule({
+                notifications: [{
+                  title: "Aura: Mensagem Nova ✨",
+                  body: payload.new.last_message || "Você recebeu um novo contato.",
+                  id: 1,
+                  schedule: { at: new Date(Date.now() + 100) },
+                  sound: 'default' // Usa o som do sistema
+                }]
+              });
+            } catch (e) { /* Fallback para Web */ }
+
+            // 2. Som Web (Segurança)
+            const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3');
+            audio.play().catch(() => { });
+            showToast(`Nova mensagem recebida`, 'success');
+          }
+        })
+        .on('postgres_changes', {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'conversations',
+          filter: `user2_id=eq.${currentUserId}`
+        }, async (payload) => {
+          const isCurrentChat = location.pathname.includes(`/chat/${payload.new.id}`);
+          if (payload.new.user2_unread_count > (payload.old.user2_unread_count || 0) && !isCurrentChat) {
+            // Notificação Nativa
+            try {
+              await LocalNotifications.schedule({
+                notifications: [{
+                  title: "Aura: Mensagem Nova ✨",
+                  body: payload.new.last_message || "Você recebeu um novo contato.",
+                  id: 2,
+                  schedule: { at: new Date(Date.now() + 100) },
+                  sound: 'default'
+                }]
+              });
+            } catch (e) { }
+
+            const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3');
+            audio.play().catch(() => { });
+            showToast(`Nova mensagem recebida`, 'success');
+          }
+        })
+        .subscribe();
+
+      return () => {
+        channel.unsubscribe();
+      };
+    }
+  }, [currentUserId, location.pathname, showToast]);
 
   useEffect(() => {
     if (currentUserId && role === 'client') {
@@ -393,116 +486,122 @@ const AppContent: React.FC = () => {
       )}
 
       <div className={`flex-1 flex flex-col min-h-0 ${shouldShowNav ? 'pb-24' : ''}`}>
-        <Routes>
-          <Route path="/q/:slug" element={<QuickSchedule />} />
-          <Route path="/" element={<Landing salons={salons} />} />
-          <Route path="/explore" element={<Discovery salons={salons} role={role} />} />
-          <Route path="/gallery" element={<Gallery />} />
-          <Route path="/login-user" element={<AuthClient onLogin={async (role, uid) => handleLogin(role, uid)} />} />
-          <Route path="/register-user" element={<UserRegister onRegister={async (role, uid) => handleLogin(role, uid)} />} />
-          <Route path="/login" element={<PartnerLogin onLogin={async (role, uid) => handleLogin(role, uid)} />} />
-          <Route path="/register" element={<PartnerRegister onRegister={async (role, uid) => handleLogin(role, uid)} />} />
-          <Route path="/reset-password" element={<ResetPassword />} />
-          <Route path="/privacy" element={<PrivacyPolicy />} />
-          <Route path="/terms" element={<TermsOfUse />} />
-          <Route path="/salon/:slug" element={<SalonPage salons={salons} role={role} setBookingDraft={setBookingDraft} />} />
-          <Route path="/my-appointments" element={<MyAppointments appointments={appointments} onCancelAppointment={(id) => updateAppointmentStatus(id, 'canceled')} />} />
-          <Route path="/profile" element={<Profile onLogout={handleLogout} />} />
-          <Route path="/messages" element={<ChatList userId={currentUserId} />} />
-          <Route path="/chat/:id" element={<ChatRoom userId={currentUserId} />} />
-          <Route path="/products" element={<ProductShowcase bookingDraft={bookingDraft} setBookingDraft={setBookingDraft} salons={salons} role={role} />} />
-          <Route path="/evaluate/:id" element={<Evaluation />} />
-          <Route path="/select-service" element={<SelectService bookingDraft={bookingDraft} setBookingDraft={setBookingDraft} role={role} />} />
-          <Route path="/choose-time" element={<ChooseTime bookingDraft={bookingDraft} setBookingDraft={setBookingDraft} />} />
+        <Suspense fallback={
+          <div className="flex-1 bg-background-dark flex flex-col items-center justify-center">
+            <div className="size-8 border-2 border-primary/20 border-t-primary rounded-full animate-spin mb-4"></div>
+          </div>
+        }>
+          <Routes>
+            <Route path="/q/:slug" element={<QuickSchedule />} />
+            <Route path="/" element={<Landing salons={salons} />} />
+            <Route path="/explore" element={<Discovery salons={salons} role={role} />} />
+            <Route path="/gallery" element={<Gallery />} />
+            <Route path="/login-user" element={<AuthClient onLogin={async (role, uid) => handleLogin(role, uid)} />} />
+            <Route path="/register-user" element={<UserRegister onRegister={async (role, uid) => handleLogin(role, uid)} />} />
+            <Route path="/login" element={<PartnerLogin onLogin={async (role, uid) => handleLogin(role, uid)} />} />
+            <Route path="/register" element={<PartnerRegister onRegister={async (role, uid) => handleLogin(role, uid)} />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/privacy" element={<PrivacyPolicy />} />
+            <Route path="/terms" element={<TermsOfUse />} />
+            <Route path="/salon/:slug" element={<SalonPage salons={salons} role={role} setBookingDraft={setBookingDraft} />} />
+            <Route path="/my-appointments" element={<MyAppointments appointments={appointments} onCancelAppointment={(id) => updateAppointmentStatus(id, 'canceled')} />} />
+            <Route path="/profile" element={<Profile onLogout={handleLogout} />} />
+            <Route path="/messages" element={<ChatList userId={currentUserId} />} />
+            <Route path="/chat/:id" element={<ChatRoom userId={currentUserId} />} />
+            <Route path="/products" element={<ProductShowcase bookingDraft={bookingDraft} setBookingDraft={setBookingDraft} salons={salons} role={role} />} />
+            <Route path="/evaluate/:id" element={<Evaluation />} />
+            <Route path="/select-service" element={<SelectService bookingDraft={bookingDraft} setBookingDraft={setBookingDraft} role={role} />} />
+            <Route path="/choose-time" element={<ChooseTime bookingDraft={bookingDraft} setBookingDraft={setBookingDraft} />} />
 
-          {/* Checkout protegida */}
-          <Route path="/checkout" element={
-            role === 'client'
-              ? <Checkout bookingDraft={bookingDraft} salons={salons} onConfirm={addAppointment} setBookingDraft={setBookingDraft} />
-              : <Navigate to="/login-user" replace />
-          } />
+            {/* Checkout protegida */}
+            <Route path="/checkout" element={
+              role === 'client'
+                ? <Checkout bookingDraft={bookingDraft} salons={salons} onConfirm={addAppointment} setBookingDraft={setBookingDraft} />
+                : <Navigate to="/login-user" replace />
+            } />
 
-          {/* Rotas Administrativas Protegidas com Guard de Assinatura */}
-          <Route path="/pro" element={
-            (role === 'admin' || role === 'pro')
-              ? (isSubscriptionValid(salons[0]) ? <Dashboard role={role} salon={salons[0]} userId={currentUserId} appointments={appointments} isMaster={isMaster} /> : <Navigate to="/pro/billing" replace />)
-              : <Navigate to="/login" replace />
-          } />
+            {/* Rotas Administrativas Protegidas com Guard de Assinatura */}
+            <Route path="/pro" element={
+              (role === 'admin' || role === 'pro')
+                ? (isSubscriptionValid(salons[0]) ? <Dashboard role={role} salon={salons[0]} userId={currentUserId} appointments={appointments} isMaster={isMaster} /> : <Navigate to="/pro/billing" replace />)
+                : <Navigate to="/login" replace />
+            } />
 
-          <Route path="/pro/schedule" element={
-            (role === 'admin' || role === 'pro')
-              ? (isSubscriptionValid(salons[0]) ? <Schedule appointments={appointments} salon={salons[0]} onUpdateStatus={updateAppointmentStatus} /> : <Navigate to="/pro/billing" replace />)
-              : <Navigate to="/login" replace />
-          } />
+            <Route path="/pro/schedule" element={
+              (role === 'admin' || role === 'pro')
+                ? (isSubscriptionValid(salons[0]) ? <Schedule appointments={appointments} salon={salons[0]} onUpdateStatus={updateAppointmentStatus} /> : <Navigate to="/pro/billing" replace />)
+                : <Navigate to="/login" replace />
+            } />
 
-          <Route path="/pro/admin-bookings" element={
-            (role === 'admin' || role === 'pro')
-              ? (isSubscriptionValid(salons[0]) ? <AdminBookings
-                appointments={appointments}
-                role={role}
-                salon={salons[0]}
-                userId={currentUserId}
-                onUpdateStatus={updateAppointmentStatus}
-                onUpdateAppointment={updateAppointment}
-                onDeleteAppointment={async (id) => {
-                  try {
-                    await api.appointments.delete(id);
-                    setAppointments(prev => prev.filter(a => a.id !== id));
-                  } catch (error: any) {
-                    // Silently fail or handle error
-                  }
-                }}
-              /> : <Navigate to="/pro/billing" replace />)
-              : <Navigate to="/login" replace />
-          } />
+            <Route path="/pro/admin-bookings" element={
+              (role === 'admin' || role === 'pro')
+                ? (isSubscriptionValid(salons[0]) ? <AdminBookings
+                  appointments={appointments}
+                  role={role}
+                  salon={salons[0]}
+                  userId={currentUserId}
+                  onUpdateStatus={updateAppointmentStatus}
+                  onUpdateAppointment={updateAppointment}
+                  onDeleteAppointment={async (id) => {
+                    try {
+                      await api.appointments.delete(id);
+                      setAppointments(prev => prev.filter(a => a.id !== id));
+                    } catch (error: any) {
+                      // Silently fail or handle error
+                    }
+                  }}
+                /> : <Navigate to="/pro/billing" replace />)
+                : <Navigate to="/login" replace />
+            } />
 
-          <Route path="/pro/analytics" element={
-            (role === 'admin' || role === 'pro')
-              ? (isSubscriptionValid(salons[0]) ? <Analytics appointments={appointments} role={role} salon={salons[0]} userId={currentUserId} /> : <Navigate to="/pro/billing" replace />)
-              : <Navigate to="/login" replace />
-          } />
+            <Route path="/pro/analytics" element={
+              (role === 'admin' || role === 'pro')
+                ? (isSubscriptionValid(salons[0]) ? <Analytics appointments={appointments} role={role} salon={salons[0]} userId={currentUserId} /> : <Navigate to="/pro/billing" replace />)
+                : <Navigate to="/login" replace />
+            } />
 
-          {/* Rotas exclusivas do Administrador */}
-          <Route path="/pro/team" element={
-            role === 'admin'
-              ? (isSubscriptionValid(salons[0]) ? <TeamManagement salon={salons[0]} /> : <Navigate to="/pro/billing" replace />)
-              : <Navigate to="/login" replace />
-          } />
+            {/* Rotas exclusivas do Administrador */}
+            <Route path="/pro/team" element={
+              role === 'admin'
+                ? (isSubscriptionValid(salons[0]) ? <TeamManagement salon={salons[0]} /> : <Navigate to="/pro/billing" replace />)
+                : <Navigate to="/login" replace />
+            } />
 
-          <Route path="/pro/catalog" element={
-            role === 'admin'
-              ? (isSubscriptionValid(salons[0]) ? <ServiceCatalog salon={salons[0]} /> : <Navigate to="/pro/billing" replace />)
-              : <Navigate to="/login" replace />
-          } />
+            <Route path="/pro/catalog" element={
+              role === 'admin'
+                ? (isSubscriptionValid(salons[0]) ? <ServiceCatalog salon={salons[0]} /> : <Navigate to="/pro/billing" replace />)
+                : <Navigate to="/login" replace />
+            } />
 
-          <Route path="/pro/products" element={
-            role === 'admin'
-              ? (isSubscriptionValid(salons[0]) ? <ProductCatalog salonId={salons[0]?.id} /> : <Navigate to="/pro/billing" replace />)
-              : <Navigate to="/login" replace />
-          } />
+            <Route path="/pro/products" element={
+              role === 'admin'
+                ? (isSubscriptionValid(salons[0]) ? <ProductCatalog salonId={salons[0]?.id} /> : <Navigate to="/pro/billing" replace />)
+                : <Navigate to="/login" replace />
+            } />
 
-          <Route path="/pro/business-setup" element={
-            role === 'admin'
-              ? (isSubscriptionValid(salons[0]) ? <BusinessSetup salon={salons[0]} userId={currentUserId} onSave={handleUpdateSalon} /> : <Navigate to="/pro/billing" replace />)
-              : <Navigate to="/login" replace />
-          } />
+            <Route path="/pro/business-setup" element={
+              role === 'admin'
+                ? (isSubscriptionValid(salons[0]) ? <BusinessSetup salon={salons[0]} userId={currentUserId} onSave={handleUpdateSalon} /> : <Navigate to="/pro/billing" replace />)
+                : <Navigate to="/login" replace />
+            } />
 
-          <Route path="/pro/operating-hours" element={
-            role === 'admin'
-              ? (isSubscriptionValid(salons[0]) ? <OperatingHours salon={salons[0]} userId={currentUserId} onSave={handleUpdateSalon} /> : <Navigate to="/pro/billing" replace />)
-              : <Navigate to="/login" replace />
-          } />
+            <Route path="/pro/operating-hours" element={
+              role === 'admin'
+                ? (isSubscriptionValid(salons[0]) ? <OperatingHours salon={salons[0]} userId={currentUserId} onSave={handleUpdateSalon} /> : <Navigate to="/pro/billing" replace />)
+                : <Navigate to="/login" replace />
+            } />
 
-          {/* Billing: ABERTA para permitir pagamento */}
-          <Route path="/pro/billing" element={
-            (role === 'admin' || role === 'pro')
-              ? <Billing />
-              : <Navigate to="/login" replace />
-          } />
+            {/* Billing: ABERTA para permitir pagamento */}
+            <Route path="/pro/billing" element={
+              (role === 'admin' || role === 'pro')
+                ? <Billing />
+                : <Navigate to="/login" replace />
+            } />
 
-          <Route path="/pro/master" element={isMaster ? <SaaSMaster /> : <Navigate to="/login" replace />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+            <Route path="/pro/master" element={isMaster ? <SaaSMaster /> : <Navigate to="/login" replace />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </Suspense>
       </div>
       {shouldShowNav && <BottomNav role={role} />}
       {shouldShowAI && <AIConcierge />}
