@@ -149,7 +149,12 @@ const Billing: React.FC = () => {
 
                     if (salonId) {
                         const info = await api.salons.getBilling(salonId);
-                        setBillingInfo({ ...info, id: salonId }); // Garante que o ID do salão esteja presente
+                        // Normaliza 'plan_id' para 'plan' caso o banco envie o nome antigo
+                        setBillingInfo({
+                            ...info,
+                            plan: info.plan || info.plan_id || 'starter',
+                            id: salonId
+                        });
                     }
                 }
             } catch (err) {
@@ -256,7 +261,7 @@ const Billing: React.FC = () => {
 
                 <div className="space-y-6">
                     {plans.map((p, i) => {
-                        const isCurrent = billingInfo?.plan === p.id;
+                        const isCurrent = billingInfo?.plan === p.id || billingInfo?.plan_id === p.id;
                         return (
                             <div key={i} className={`relative bg-surface-dark border p-8 rounded-[40px] shadow-2xl transition-all hover:scale-[1.02] ${p.highlight ? 'border-primary ring-1 ring-primary/50' : 'border-white/5'} ${isCurrent ? 'border-emerald-500/50' : ''}`}>
                                 {p.highlight && (
