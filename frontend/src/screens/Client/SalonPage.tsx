@@ -407,9 +407,28 @@ const SalonPage: React.FC<SalonPageProps> = ({ salons, role, setBookingDraft }) 
                       <h4 className="text-[11px] font-black text-white uppercase tracking-[0.4em] mb-2">Horário Comercial</h4>
                       <p className="text-sm text-slate-400 font-medium mb-8">
                         {(() => {
+                          const getSchedule = (dayKey: string) => {
+                            if (!salon.horario_funcionamento) return null;
+                            const h = salon.horario_funcionamento as any;
+                            const keyMaps: { [key: string]: string[] } = {
+                              'monday': ['monday', 'segunda', 'segunda-feira'],
+                              'tuesday': ['tuesday', 'terca', 'terça', 'terça-feira'],
+                              'wednesday': ['wednesday', 'quarta', 'quarta-feira'],
+                              'thursday': ['thursday', 'quinta', 'quinta-feira'],
+                              'friday': ['friday', 'sexta', 'sexta-feira'],
+                              'saturday': ['saturday', 'sabado', 'sábado'],
+                              'sunday': ['sunday', 'domingo']
+                            };
+                            const possibleKeys = keyMaps[dayKey] || [dayKey];
+                            for (const k of possibleKeys) {
+                              if (h[k]) return h[k];
+                            }
+                            return null;
+                          };
+
                           const todayIndex = new Date().getDay();
                           const enDays: { [key: number]: string } = { 0: 'sunday', 1: 'monday', 2: 'tuesday', 3: 'wednesday', 4: 'thursday', 5: 'friday', 6: 'saturday' };
-                          const schedule = (salon.horario_funcionamento as any)?.[enDays[todayIndex]];
+                          const schedule = getSchedule(enDays[todayIndex]);
 
                           if (!schedule || schedule.closed) return 'Fechado hoje';
                           return `Aberto hoje: ${schedule.open} às ${schedule.close}`;
@@ -417,30 +436,51 @@ const SalonPage: React.FC<SalonPageProps> = ({ salons, role, setBookingDraft }) 
                       </p>
 
                       <div className="space-y-4 border-t border-white/5 pt-8 w-full max-w-[300px] px-2">
-                        {[
-                          { key: 'monday', label: 'Segunda' },
-                          { key: 'tuesday', label: 'Terça' },
-                          { key: 'wednesday', label: 'Quarta' },
-                          { key: 'thursday', label: 'Quinta' },
-                          { key: 'friday', label: 'Sexta' },
-                          { key: 'saturday', label: 'Sábado' },
-                          { key: 'sunday', label: 'Domingo' }
-                        ].map(day => {
-                          const schedule = (salon.horario_funcionamento as any)?.[day.key];
-                          const today = new Date().toLocaleDateString('pt-BR', { weekday: 'long' }).toLowerCase();
-                          const isToday = today.includes(day.label.toLowerCase());
+                        {(() => {
+                          const getSchedule = (dayKey: string) => {
+                            if (!salon.horario_funcionamento) return null;
+                            const h = salon.horario_funcionamento as any;
+                            const keyMaps: { [key: string]: string[] } = {
+                              'monday': ['monday', 'segunda', 'segunda-feira'],
+                              'tuesday': ['tuesday', 'terca', 'terça', 'terça-feira'],
+                              'wednesday': ['wednesday', 'quarta', 'quarta-feira'],
+                              'thursday': ['thursday', 'quinta', 'quinta-feira'],
+                              'friday': ['friday', 'sexta', 'sexta-feira'],
+                              'saturday': ['saturday', 'sabado', 'sábado'],
+                              'sunday': ['sunday', 'domingo']
+                            };
+                            const possibleKeys = keyMaps[dayKey] || [dayKey];
+                            for (const k of possibleKeys) {
+                              if (h[k]) return h[k];
+                            }
+                            return null;
+                          };
 
-                          return (
-                            <div key={day.key} className="flex justify-between items-center w-full">
-                              <span className={`text-[10px] font-black uppercase tracking-[0.2em] ${isToday ? 'text-white' : 'text-slate-600'}`}>
-                                {day.label} {isToday && '•'}
-                              </span>
-                              <span className={`text-[10px] font-black tracking-wider ${!schedule || schedule.closed ? 'text-red-500/40 italic' : 'text-primary'}`}>
-                                {!schedule || schedule.closed ? 'Fechado' : `${schedule.open} — ${schedule.close}`}
-                              </span>
-                            </div>
-                          );
-                        })}
+                          return [
+                            { key: 'monday', label: 'Segunda' },
+                            { key: 'tuesday', label: 'Terça' },
+                            { key: 'wednesday', label: 'Quarta' },
+                            { key: 'thursday', label: 'Quinta' },
+                            { key: 'friday', label: 'Sexta' },
+                            { key: 'saturday', label: 'Sábado' },
+                            { key: 'sunday', label: 'Domingo' }
+                          ].map(day => {
+                            const schedule = getSchedule(day.key);
+                            const today = new Date().toLocaleDateString('pt-BR', { weekday: 'long' }).toLowerCase();
+                            const isToday = today.includes(day.label.toLowerCase());
+
+                            return (
+                              <div key={day.key} className="flex justify-between items-center w-full">
+                                <span className={`text-[10px] font-black uppercase tracking-[0.2em] ${isToday ? 'text-white' : 'text-slate-600'}`}>
+                                  {day.label} {isToday && '•'}
+                                </span>
+                                <span className={`text-[10px] font-black tracking-wider ${!schedule || schedule.closed ? 'text-red-500/40 italic' : 'text-primary'}`}>
+                                  {!schedule || schedule.closed ? 'Fechado' : `${schedule.open} — ${schedule.close}`}
+                                </span>
+                              </div>
+                            );
+                          });
+                        })()}
                       </div>
                     </div>
                   </div>

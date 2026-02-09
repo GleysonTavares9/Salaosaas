@@ -10,13 +10,13 @@ interface OperatingHoursProps {
 }
 
 const DAYS_OF_WEEK = [
-  { key: 'segunda', label: 'Segunda-feira' },
-  { key: 'terca', label: 'Terça-feira' },
-  { key: 'quarta', label: 'Quarta-feira' },
-  { key: 'quinta', label: 'Quinta-feira' },
-  { key: 'sexta', label: 'Sexta-feira' },
-  { key: 'sabado', label: 'Sábado' },
-  { key: 'domingo', label: 'Domingo' }
+  { key: 'monday', label: 'Segunda-feira' },
+  { key: 'tuesday', label: 'Terça-feira' },
+  { key: 'wednesday', label: 'Quarta-feira' },
+  { key: 'thursday', label: 'Quinta-feira' },
+  { key: 'friday', label: 'Sexta-feira' },
+  { key: 'saturday', label: 'Sábado' },
+  { key: 'sunday', label: 'Domingo' }
 ];
 
 const OperatingHours: React.FC<OperatingHoursProps> = ({ salon, onSave }) => {
@@ -47,8 +47,8 @@ const OperatingHours: React.FC<OperatingHoursProps> = ({ salon, onSave }) => {
 
   const handleSave = async () => {
     if (!salon?.id) {
-      console.warn("Save Operating Hours aborted: Missing salon.id", { salon });
-      showToast("Unidade não identificada. Tente recarregar a página.", "error");
+      console.error("Aura: Falha ao salvar - Unidade (salon.id) está undefined", { salon });
+      showToast("Ops! Não conseguimos identificar sua unidade. Tente atualizar a página ou fazer login novamente.", "error");
       return;
     }
     setIsLoading(true);
@@ -58,12 +58,21 @@ const OperatingHours: React.FC<OperatingHoursProps> = ({ salon, onSave }) => {
       showToast('Horários de funcionamento atualizados!', 'success');
       navigate('/pro');
     } catch (error: any) {
-      console.error(error);
+      console.error("Aura: Erro ao salvar horários:", error);
       showToast('Erro ao salvar horários: ' + error.message, 'error');
     } finally {
       setIsLoading(false);
     }
   };
+
+  if (!salon) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center bg-background-dark p-8">
+        <div className="size-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin mb-6"></div>
+        <p className="text-[10px] font-black uppercase tracking-widest text-primary animate-pulse">Sincronizando dados da unidade...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 overflow-y-auto h-full no-scrollbar">

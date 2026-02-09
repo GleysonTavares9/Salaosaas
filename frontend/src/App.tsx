@@ -352,12 +352,12 @@ const AppContent: React.FC = () => {
     }
   }, [currentUserId, role, salons]);
 
-  const handleUpdateSalon = (updatedSalon: Salon) => {
+  const handleUpdateSalon = (updatedSalon: Partial<Salon> & { id: string }) => {
     setSalons(prev => {
-      if (prev.length === 0) return [updatedSalon];
+      if (prev.length === 0) return [updatedSalon as Salon];
       const exists = prev.some(s => s.id === updatedSalon.id);
-      if (!exists) return [updatedSalon, ...prev];
-      return prev.map(s => s.id === updatedSalon.id ? updatedSalon : s);
+      if (!exists) return [updatedSalon as Salon, ...prev];
+      return prev.map(s => s.id === updatedSalon.id ? { ...s, ...updatedSalon } : s);
     });
   };
 

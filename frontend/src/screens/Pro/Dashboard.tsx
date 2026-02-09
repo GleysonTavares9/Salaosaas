@@ -35,19 +35,19 @@ const Dashboard: React.FC<DashboardProps> = ({ role, salon, appointments, userId
 
   useEffect(() => {
     if (salon?.id) {
+      // Buscar billing info centralizado do banco (Necessário para Admin e Pro verem o que está bloqueado)
+      api.salons.getBilling(salon.id).then(info => {
+        setBillingInfo({
+          ...info,
+          plan: info.plan || info.plan_id
+        });
+      }).catch(err => console.error("Erro billing rpc:", err));
+
       if (role === 'admin') {
         api.products.getBySalon(salon.id).then(products => {
           const low = products.filter(p => p.stock < 5).length;
           setLowStockCount(low);
         });
-
-        // Buscar billing info centralizado do banco
-        api.salons.getBilling(salon.id).then(info => {
-          setBillingInfo({
-            ...info,
-            plan: info.plan || info.plan_id
-          });
-        }).catch(err => console.error("Erro billing rpc:", err));
       }
     }
 
@@ -373,6 +373,13 @@ const Dashboard: React.FC<DashboardProps> = ({ role, salon, appointments, userId
               // 2. Mensagens (SAC/CRM) - Bloqueado no Free
               if (item.path === '/messages') {
                 if (billingInfo && billingInfo.plan === 'free' && !billingInfo.is_trial_active) {
+                  isLocked = true;
+                }
+              }
+
+              // 3. IA Aura Concierge - Bloqueado no Free
+              if (item.path === '/pro/aura') {
+                if (billingInfo && !billingInfo.limits.ai_enabled && !billingInfo.is_trial_active) {
                   isLocked = true;
                 }
               }

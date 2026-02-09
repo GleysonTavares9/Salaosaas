@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ViewRole } from '../../types';
 import { api } from '../../lib/api';
+import { supabase } from '../../lib/supabase';
 import { useToast } from '../../contexts/ToastContext';
 
 interface PartnerLoginProps {
@@ -33,23 +34,36 @@ const PartnerLogin: React.FC<PartnerLoginProps> = ({ onLogin }) => {
       const user = data.user;
 
       if (user) {
-        const realRole = user.user_metadata.role || 'client';
+        // 1. Primária: O que está na sessão (Rápido)
+        let realRole = user.user_metadata.role || 'client';
 
-        // 1. Redirecionamento Automático de Cliente na porta Pro
+        // 2. Fonte da Verdade: O que está no Perfil do Banco (Seguro)
+        try {
+          const profile = await api.profiles.getById(user.id);
+          if (profile && profile.role && profile.role !== realRole) {
+            console.log(`Aura: 🔄 Sincronizando cargo divergente: Login(${realRole}) -> Banco(${profile.role})`);
+            realRole = profile.role;
+
+            // Auto-correção: Tenta atualizar os metadados do login para as próximas vezes
+            await supabase.auth.updateUser({
+              data: { role: profile.role }
+            });
+          }
+        } catch (e) {
+          console.warn("Aura: Falha ao validar perfil extra. Usando metadados.");
+        }
+
+        // 3. Redirecionamento Automático de Cliente na porta Pro
         if (realRole === 'client') {
           setRedirectInfo({ role: 'client', message: 'Identificamos seu perfil de Cliente. Levando você para o acesso correto.' });
-
           setIsLoading(false);
-          setTimeout(async () => {
-            navigate('/explore', { replace: true });
-          }, 3500);
+          setTimeout(() => navigate('/explore', { replace: true }), 3500);
           return;
         }
 
-        // 2. CORREÇÃO DE ABA (Barbeiro vs Gestor)
+        // 4. CORREÇÃO DE ABA (Barbeiro vs Gestor)
         if (loginRole !== realRole) {
           const roleLabel = realRole === 'admin' ? 'Gestor' : 'Barbeiro';
-
           setRedirectInfo({ role: realRole, message: `Perfil de ${roleLabel} identificado. Sincronizando acesso...` });
           setIsLoading(false);
 
@@ -222,7 +236,7 @@ const PartnerLogin: React.FC<PartnerLoginProps> = ({ onLogin }) => {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full gold-gradient text-background-dark font-black py-5 rounded-2xl shadow-2xl uppercase tracking-[0.3em] text-[11px] flex items-center justify-center gap-3 active:scale-95 transition-all mt-4"
+                className="w-full gold-gradient text-background-dark font-black py-6 rounded-3xl shadow-[0_20px_50px_rgba(193,165,113,0.3)] uppercase tracking-[0.4em] text-[11px] flex items-center justify-center gap-4 active:scale-95 transition-all mt-8 border border-white/20"
               >
                 {isLoading ? (
                   <div className="size-5 border-2 border-background-dark/30 border-t-background-dark rounded-full animate-spin"></div>

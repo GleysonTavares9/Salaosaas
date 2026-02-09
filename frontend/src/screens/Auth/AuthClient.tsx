@@ -314,10 +314,13 @@ const AuthClient: React.FC<AuthClientProps> = ({ onLogin }) => {
             {isLogin ? 'Ainda não tem conta?' : 'Já possui uma conta?'}
             <button onClick={() => setIsLogin(!isLogin)} className="text-primary ml-1 underline underline-offset-4">Clique aqui</button>
           </p>
-          <div className="bg-primary/5 p-6 rounded-[32px] border border-primary/10 shadow-inner">
+          <div className="bg-primary/5 p-6 rounded-[32px] border border-primary/10 shadow-inner max-w-sm mx-auto">
             <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.3em] mb-4">Área do Parceiro</p>
-            <button onClick={() => navigate('/login')} className="w-full py-5 rounded-2xl border border-primary/30 text-primary text-[12px] font-black uppercase tracking-[0.15em] flex items-center justify-center gap-4 hover:bg-primary/10 transition-all shadow-xl bg-background-dark/50">
-              <span className="material-symbols-outlined text-xl">rocket_launch</span>
+            <button
+              onClick={() => navigate('/login')}
+              className="w-full py-6 rounded-3xl border border-primary/20 bg-background-dark/40 backdrop-blur-md text-primary text-[11px] font-black uppercase tracking-[0.3em] flex items-center justify-center gap-4 hover:bg-primary/10 hover:border-primary/40 hover:scale-[1.02] transition-all shadow-[0_10px_40px_rgba(0,0,0,0.3)] group"
+            >
+              <span className="material-symbols-outlined text-2xl group-hover:rotate-12 transition-transform">rocket_launch</span>
               Portal Profissional
             </button>
             <p className="text-[8px] text-slate-600 mt-3 uppercase tracking-widest">Para Salões, Spas e Artistas</p>
