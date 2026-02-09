@@ -179,23 +179,23 @@ const SalonPage: React.FC<SalonPageProps> = ({ salons, role, setBookingDraft }) 
   };
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-background-dark relative overflow-hidden">
+    <div className="flex-1 flex flex-col h-full relative overflow-hidden">
       <div className="flex-1 overflow-y-auto no-scrollbar scroll-smooth">
         <div className="relative h-[300px] w-full shrink-0">
           <img src={salon.banner_url} className="absolute inset-0 w-full h-full object-cover grayscale opacity-30" alt="Banner" />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-background-dark pointer-events-none"></div>
+          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-background-dark/30 pointer-events-none"></div>
 
           <header className="relative z-10 p-6 pt-[calc(env(safe-area-inset-top)+2rem)] flex items-center justify-between">
-            <button onClick={() => navigate(-1)} className="size-12 flex items-center justify-center rounded-2xl bg-black/40 backdrop-blur-md border border-white/10 text-white active:scale-95 transition-all">
+            <button onClick={() => navigate(-1)} className="size-12 flex items-center justify-center rounded-2xl bg-black/30 backdrop-blur-md border border-white/10 text-white active:scale-95 transition-all">
               <span className="material-symbols-outlined text-xl">arrow_back</span>
             </button>
-            <h2 className="absolute left-1/2 -translate-x-1/2 text-white font-display font-black text-xs italic tracking-[0.3em] uppercase opacity-90">Itens da Reserva</h2>
-            <div className="size-12"></div> {/* Spacer for symmetry */}
+            <h2 className="absolute left-1/2 -translate-x-1/2 text-white font-display font-black text-xs italic tracking-[0.3em] uppercase opacity-90">Detalhes da Unidade</h2>
+            <div className="size-12"></div>
           </header>
 
           <div className="absolute bottom-6 left-6 right-6 z-10">
             <div className="flex items-center gap-4 mb-3">
-              <img src={salon.logo_url} className="size-14 rounded-2xl border-2 border-background-dark shadow-xl object-cover" alt="Logo" />
+              <img src={salon.logo_url} className="size-14 rounded-2xl border-2 border-background-dark/20 shadow-xl object-cover" alt="Logo" />
               <div className="flex-1 min-w-0">
                 <h1 className="text-white text-xl font-display font-black leading-tight italic truncate">{salon.nome}</h1>
                 <div className="flex items-center gap-2 mt-0.5">
@@ -211,7 +211,7 @@ const SalonPage: React.FC<SalonPageProps> = ({ salons, role, setBookingDraft }) 
           </div>
         </div>
 
-        <nav className="sticky top-0 z-[60] bg-background-dark/95 backdrop-blur-xl border-b border-white/5 overflow-x-auto no-scrollbar">
+        <nav className="sticky top-0 z-[60] bg-background-dark/40 backdrop-blur-xl border-b border-white/5 overflow-x-auto no-scrollbar">
           <div className="flex p-4 gap-2 min-w-max">
             {['services', 'portfolio', 'reviews', 'info'].map(tab => (
               <button

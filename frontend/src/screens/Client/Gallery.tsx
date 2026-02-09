@@ -15,8 +15,8 @@ const Gallery: React.FC = () => {
   };
 
   return (
-    <div className="flex-1 bg-background-dark h-full overflow-y-auto no-scrollbar">
-      <header className="sticky top-0 z-50 bg-background-dark/95 backdrop-blur-md p-6 flex flex-col gap-6 border-b border-white/5">
+    <div className="flex-1 h-full overflow-y-auto no-scrollbar">
+      <header className="sticky top-0 z-50 bg-background-dark/60 backdrop-blur-md p-6 flex flex-col gap-6 border-b border-white/5">
         <div className="flex items-center justify-between">
           <div>
             <p className="text-[9px] font-black text-primary uppercase tracking-[0.3em] mb-1">Portfólio</p>

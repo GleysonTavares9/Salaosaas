@@ -181,7 +181,7 @@ const BusinessSetup: React.FC<BusinessSetupProps> = ({ salon, userId, onSave }) 
 
   if (isLoading || !formData) {
     return (
-      <div className="flex-1 bg-background-dark min-h-screen flex items-center justify-center p-8">
+      <div className="flex-1 min-h-screen flex items-center justify-center p-8">
         <div className="text-center space-y-4">
           <div className="size-12 border-2 border-primary/20 border-t-primary rounded-full animate-spin mx-auto"></div>
           <p className="text-[10px] font-black text-primary uppercase tracking-widest">Sincronizando sua Unidade...</p>
@@ -414,8 +414,8 @@ const BusinessSetup: React.FC<BusinessSetupProps> = ({ salon, userId, onSave }) 
   };
 
   return (
-    <div className="flex-1 bg-background-dark overflow-y-auto h-full no-scrollbar">
-      <header className="p-6 pt-16 flex items-center justify-between sticky top-0 bg-background-dark/95 backdrop-blur-xl z-50 border-b border-white/5">
+    <div className="flex-1 overflow-y-auto h-full no-scrollbar">
+      <header className="p-6 pt-16 flex items-center justify-between sticky top-0 bg-background-dark/30 backdrop-blur-xl z-50 border-b border-white/5">
         <button onClick={() => navigate(-1)} className="text-white size-10 flex items-center justify-center rounded-full border border-white/5 active:scale-95 transition-all">
           <span className="material-symbols-outlined">arrow_back</span>
         </button>

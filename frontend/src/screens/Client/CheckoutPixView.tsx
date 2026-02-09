@@ -153,7 +153,7 @@ const CheckoutPixView: React.FC<CheckoutPixViewProps> = ({
     };
 
     return (
-        <div className="absolute inset-0 z-[100] bg-[#0c0d10] flex flex-col items-center px-4 animate-fade-in overflow-y-auto no-scrollbar py-4">
+        <div className="absolute inset-0 z-[100] flex flex-col items-center px-4 animate-fade-in overflow-y-auto no-scrollbar py-4">
             {/* Background Glamour */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 <div className="absolute -top-32 -left-32 w-[500px] h-[500px] bg-[#c1a571]/5 rounded-full blur-[120px]"></div>

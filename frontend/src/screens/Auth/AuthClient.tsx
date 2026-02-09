@@ -144,21 +144,24 @@ const AuthClient: React.FC<AuthClientProps> = ({ onLogin }) => {
 
   if (isRecovering) {
     return (
-      <div className="flex-1 bg-background-dark min-h-screen flex flex-col p-8 relative">
-        <header className="pt-[calc(env(safe-area-inset-top)+2rem)] pb-8 flex items-center justify-between">
+      <div className="flex-1 min-h-screen flex flex-col p-8 relative">
+        <header className="relative z-10 p-8 pt-[calc(env(safe-area-inset-top)+1rem)] flex items-center justify-between">
           <button onClick={() => setIsRecovering(false)} className="size-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-white">
             <span className="material-symbols-outlined">arrow_back</span>
           </button>
-          <button onClick={() => navigate('/login')} className="text-[10px] font-black text-primary border border-primary/30 px-4 py-2 rounded-xl uppercase tracking-widest bg-primary/5">
-            Portal Pro
-          </button>
-        </header>
-        <main className="flex-1 flex flex-col justify-center max-w-sm mx-auto w-full">
-          <div className="mb-10 text-center">
-            <h1 className="text-4xl font-display font-black text-white italic tracking-tighter mb-2">Recuperar <span className="text-primary">Acesso.</span></h1>
-            <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.3em] mt-4">Informe seu e-mail para receber o link</p>
+          <div className="px-4 py-2 rounded-xl bg-primary/10 border border-primary/20">
+            <span className="text-[9px] font-black text-primary uppercase tracking-[0.2em]">Recuperação de Acesso</span>
           </div>
-          <form onSubmit={handleRecover} className="space-y-6">
+        </header>
+        <main className="relative z-10 flex-1 flex flex-col justify-center px-8 pb-32">
+          <div className="space-y-4 mb-8 text-center max-w-lg mx-auto">
+            <div className="size-20 lg:size-24 rounded-[28px] lg:rounded-[32px] gold-gradient flex items-center justify-center text-background-dark shadow-[0_0_50px_rgba(193,165,113,0.4)] mx-auto mb-6 transform hover:rotate-6 transition-transform">
+              <span className="material-symbols-outlined text-4xl lg:text-5xl font-black">lock_open</span>
+            </div>
+            <h1 className="text-4xl lg:text-6xl font-display font-black text-white italic tracking-tighter leading-none uppercase">Recuperar <br /><span className="text-primary italic">Acesso.</span></h1>
+            <p className="text-secondary text-[10px] lg:text-xs font-black uppercase tracking-[0.4em] mt-6 opacity-80">Informe seu e-mail para receber o link</p>
+          </div>
+          <form onSubmit={handleRecover} className="space-y-6 max-w-sm mx-auto w-full">
             <div className="space-y-1.5">
               <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Seu E-mail Cadastrado</label>
               <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="exemplo@email.com" className="w-full bg-surface-dark border border-white/5 rounded-2xl py-5 px-6 text-white text-sm outline-none focus:border-primary/50 transition-all shadow-inner" />
@@ -200,23 +203,19 @@ const AuthClient: React.FC<AuthClientProps> = ({ onLogin }) => {
   }
 
   return (
-    <div className="flex-1 bg-background-dark h-full flex flex-col p-8 overflow-y-auto no-scrollbar relative">
-      <header className="pt-[calc(env(safe-area-inset-top)+2rem)] pb-6 flex items-center justify-between">
+    <div className="flex-1 h-full flex flex-col p-8 overflow-y-auto no-scrollbar relative">
+      <header className="relative z-10 p-8 pt-[calc(env(safe-area-inset-top)+1rem)] flex items-center justify-between">
         <button onClick={() => navigate('/')} className="size-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-white active:scale-90 transition-transform shadow-xl">
           <span className="material-symbols-outlined">close</span>
         </button>
-        <div className="flex flex-col items-end">
-          <button onClick={() => navigate('/login')} className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-primary/10 border border-primary/40 text-primary shadow-lg shadow-primary/5 active:scale-95 transition-all">
-            <span className="material-symbols-outlined text-sm font-black">storefront</span>
-            <span className="text-[10px] font-black uppercase tracking-widest">Acesso Profissional</span>
-          </button>
-          <p className="text-[7px] text-slate-600 font-black uppercase tracking-[0.2em] mt-2 mr-2">Salões & Artistas</p>
+        <div className="px-4 py-2 rounded-xl bg-primary/10 border border-primary/20">
+          <span className="text-[9px] font-black text-primary uppercase tracking-[0.2em]">Experiência do Cliente</span>
         </div>
       </header>
-      <div className="flex justify-center mb-10">
-        <div className="flex bg-surface-dark p-1.5 rounded-2xl border border-white/5 shadow-2xl">
-          <button onClick={() => setIsLogin(true)} className={`px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${isLogin ? 'bg-primary text-background-dark shadow-xl' : 'text-slate-500'}`}>Entrar</button>
-          <button onClick={() => setIsLogin(false)} className={`px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${!isLogin ? 'bg-primary text-background-dark shadow-xl' : 'text-slate-500'}`}>Cadastrar</button>
+      <div className="flex justify-center mb-10 relative z-10">
+        <div className="flex bg-surface-dark p-2 rounded-2xl border border-white/5 shadow-2xl max-w-sm mx-auto w-full">
+          <button onClick={() => setIsLogin(true)} className={`flex-1 py-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${isLogin ? 'gold-gradient text-background-dark shadow-xl' : 'text-slate-500 hover:text-white'}`}>Entrar</button>
+          <button onClick={() => setIsLogin(false)} className={`flex-1 py-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${!isLogin ? 'gold-gradient text-background-dark shadow-xl' : 'text-slate-500 hover:text-white'}`}>Cadastrar</button>
         </div>
       </div>
 
@@ -228,17 +227,19 @@ const AuthClient: React.FC<AuthClientProps> = ({ onLogin }) => {
           </div>
         </div>
       )}
-      <main className="flex-1 flex flex-col justify-center max-w-sm mx-auto w-full pb-20">
-        <div className="mb-12 text-center">
-          <h1 className="text-4xl font-display font-black text-white italic tracking-tighter mb-2 leading-none">
-            {isLogin ? 'Seu Momento' : 'Nova Conta'} <br />
-            <span className="text-primary text-5xl tracking-[-0.05em]">Luxe Aura.</span>
+      <main className="relative z-10 flex-1 flex flex-col justify-center px-8 pb-32">
+        <div className="space-y-4 mb-8 text-center max-w-lg mx-auto">
+          <div className="size-20 lg:size-24 rounded-[28px] lg:rounded-[32px] gold-gradient flex items-center justify-center text-background-dark shadow-[0_0_50px_rgba(193,165,113,0.4)] mx-auto mb-6 transform hover:rotate-6 transition-transform">
+            <span className="material-symbols-outlined text-4xl lg:text-5xl font-black">spa</span>
+          </div>
+          <h1 className="text-5xl lg:text-7xl font-display font-black text-white italic tracking-tighter leading-none uppercase">
+            {isLogin ? 'Luxe Aura' : 'Nova Conta'}
           </h1>
-          <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.3em] mt-4">
+          <p className="text-secondary text-[11px] lg:text-xs font-black uppercase tracking-[0.5em] mt-6 opacity-80">
             {isLogin ? 'Bem-vinda de volta à elite' : 'E-mail e WhatsApp para começar'}
           </p>
         </div>
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-5 max-w-sm mx-auto w-full">
           {!isLogin && (
             <div className="space-y-1.5 animate-fade-in">
               <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Nome Completo</label>
@@ -315,8 +316,8 @@ const AuthClient: React.FC<AuthClientProps> = ({ onLogin }) => {
           </p>
           <div className="bg-primary/5 p-6 rounded-[32px] border border-primary/10 shadow-inner">
             <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.3em] mb-4">Área do Parceiro</p>
-            <button onClick={() => navigate('/login')} className="w-full py-4 rounded-xl border border-primary/30 text-primary text-[11px] font-black uppercase tracking-[0.2em] flex items-center justify-center gap-3 hover:bg-primary/10 transition-all">
-              <span className="material-symbols-outlined text-lg">rocket_launch</span>
+            <button onClick={() => navigate('/login')} className="w-full py-5 rounded-2xl border border-primary/30 text-primary text-[12px] font-black uppercase tracking-[0.15em] flex items-center justify-center gap-4 hover:bg-primary/10 transition-all shadow-xl bg-background-dark/50">
+              <span className="material-symbols-outlined text-xl">rocket_launch</span>
               Portal Profissional
             </button>
             <p className="text-[8px] text-slate-600 mt-3 uppercase tracking-widest">Para Salões, Spas e Artistas</p>

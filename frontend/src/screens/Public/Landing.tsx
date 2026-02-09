@@ -13,28 +13,28 @@ interface LandingProps {
 const createSalonIcon = (logoUrl: string) => L.divIcon({
   className: 'custom-salon-marker',
   html: `<div class="relative flex flex-col items-center group">
-           <!-- Pin Body (Teardrop Shape) -->
-           <div class="w-8 h-8 bg-[#c1a571] rounded-full rounded-bl-none rotate-[-45deg] flex items-center justify-center shadow-lg border border-white/20 transition-transform group-hover:scale-110 duration-300">
-             <!-- Inner Circle for Logo -->
-             <div class="w-6 h-6 bg-white rounded-full rotate-[45deg] overflow-hidden flex items-center justify-center border border-black/5">
-               <img src="${logoUrl}" class="w-full h-full object-cover" alt="logo" />
+           <!-- Marcador Gold Vibrante -->
+           <div class="w-11 h-11 bg-[#ecd3a5] rounded-full rounded-bl-none rotate-[-45deg] flex items-center justify-center shadow-[0_5px_25px_rgba(193,165,113,0.6)] border-2 border-white transition-transform group-hover:scale-110 duration-300">
+             <div class="w-8 h-8 bg-white rounded-full rotate-[45deg] overflow-hidden flex items-center justify-center border border-black/10">
+                <img src="${logoUrl}" class="w-full h-full object-cover" alt="logo" />
              </div>
            </div>
-           <!-- Small Glow -->
-           <div class="absolute -bottom-0.5 w-1.5 h-0.5 bg-[#c1a571]/40 rounded-full blur-[1px]"></div>
+           <!-- Glow de Destaque -->
+           <div class="absolute -bottom-1 w-4 h-2 bg-[#ecd3a5]/60 rounded-full blur-[4px] animate-pulse"></div>
          </div>`,
-  iconSize: [32, 32],
-  iconAnchor: [16, 32],
+  iconSize: [44, 48],
+  iconAnchor: [22, 48],
+  popupAnchor: [0, -48],
 });
 
 // Custom Cluster Icon Factory
 const createClusterCustomIcon = (cluster: any) => {
   return L.divIcon({
-    html: `<div class="size-8 rounded-full gold-gradient border border-background-dark shadow-xl flex items-center justify-center text-background-dark font-black text-[10px]">
+    html: `<div class="size-11 rounded-full gold-gradient border-2 border-white shadow-[0_0_20px_rgba(193,165,113,0.8)] flex items-center justify-center text-background-dark font-black text-xs">
              ${cluster.getChildCount()}
            </div>`,
     className: 'custom-marker-cluster',
-    iconSize: L.point(32, 32, true),
+    iconSize: L.point(44, 44, true),
   });
 };
 
@@ -46,6 +46,21 @@ const Landing: React.FC<LandingProps> = ({ salons }) => {
   const [selectedSalonId, setSelectedSalonId] = useState<string | null>(null);
   const [isLocating, setIsLocating] = useState(false);
 
+  // Auto-detect and auto-center
+  React.useEffect(() => {
+    handleGetLocation();
+  }, []);
+
+  // Auto-center on salons if no location yet or detection failed
+  React.useEffect(() => {
+    if (salons.length > 0 && (userLocation === "Brasil" || userLocation === "Localização Padrão")) {
+      const firstSalon = salons.find(s => s.location);
+      if (firstSalon && firstSalon.location) {
+        setCoords({ lat: firstSalon.location.lat, lng: firstSalon.location.lng });
+      }
+    }
+  }, [salons, userLocation]);
+
   const handleGetLocation = () => {
     if (navigator.geolocation) {
       setIsLocating(true);
@@ -56,9 +71,13 @@ const Landing: React.FC<LandingProps> = ({ salons }) => {
           setUserLocation(`${latitude.toFixed(2)}, ${longitude.toFixed(2)}`);
           setIsLocating(false);
         },
-        () => {
-          setUserLocation("Localização Negada");
+        async (error) => {
+          setUserLocation("Localização Padrão");
           setIsLocating(false);
+          // Fallback: Center on first salon if available
+          if (salons.length > 0 && salons[0].location) {
+            setCoords({ lat: salons[0].location.lat, lng: salons[0].location.lng });
+          }
         }
       );
     }
@@ -69,12 +88,17 @@ const Landing: React.FC<LandingProps> = ({ salons }) => {
   }, [salons, activeSegment]);
 
   const mapMarkers = useMemo(() => {
-    return filteredSalons.map(salon => ({
-      id: salon.id,
-      position: [salon.location?.lat || -19.91, salon.location?.lng || -43.93] as [number, number],
-      icon: createSalonIcon(salon.logo_url),
-      onClick: () => setSelectedSalonId(salon.id)
-    }));
+    return filteredSalons
+      .filter(s => s.location && s.location.lat !== 0)
+      .map(salon => ({
+        id: salon.id,
+        position: [salon.location!.lat, salon.location!.lng] as [number, number],
+        icon: createSalonIcon(salon.logo_url),
+        onClick: () => {
+          setSelectedSalonId(salon.id);
+          setCoords({ lat: salon.location!.lat, lng: salon.location!.lng });
+        }
+      }));
   }, [filteredSalons]);
 
   const selectedSalon = useMemo(() =>
@@ -98,30 +122,37 @@ const Landing: React.FC<LandingProps> = ({ salons }) => {
 
       {/* OVERLAY DE INTERFACE */}
       <div className="relative z-10 flex flex-col h-full pointer-events-none">
-        <header className="p-6 pt-[calc(env(safe-area-inset-top)+2rem)] flex items-center justify-between bg-gradient-to-b from-background-dark via-background-dark/40 to-transparent pointer-events-auto">
-          <div>
-            <h1 className="text-xl font-display font-black text-white italic tracking-tighter leading-none mb-1">Luxe Aura</h1>
-            <button
-              onClick={handleGetLocation}
-              disabled={isLocating}
-              className="flex items-center gap-1.5 opacity-60 hover:opacity-100 transition-opacity"
-            >
-              <p className="text-[7px] text-slate-500 font-black uppercase tracking-[0.2em]">
-                {isLocating ? 'Buscando...' : userLocation}
-              </p>
-              <span className={`material-symbols-outlined text-[8px] text-primary ${isLocating ? 'animate-spin' : ''}`}>
-                near_me
-              </span>
+        <header className="p-6 pt-[calc(env(safe-area-inset-top)+1rem)] flex items-center justify-between bg-gradient-to-b from-background-dark via-background-dark/40 to-transparent pointer-events-auto lg:px-12 lg:pt-6">
+          <div className="flex-1">
+            <h1 className="text-3xl lg:text-5xl font-display font-black text-white italic tracking-[0.1em] leading-none mb-2 uppercase">Luxe Aura</h1>
+            <div className="flex items-center gap-4">
+              <button
+                onClick={handleGetLocation}
+                disabled={isLocating}
+                className="flex items-center gap-2 group pointer-events-auto"
+              >
+                <div className={`size-2.5 rounded-full bg-primary ${isLocating ? 'animate-ping' : 'animate-pulse shadow-[0_0_10px_rgba(193,165,113,1)]'}`}></div>
+                <p className="text-[10px] lg:text-sm text-slate-500 font-black uppercase tracking-[0.3em]">
+                  {isLocating ? 'Sincronizando...' : userLocation}
+                </p>
+              </button>
+            </div>
+          </div>
+          <div className="flex items-center gap-6">
+            <button onClick={() => navigate('/explore')} className="size-14 lg:size-20 rounded-[28px] bg-surface-dark border border-white/5 flex items-center justify-center text-slate-400 shadow-2xl active:scale-95 transition-all hover:bg-white/5 hover:text-white pointer-events-auto" title="Explorar Lista">
+              <span className="material-symbols-outlined text-2xl lg:text-4xl">explore</span>
+            </button>
+            <button onClick={() => navigate('/login')} className="size-14 lg:size-20 rounded-[28px] gold-gradient p-0.5 shadow-2xl cursor-pointer active:scale-95 transition-all hover:brightness-110 pointer-events-auto" title="Portal do Parceiro">
+              <div className="w-full h-full rounded-[26px] bg-background-dark flex items-center justify-center text-primary">
+                <span className="material-symbols-outlined text-2xl lg:text-4xl">storefront</span>
+              </div>
             </button>
           </div>
-          <button onClick={() => navigate('/login')} className="size-10 rounded-xl bg-white/5 backdrop-blur-md border border-white/10 flex items-center justify-center text-primary pointer-events-auto active:scale-95 transition-all shadow-xl">
-            <span className="material-symbols-outlined text-xl">storefront</span>
-          </button>
         </header>
 
-        <div className="px-6 flex gap-2 overflow-x-auto no-scrollbar py-2 pointer-events-auto shrink-0 mt-2">
-          {['Todos', 'Salão', 'Spa', 'Barba', 'Estética'].map(seg => (
-            <button key={seg} onClick={() => { setActiveSegment(seg as any); setSelectedSalonId(null); }} className={`px-4 py-2 rounded-lg text-[7px] font-black uppercase tracking-widest whitespace-nowrap transition-all border ${activeSegment === seg ? 'gold-gradient text-background-dark border-primary shadow-lg' : 'bg-surface-dark/60 backdrop-blur-sm text-slate-500 border-white/5'}`}>
+        <div className="px-6 lg:px-12 flex gap-3 overflow-x-auto no-scrollbar py-4 pointer-events-auto shrink-0 mt-4">
+          {['Todos', 'Salão', 'Spa', 'Barba', 'Estética', 'Manicure', 'Sobrancelha'].map(seg => (
+            <button key={seg} onClick={() => { setActiveSegment(seg as any); setSelectedSalonId(null); }} className={`px-6 py-3 lg:px-10 lg:py-4 rounded-xl lg:rounded-[24px] text-[10px] lg:text-[11px] font-black uppercase tracking-[0.2em] whitespace-nowrap transition-all border ${activeSegment === seg ? 'gold-gradient text-background-dark border-transparent shadow-[0_10px_30px_rgba(193,165,113,0.3)] scale-105' : 'bg-surface-dark/40 text-slate-500 border-white/5 hover:bg-surface-dark hover:text-white hover:border-white/10'}`}>
               {seg}
             </button>
           ))}
@@ -130,34 +161,35 @@ const Landing: React.FC<LandingProps> = ({ salons }) => {
         <div className="flex-1"></div>
 
         {/* RODAPÉ DE AÇÃO FIXO NA BASE */}
-        <div className="p-6 pb-[calc(2.5rem+var(--sab))] flex flex-col gap-4 bg-gradient-to-t from-background-dark via-background-dark/80 to-transparent pointer-events-auto">
+        <div className="p-6 lg:p-12 pb-[calc(3rem+var(--sab))] flex flex-col gap-6 bg-gradient-to-t from-background-dark via-background-dark/80 to-transparent pointer-events-auto w-full">
           {selectedSalon ? (
-            <div onClick={() => navigate(`/salon/${selectedSalon.slug_publico}`)} className="bg-surface-dark/95 backdrop-blur-xl border border-primary/30 rounded-[28px] p-4 shadow-2xl flex gap-4 items-center animate-fade-in pointer-events-auto cursor-pointer active:scale-95 transition-all">
-              <img src={selectedSalon.logo_url} className="size-14 rounded-xl object-cover border border-white/10 shadow-lg" alt="Salon" />
+            <div onClick={() => navigate(`/salon/${selectedSalon.slug_publico}`)} className="w-full max-w-xl mx-auto bg-surface-dark/95 backdrop-blur-3xl border border-primary/30 rounded-[40px] p-6 shadow-2xl flex gap-6 items-center animate-fade-in pointer-events-auto cursor-pointer active:scale-95 transition-all hover:border-primary/50">
+              <img src={selectedSalon.logo_url} className="size-20 rounded-[24px] object-cover border-2 border-primary/20 shadow-2xl" alt="Salon" />
               <div className="flex-1 min-w-0">
-                <h3 className="text-white font-display font-black text-sm italic truncate">{selectedSalon.nome}</h3>
-                <div className="flex items-center gap-2 mt-0.5">
-                  <span className="text-primary font-black text-[8px] tracking-widest">{selectedSalon.rating} ★</span>
-                  <span className="text-slate-500 text-[7px] font-black uppercase tracking-widest truncate">{selectedSalon.distancia || 'Disponível'}</span>
+                <p className="text-[10px] text-primary font-black uppercase tracking-widest mb-1">{selectedSalon.segmento}</p>
+                <h3 className="text-white font-display font-black text-2xl italic truncate lowercase">{selectedSalon.nome}</h3>
+                <div className="flex items-center gap-3 mt-2">
+                  <span className="px-2 py-0.5 bg-primary/20 text-primary rounded-md text-[10px] font-black uppercase tracking-widest">★ 5.0</span>
+                  <span className="text-slate-500 text-[10px] font-black uppercase tracking-widest truncate">{selectedSalon.distancia || 'Elite Member'}</span>
                 </div>
               </div>
-              <div className="size-10 rounded-full gold-gradient flex items-center justify-center text-background-dark shadow-xl">
-                <span className="material-symbols-outlined text-lg font-black">arrow_forward</span>
+              <div className="size-16 rounded-full gold-gradient flex items-center justify-center text-background-dark shadow-2xl shrink-0">
+                <span className="material-symbols-outlined text-2xl font-black">arrow_forward</span>
               </div>
             </div>
           ) : (
-            <button onClick={() => navigate('/explore')} className="w-full bg-surface-dark/90 backdrop-blur-xl text-white py-5 rounded-[24px] border border-white/10 flex items-center justify-between px-6 shadow-2xl pointer-events-auto active:scale-95 transition-all">
+            <button onClick={() => navigate('/explore')} className="w-full max-w-2xl mx-auto bg-surface-dark/90 backdrop-blur-3xl text-white py-8 rounded-[40px] border border-white/10 flex items-center justify-between px-10 shadow-2xl pointer-events-auto active:scale-95 transition-all hover:bg-white/5 hover:border-primary/20">
               <div className="text-left">
-                <p className="text-[7px] font-black text-primary uppercase tracking-[0.4em] mb-1">Catálogo Elite</p>
-                <h3 className="text-[12px] font-display font-black italic">Explorar Lista Completa</h3>
+                <p className="text-[10px] font-black text-primary uppercase tracking-[0.4em] mb-2">Ecossistema Luxe Aura</p>
+                <h3 className="text-2xl lg:text-3xl font-display font-black italic tracking-tight">Ver Todos os Estabelecimentos</h3>
               </div>
-              <div className="size-10 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center">
-                <span className="material-symbols-outlined text-xl text-primary">format_list_bulleted</span>
+              <div className="size-16 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center shadow-inner">
+                <span className="material-symbols-outlined text-3xl text-primary">format_list_bulleted</span>
               </div>
             </button>
           )}
-          <footer className="text-center opacity-30 mt-2">
-            <p className="text-[6px] font-black text-white uppercase tracking-[0.6em]">Luxe Aura Ecosystem &copy; 2026</p>
+          <footer className="text-center opacity-40 mt-4">
+            <p className="text-[8px] font-black text-white uppercase tracking-[0.6em] italic">Luxe Aura Premium Ecosystem &copy; 2026</p>
           </footer>
         </div>
       </div>

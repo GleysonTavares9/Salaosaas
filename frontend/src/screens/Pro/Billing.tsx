@@ -222,8 +222,8 @@ const Billing: React.FC = () => {
 
 
     return (
-        <div className="flex-1 bg-background-dark overflow-y-auto h-full no-scrollbar">
-            <header className="sticky top-0 z-50 bg-background-dark/95 backdrop-blur-xl px-6 pt-12 pb-6 border-b border-white/5 flex items-center gap-4">
+        <div className="flex-1 overflow-y-auto h-full no-scrollbar">
+            <header className="sticky top-0 z-50 bg-background-dark/30 backdrop-blur-xl px-6 pt-12 pb-6 border-b border-white/5 flex items-center gap-4">
                 <button onClick={() => navigate(-1)} className="size-10 rounded-full border border-white/10 flex items-center justify-center text-white active:scale-95 transition-all">
                     <span className="material-symbols-outlined">arrow_back</span>
                 </button>

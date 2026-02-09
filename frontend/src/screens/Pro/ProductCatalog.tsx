@@ -135,8 +135,8 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({ salonId }) => {
   };
 
   return (
-    <div className="flex-1 bg-background-dark overflow-y-auto h-full no-scrollbar">
-      <header className="sticky top-0 z-50 bg-background-dark/95 backdrop-blur-md px-6 pt-12 pb-6 border-b border-white/5 flex flex-col gap-6">
+    <div className="flex-1 overflow-y-auto h-full no-scrollbar">
+      <header className="sticky top-0 z-50 bg-background-dark/60 backdrop-blur-md px-6 pt-12 pb-6 border-b border-white/5 flex flex-col gap-6">
         <div className="flex items-center justify-between">
           <button onClick={() => navigate('/pro')} className="size-10 rounded-full border border-white/10 flex items-center justify-center text-white active:scale-95 transition-all">
             <span className="material-symbols-outlined">arrow_back</span>
@@ -177,7 +177,7 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({ salonId }) => {
         </div>
       </header>
 
-      <main className="p-6 space-y-8 pb-40 max-w-[450px] mx-auto">
+      <main className="w-full px-6 py-8 space-y-8 pb-40 animate-fade-in lg:px-6">
         <div className="mb-2">
           <button
             onClick={() => setIsAdding(true)}

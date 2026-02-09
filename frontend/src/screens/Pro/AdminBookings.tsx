@@ -277,8 +277,8 @@ const AdminBookings: React.FC<AdminBookingsProps> = ({ appointments, role, salon
 
 
   return (
-    <div className="flex-1 bg-background-dark overflow-y-auto h-full no-scrollbar">
-      <header className="sticky top-0 z-50 bg-background-dark/95 backdrop-blur-xl px-6 pt-12 pb-6 border-b border-white/5">
+    <div className="flex-1 overflow-y-auto h-full no-scrollbar">
+      <header className="sticky top-0 z-50 bg-background-dark/30 backdrop-blur-xl px-6 pt-12 pb-6 border-b border-white/5 lg:px-6">
         <div className="flex items-center gap-4 mb-6">
           <button onClick={() => navigate('/pro')} className="size-10 rounded-full border border-white/10 flex items-center justify-center text-white">
             <span className="material-symbols-outlined">arrow_back</span>
@@ -316,128 +316,130 @@ const AdminBookings: React.FC<AdminBookingsProps> = ({ appointments, role, salon
       </header>
 
 
-      <main className="px-6 py-8 space-y-6 pb-40 animate-fade-in mx-auto">
-        {filteredAppts.map(appt => (
-          <div key={appt.id} className={`bg-surface-dark/60 rounded-[32px] border p-5 shadow-2xl relative overflow-hidden transition-all ${appt.status === 'canceled' ? 'opacity-50 grayscale border-white/5' :
-            appt.status === 'completed' ? 'border-emerald-500/20' :
-              'border-white/10 hover:border-primary/20'
-            }`}>
+      <main className="w-full px-6 py-8 space-y-8 pb-40 animate-fade-in lg:px-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+          {filteredAppts.map(appt => (
+            <div key={appt.id} className={`bg-surface-dark/60 rounded-[32px] border p-5 shadow-2xl relative overflow-hidden transition-all ${appt.status === 'canceled' ? 'opacity-50 grayscale border-white/5' :
+              appt.status === 'completed' ? 'border-emerald-500/20' :
+                'border-white/10 hover:border-primary/20'
+              }`}>
 
-            {/* Header com Status e Valor */}
-            <div className="flex justify-between items-start mb-5">
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-3">
-                  <span className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest ${appt.status === 'completed' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' :
-                    appt.status === 'confirmed' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' :
-                      appt.status === 'pending' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' :
-                        'bg-red-500/20 text-red-400 border border-red-500/30'
-                    }`}>
-                    {appt.status}
-                  </span>
+              {/* Header com Status e Valor */}
+              <div className="flex justify-between items-start mb-5">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest ${appt.status === 'completed' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' :
+                      appt.status === 'confirmed' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' :
+                        appt.status === 'pending' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' :
+                          'bg-red-500/20 text-red-400 border border-red-500/30'
+                      }`}>
+                      {appt.status}
+                    </span>
+                  </div>
+                  <h3 className="text-xl font-display font-black text-white italic tracking-tighter mb-1 uppercase leading-tight">{appt.clientName || "Cliente Aura"}</h3>
+                  <div className="flex items-center gap-2">
+                    <p className="text-[10px] font-black text-primary uppercase tracking-widest">{appt.service_names || appt.serviceName}</p>
+                    <span className="text-slate-700">•</span>
+                    <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">
+                      {appt.professionalName || "Sem Profissional"}
+                    </p>
+                  </div>
                 </div>
-                <h3 className="text-xl font-display font-black text-white italic tracking-tighter mb-1 uppercase leading-tight">{appt.clientName || "Cliente Aura"}</h3>
-                <div className="flex items-center gap-2">
-                  <p className="text-[10px] font-black text-primary uppercase tracking-widest">{appt.service_names || appt.serviceName}</p>
-                  <span className="text-slate-700">•</span>
-                  <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">
-                    {appt.professionalName || "Sem Profissional"}
-                  </p>
+                <div className="text-right">
+                  <p className="text-2xl font-display font-black text-primary mb-1 italic">R$ {appt.valor}</p>
+                  <div className="flex flex-col items-end gap-0.5 opacity-60">
+                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{appt.date}</p>
+                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{appt.time}</p>
+                  </div>
                 </div>
               </div>
-              <div className="text-right">
-                <p className="text-2xl font-display font-black text-primary mb-1 italic">R$ {appt.valor}</p>
-                <div className="flex flex-col items-end gap-0.5 opacity-60">
-                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{appt.date}</p>
-                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{appt.time}</p>
-                </div>
+
+              {/* ID do Agendamento */}
+              <div className="mb-4 pb-4 border-b border-white/5">
+                <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">ID: {appt.id}</p>
               </div>
-            </div>
 
-            {/* ID do Agendamento */}
-            <div className="mb-4 pb-4 border-b border-white/5">
-              <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">ID: {appt.id}</p>
-            </div>
-
-            {/* Ações de Comunicação */}
-            <div className="grid grid-cols-2 gap-3 mb-4">
-              <button
-                onClick={async () => {
-                  try {
-                    if (!userId) {
-                      showToast("Erro: Usuário não identificado para chat.", 'error');
-                      return;
+              {/* Ações de Comunicação */}
+              <div className="grid grid-cols-2 gap-3 mb-4">
+                <button
+                  onClick={async () => {
+                    try {
+                      if (!userId) {
+                        showToast("Erro: Usuário não identificado para chat.", 'error');
+                        return;
+                      }
+                      // Buscar ou criar conversa real (ajustado para o novo schema)
+                      const conv = await api.chat.startConversation(userId, appt.client_id);
+                      navigate(`/chat/${conv.id}`);
+                    } catch (error: any) {
+                      showToast('Falha ao iniciar chat.', 'error');
                     }
-                    // Buscar ou criar conversa real (ajustado para o novo schema)
-                    const conv = await api.chat.startConversation(userId, appt.client_id);
-                    navigate(`/chat/${conv.id}`);
-                  } catch (error: any) {
-                    showToast('Falha ao iniciar chat.', 'error');
-                  }
-                }}
-                className="flex items-center justify-center gap-2 bg-white/5 border border-white/10 rounded-2xl py-3.5 text-[10px] font-black text-white uppercase tracking-widest hover:bg-white/10 active:scale-95 transition-all"
-              >
-                <span className="material-symbols-outlined text-base">chat</span>
-                Chat Interno
-              </button>
-              <button
-                onClick={() => openWhatsApp(appt)}
-                className="flex items-center justify-center gap-2 bg-emerald-600/10 border border-emerald-600/30 rounded-2xl py-3.5 text-[10px] font-black text-emerald-400 uppercase tracking-widest hover:bg-emerald-600/20 active:scale-95 transition-all"
-              >
-                <span className="material-symbols-outlined text-base">send</span>
-                WhatsApp
-              </button>
+                  }}
+                  className="flex items-center justify-center gap-2 bg-white/5 border border-white/10 rounded-2xl py-3.5 text-[10px] font-black text-white uppercase tracking-widest hover:bg-white/10 active:scale-95 transition-all"
+                >
+                  <span className="material-symbols-outlined text-base">chat</span>
+                  Chat Interno
+                </button>
+                <button
+                  onClick={() => openWhatsApp(appt)}
+                  className="flex items-center justify-center gap-2 bg-emerald-600/10 border border-emerald-600/30 rounded-2xl py-3.5 text-[10px] font-black text-emerald-400 uppercase tracking-widest hover:bg-emerald-600/20 active:scale-95 transition-all"
+                >
+                  <span className="material-symbols-outlined text-base">send</span>
+                  WhatsApp
+                </button>
+              </div>
+
+              {/* Ações de Gestão de Agenda */}
+              {appt.status === 'completed' ? (
+                <div className="pt-4 border-t border-white/5">
+                  <div className="w-full bg-emerald-500/5 border border-emerald-500/10 text-emerald-400 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2">
+                    <span className="material-symbols-outlined text-base">verified</span>
+                    Atendimento Concluído
+                  </div>
+                </div>
+              ) : appt.status === 'canceled' ? (
+                <div className="pt-4 border-t border-white/5">
+                  <button
+                    onClick={() => handleAction(appt.id, 'deletar')}
+                    className="w-full bg-red-500/10 border border-red-500/20 text-red-500 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 active:scale-95 transition-all"
+                  >
+                    <span className="material-symbols-outlined text-base">delete</span>
+                    Apagar Permanente
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-3 pt-4 border-t border-white/5">
+                  {/* Botão Principal: Finalizar */}
+                  <button
+                    onClick={() => handleCloseAppointment(appt.id)}
+                    className="w-full gold-gradient text-background-dark py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 shadow-xl shadow-primary/10 active:scale-95 transition-all"
+                  >
+                    <span className="material-symbols-outlined text-base font-black">check_circle</span>
+                    Finalizar Atendimento
+                  </button>
+
+                  {/* Botões Secundários: Remarcar/Cancelar */}
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => handleAction(appt.id, 'remarcar')}
+                      className="flex-1 bg-white/5 border border-white/10 text-slate-400 py-3.5 rounded-2xl text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-2 active:scale-95 transition-all"
+                    >
+                      <span className="material-symbols-outlined text-base">event_repeat</span>
+                      Remarcar
+                    </button>
+                    <button
+                      onClick={() => handleAction(appt.id, 'cancelar')}
+                      className="flex-1 bg-white/5 border border-white/10 text-red-500/60 py-3.5 rounded-2xl text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-2 active:scale-95 transition-all"
+                    >
+                      <span className="material-symbols-outlined text-base">close</span>
+                      Cancelar
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
-
-            {/* Ações de Gestão de Agenda */}
-            {appt.status === 'completed' ? (
-              <div className="pt-4 border-t border-white/5">
-                <div className="w-full bg-emerald-500/5 border border-emerald-500/10 text-emerald-400 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2">
-                  <span className="material-symbols-outlined text-base">verified</span>
-                  Atendimento Concluído
-                </div>
-              </div>
-            ) : appt.status === 'canceled' ? (
-              <div className="pt-4 border-t border-white/5">
-                <button
-                  onClick={() => handleAction(appt.id, 'deletar')}
-                  className="w-full bg-red-500/10 border border-red-500/20 text-red-500 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 active:scale-95 transition-all"
-                >
-                  <span className="material-symbols-outlined text-base">delete</span>
-                  Apagar Permanente
-                </button>
-              </div>
-            ) : (
-              <div className="space-y-3 pt-4 border-t border-white/5">
-                {/* Botão Principal: Finalizar */}
-                <button
-                  onClick={() => handleCloseAppointment(appt.id)}
-                  className="w-full gold-gradient text-background-dark py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 shadow-xl shadow-primary/10 active:scale-95 transition-all"
-                >
-                  <span className="material-symbols-outlined text-base font-black">check_circle</span>
-                  Finalizar Atendimento
-                </button>
-
-                {/* Botões Secundários: Remarcar/Cancelar */}
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => handleAction(appt.id, 'remarcar')}
-                    className="flex-1 bg-white/5 border border-white/10 text-slate-400 py-3.5 rounded-2xl text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-2 active:scale-95 transition-all"
-                  >
-                    <span className="material-symbols-outlined text-base">event_repeat</span>
-                    Remarcar
-                  </button>
-                  <button
-                    onClick={() => handleAction(appt.id, 'cancelar')}
-                    className="flex-1 bg-white/5 border border-white/10 text-red-500/60 py-3.5 rounded-2xl text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-2 active:scale-95 transition-all"
-                  >
-                    <span className="material-symbols-outlined text-base">close</span>
-                    Cancelar
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        ))}
+          ))}
+        </div>
 
         {filteredAppts.length === 0 && (
           <div className="py-20 text-center flex flex-col items-center opacity-30">

@@ -84,15 +84,15 @@ const SaaSMaster: React.FC = () => {
 
     if (isLoading) {
         return (
-            <div className="flex-1 bg-background-dark flex items-center justify-center">
+            <div className="flex-1 flex items-center justify-center">
                 <div className="size-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin"></div>
             </div>
         );
     }
 
     return (
-        <div className="flex-1 bg-background-dark h-full overflow-y-auto no-scrollbar">
-            <header className="p-8 pt-20 flex flex-col md:flex-row md:items-center justify-between gap-6 bg-gradient-to-b from-primary/10 via-transparent to-transparent">
+        <div className="flex-1 h-full overflow-y-auto no-scrollbar">
+            <header className="p-8 pt-20 flex flex-col md:flex-row md:items-center justify-between gap-6 bg-background-dark/30 backdrop-blur-xl border-b border-white/5">
                 <div>
                     <div className="flex items-center gap-2 mb-2">
                         <span className="material-symbols-outlined text-primary font-black">shield_person</span>
@@ -112,7 +112,7 @@ const SaaSMaster: React.FC = () => {
                 </div>
             </header>
 
-            <main className="p-8 space-y-10 pb-32 max-w-7xl mx-auto animate-fade-in">
+            <main className="px-6 py-10 space-y-10 pb-32 animate-fade-in lg:px-6 w-full">
 
                 {/* Global Stats Grid */}
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

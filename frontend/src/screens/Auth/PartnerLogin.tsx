@@ -101,7 +101,7 @@ const PartnerLogin: React.FC<PartnerLoginProps> = ({ onLogin }) => {
 
   if (redirectInfo) {
     return (
-      <div className="fixed inset-0 z-[9999] bg-background-dark/95 backdrop-blur-xl flex flex-col items-center justify-center p-8 animate-fade-in text-center">
+      <div className="fixed inset-0 z-[9999] bg-background-dark/70 backdrop-blur-xl flex flex-col items-center justify-center p-8 animate-fade-in text-center">
         <div className="size-20 rounded-full bg-primary/10 border-2 border-primary flex items-center justify-center mb-6 animate-pulse">
           <span className="material-symbols-outlined text-4xl text-primary">sync_alt</span>
         </div>
@@ -115,17 +115,17 @@ const PartnerLogin: React.FC<PartnerLoginProps> = ({ onLogin }) => {
   }
 
   return (
-    <div className="relative flex-1 flex flex-col h-full bg-background-dark overflow-y-auto no-scrollbar">
+    <div className="relative flex-1 flex flex-col h-full overflow-y-auto no-scrollbar">
       <div className="absolute inset-0 z-0">
         <img
           src="https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=1200"
-          className="w-full h-full object-cover opacity-20 grayscale"
+          className="w-full h-full object-cover opacity-10 grayscale"
           alt="Office Background"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-background-dark via-transparent to-background-dark"></div>
+        <div className="absolute inset-0 bg-gradient-to-b from-background-dark/50 via-transparent to-background-dark/80"></div>
       </div>
 
-      <header className="relative z-10 p-8 pt-[calc(env(safe-area-inset-top)+2rem)] flex items-center justify-between">
+      <header className="relative z-10 p-8 pt-[calc(env(safe-area-inset-top)+1rem)] flex items-center justify-between">
         <button onClick={() => navigate('/')} className="size-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-white">
           <span className="material-symbols-outlined">close</span>
         </button>
@@ -135,9 +135,12 @@ const PartnerLogin: React.FC<PartnerLoginProps> = ({ onLogin }) => {
       </header>
 
       <main className="relative z-10 flex-1 flex flex-col justify-center px-8 pb-32">
-        <div className="space-y-2 mb-10 text-center">
-          <h1 className="text-5xl font-display font-black text-white italic tracking-tighter leading-none">Aura <br /> <span className="text-primary text-4xl uppercase">Management.</span></h1>
-          <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.3em] mt-4">Gestão inteligente para artistas.</p>
+        <div className="space-y-4 mb-8 text-center max-w-lg mx-auto">
+          <div className="size-20 lg:size-24 rounded-[28px] lg:rounded-[32px] gold-gradient flex items-center justify-center text-background-dark shadow-[0_0_50px_rgba(193,165,113,0.4)] mx-auto mb-6 transform hover:rotate-6 transition-transform">
+            <span className="material-symbols-outlined text-4xl lg:text-5xl font-black">spa</span>
+          </div>
+          <h1 className="text-5xl lg:text-7xl font-display font-black text-white italic tracking-tighter leading-none uppercase">Luxe Aura</h1>
+          <p className="text-secondary text-[11px] lg:text-xs font-black uppercase tracking-[0.5em] mt-6 opacity-80">Management Experience</p>
         </div>
 
         {errorMessage && (
@@ -154,24 +157,24 @@ const PartnerLogin: React.FC<PartnerLoginProps> = ({ onLogin }) => {
 
         {!isForgotPassword ? (
           <>
-            <div className="flex bg-surface-dark p-1.5 rounded-2xl border border-white/5 mb-10 shadow-2xl">
+            <div className="flex bg-surface-dark p-2 rounded-2xl border border-white/5 mb-10 shadow-2xl max-w-sm mx-auto w-full">
               <button
                 type="button"
                 onClick={() => setLoginRole('pro')}
-                className={`flex-1 py-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${loginRole === 'pro' ? 'bg-primary text-background-dark shadow-xl' : 'text-slate-500'}`}
+                className={`flex-1 py-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${loginRole === 'pro' ? 'gold-gradient text-background-dark shadow-xl' : 'text-slate-500 hover:text-white'}`}
               >
                 Barbeiro
               </button>
               <button
                 type="button"
                 onClick={() => setLoginRole('admin')}
-                className={`flex-1 py-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${loginRole === 'admin' ? 'bg-primary text-background-dark shadow-xl' : 'text-slate-500'}`}
+                className={`flex-1 py-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${loginRole === 'admin' ? 'gold-gradient text-background-dark shadow-xl' : 'text-slate-500 hover:text-white'}`}
               >
                 Gestor
               </button>
             </div>
 
-            <form onSubmit={handleLogin} className="space-y-6">
+            <form onSubmit={handleLogin} className="space-y-6 max-w-sm mx-auto w-full">
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">E-mail</label>
                 <input
@@ -233,7 +236,7 @@ const PartnerLogin: React.FC<PartnerLoginProps> = ({ onLogin }) => {
             </form>
           </>
         ) : (
-          <form onSubmit={handleResetPassword} className="space-y-6 animate-fade-in">
+          <form onSubmit={handleResetPassword} className="space-y-6 animate-fade-in max-w-sm mx-auto w-full">
             <div className="space-y-2">
               <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">E-mail para Recuperação</label>
               <input

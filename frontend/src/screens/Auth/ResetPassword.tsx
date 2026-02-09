@@ -69,7 +69,7 @@ const ResetPassword: React.FC = () => {
     };
 
     return (
-        <div className="relative flex-1 flex flex-col h-full bg-background-dark overflow-y-auto no-scrollbar">
+        <div className="relative flex-1 flex flex-col h-full overflow-y-auto no-scrollbar">
             <div className="absolute inset-0 z-0">
                 <img
                     src="https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=1200"
@@ -148,7 +148,7 @@ const ResetPassword: React.FC = () => {
             </main>
 
             {isVerifying && (
-                <div className="fixed inset-0 z-[100] bg-background-dark flex flex-col items-center justify-center p-8 animate-fade-in">
+                <div className="fixed inset-0 z-[100] bg-background-dark/90 backdrop-blur-xl flex flex-col items-center justify-center p-8 animate-fade-in">
                     <div className="size-20 rounded-full bg-primary/10 border-2 border-primary border-t-transparent animate-spin mb-6"></div>
                     <h2 className="text-2xl font-display font-black text-white italic tracking-tighter mb-2">Validando Link...</h2>
                     <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.3em] text-center max-w-xs">Aguarde um momento enquanto preparamos seu acesso seguro.</p>

@@ -148,157 +148,180 @@ const Discovery: React.FC<DiscoveryProps> = ({ salons: initialSalons, role }) =>
 
     if (search) {
       const q = search.toLowerCase();
-      list = list.filter(s => s.nome.toLowerCase().includes(q) || s.descricao.toLowerCase().includes(q) || s.cidade.toLowerCase().includes(q));
+      list = list.filter(s =>
+        (s.nome?.toLowerCase().includes(q)) ||
+        (s.descricao?.toLowerCase().includes(q)) ||
+        (s.cidade?.toLowerCase().includes(q))
+      );
     }
 
     return list.sort((a, b) => a.distanceKm - b.distanceKm);
   }, [dynamicSalons, initialSalons, activeSegment, search, coords]);
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-background-dark relative text-white">
-      <header className="px-6 pt-[calc(env(safe-area-inset-top)+2rem)] pb-6 shrink-0 z-20">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-display font-black italic tracking-tighter leading-none">Luxe Aura</h1>
-            <div className="flex items-center gap-2 mt-2">
-              <p className="text-[8px] font-black uppercase tracking-[0.3em] text-slate-500">{cityName}</p>
+    <div className="flex-1 flex flex-col h-full relative text-white">
+      <header className="px-6 pt-[calc(env(safe-area-inset-top)+1rem)] pb-6 shrink-0 z-20 lg:pt-10 lg:px-6 w-full">
+        <div className="w-full">
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex-1">
+              <h1 className="text-4xl font-display font-black italic tracking-tighter leading-none lg:text-7xl">Luxe Aura</h1>
+              <div className="flex items-center gap-3 mt-3">
+                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 lg:text-sm">{cityName}</p>
+                <button
+                  onClick={handleDetectLocation}
+                  disabled={isLocating}
+                  className="flex items-center gap-2 group"
+                >
+                  <div className={`size-2 lg:size-2.5 rounded-full bg-primary ${isLocating ? 'animate-ping' : 'animate-pulse shadow-[0_0_10px_rgba(193,165,113,1)]'}`}></div>
+                  <span className="text-[8px] lg:text-[10px] font-black text-primary uppercase tracking-[0.2em] border-b border-primary/20 group-hover:border-primary transition-all">
+                    {isLocating ? 'Sincronizando...' : 'Detectar Localização'}
+                  </span>
+                </button>
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
               <button
-                onClick={handleDetectLocation}
-                disabled={isLocating}
-                className="flex items-center gap-1 group"
+                onClick={() => setViewMode(v => v === 'list' ? 'map' : 'list')}
+                className="size-12 lg:size-16 rounded-[20px] lg:rounded-[28px] bg-surface-dark border border-white/5 flex items-center justify-center text-slate-400 shadow-2xl active:scale-95 transition-all hover:bg-white/5 hover:text-white"
               >
-                <span className={`material-symbols-outlined text-[10px] text-primary ${isLocating ? 'animate-spin' : 'animate-pulse'} group-active:rotate-180 transition-transform`}>
-                  {isLocating ? 'refresh' : 'location_on'}
-                </span>
-                <span className="text-[7px] font-black text-primary/60 uppercase tracking-widest border-b border-primary/20">
-                  {isLocating ? 'Buscando...' : 'Detectar'}
-                </span>
+                <span className="material-symbols-outlined text-2xl lg:text-3xl">{viewMode === 'list' ? 'map' : 'list_alt'}</span>
               </button>
+              {role && (
+                <div onClick={() => navigate('/profile')} className="size-12 lg:size-16 rounded-[20px] lg:rounded-[28px] gold-gradient p-0.5 shadow-2xl cursor-pointer active:scale-95 transition-all hover:brightness-110">
+                  {userAvatar ? (
+                    <img src={userAvatar} className="w-full h-full rounded-[18px] lg:rounded-[26px] object-cover" alt="Profile" />
+                  ) : (
+                    <div className="w-full h-full rounded-[18px] lg:rounded-[26px] bg-background-dark flex items-center justify-center text-primary font-black text-sm lg:text-lg">
+                      {(userName || 'A').substring(0, 2).toUpperCase()}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            <button onClick={() => setViewMode(v => v === 'list' ? 'map' : 'list')} className="size-10 rounded-xl bg-surface-dark border border-white/5 flex items-center justify-center text-slate-400 shadow-xl active:scale-95 transition-all">
-              <span className="material-symbols-outlined text-xl">{viewMode === 'list' ? 'map' : 'list_alt'}</span>
-            </button>
-            {role && (
-              <div onClick={() => navigate('/profile')} className="size-10 rounded-xl gold-gradient p-0.5 shadow-xl cursor-pointer active:scale-95 transition-all">
-                {userAvatar ? (
-                  <img src={userAvatar} className="w-full h-full rounded-[10px] object-cover" alt="Profile" />
-                ) : (
-                  <div className="w-full h-full rounded-[10px] bg-background-dark flex items-center justify-center text-primary font-black text-xs">
-                    {(userName || 'A').substring(0, 2).toUpperCase()}
-                  </div>
-                )}
-              </div>
-            )}
+
+          <div className="relative group mb-10 w-full max-w-2xl">
+            <input
+              type="text"
+              placeholder="Busque por beleza ou spas..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full bg-surface-dark/40 border border-white/5 rounded-[24px] py-4 lg:py-5 pl-14 lg:pl-16 pr-8 text-sm lg:text-base text-white placeholder:text-slate-600 outline-none focus:border-primary/40 focus:bg-surface-dark/60 transition-all shadow-[inset_0_2px_10px_rgba(0,0,0,0.5)]"
+            />
+            <span className="material-symbols-outlined absolute left-5 lg:left-6 top-1/2 -translate-y-1/2 text-slate-600 text-xl lg:text-2xl group-focus-within:text-primary transition-colors">search</span>
           </div>
-        </div>
 
-        <div className="relative group mb-6">
-          <input
-            type="text"
-            placeholder="Beleza, Spas, Procedimentos..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-surface-dark/50 border border-white/5 rounded-2xl py-4 pl-12 pr-6 text-xs text-white placeholder:text-slate-600 outline-none focus:border-primary/30 transition-all shadow-inner"
-          />
-          <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 text-xl group-focus-within:text-primary transition-colors">search</span>
-        </div>
-
-        <div className="flex gap-3 overflow-x-auto no-scrollbar pb-2">
-          {segments.map(seg => (
-            <button key={seg} onClick={() => setActiveSegment(seg)} className={`px-5 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest whitespace-nowrap transition-all border ${activeSegment === seg ? 'gold-gradient text-background-dark border-transparent shadow-lg shadow-primary/20 scale-105' : 'bg-surface-dark/40 text-slate-500 border-white/5'}`}>
-              {seg}
-            </button>
-          ))}
+          <div className="flex gap-3 overflow-x-auto no-scrollbar pb-2 lg:flex-wrap">
+            {segments.map(seg => (
+              <button key={seg} onClick={() => setActiveSegment(seg)} className={`px-6 py-3 lg:px-10 lg:py-4 rounded-xl lg:rounded-[28px] text-[10px] lg:text-[11px] font-black uppercase tracking-[0.2em] whitespace-nowrap transition-all border ${activeSegment === seg ? 'gold-gradient text-background-dark border-transparent shadow-[0_10px_30px_rgba(193,165,113,0.3)] scale-105' : 'bg-surface-dark/40 text-slate-500 border-white/5 hover:bg-surface-dark hover:text-white hover:border-white/10'}`}>
+                {seg}
+              </button>
+            ))}
+          </div>
         </div>
       </header>
 
-      <main className="flex-1 overflow-y-auto px-6 pt-2 pb-32 space-y-8 no-scrollbar">
-        {viewMode === 'map' ? (
-          <div className="h-[520px] w-full rounded-[40px] overflow-hidden border border-white/5 shadow-2xl relative">
-            <Suspense fallback={<div className="h-full w-full bg-[#0c0d10] animate-pulse" />}>
-              <AuraMap
-                center={[coords.lat, coords.lng]}
-                zoom={13}
-                userMarker={{
-                  position: [coords.lat, coords.lng],
-                  icon: UserIcon,
-                  popupContent: "Você está aqui"
-                }}
-                markers={filteredSalons.map(salon => ({
-                  id: salon.id,
-                  position: [salon.location?.lat || 0, salon.location?.lng || 0] as [number, number],
-                  icon: createSalonIcon(salon.logo_url),
-                  popup: (
-                    <Popup className="custom-popup">
-                      <div className="p-4 bg-surface-dark min-w-[200px]" onClick={() => navigate(`/salon/${salon.slug_publico}`)}>
-                        <h3 className="font-display font-black italic text-white mb-2">{salon.nome}</h3>
-                        <p className="text-[10px] text-primary font-black uppercase tracking-widest">{salon.segmento}</p>
-                      </div>
-                    </Popup>
-                  )
-                })).filter(m => m.position[0] !== 0)}
-                clusterIconFactory={createClusterCustomIcon}
-              />
-            </Suspense>
-            <div className="absolute bottom-2 right-4 text-[6px] text-white/20 uppercase tracking-[0.4em] pointer-events-none z-[1000] italic">
-              Aura Maps • © OSM • Carto
-            </div>
-            <button onClick={() => setViewMode('list')} className="absolute bottom-6 left-1/2 -translate-x-1/2 px-6 py-3 bg-background-dark/90 border border-white/10 rounded-2xl flex items-center gap-2 text-[10px] font-black uppercase tracking-widest shadow-2xl z-[1000] text-primary backdrop-blur-xl hover:bg-white/5 active:scale-95 transition-all">
-              <span className="material-symbols-outlined text-sm">list</span> Ver Lista
-            </button>
-          </div>
-        ) : (
-          filteredSalons.map((salon) => (
-            <div key={salon.id} onClick={() => navigate(`/salon/${salon.slug_publico}`)} className="group flex flex-col bg-surface-dark/20 border border-white/5 rounded-[40px] overflow-hidden hover:border-primary/20 transition-all active:scale-[0.98]">
-              <div className="relative h-64">
-                <img src={salon.banner_url} className="w-full h-full object-cover grayscale opacity-50 group-hover:grayscale-0 group-hover:opacity-70 transition-all duration-700" alt={salon.nome} />
-                <div className="absolute inset-0 bg-gradient-to-t from-background-dark via-transparent to-black/20" />
-
-                <div className="absolute top-6 right-6 px-3 py-1.5 bg-black/40 backdrop-blur-xl rounded-xl border border-white/10 flex items-center gap-1.5">
-                  <span className="material-symbols-outlined text-primary text-xs fill-1">star</span>
-                  <span className="text-[10px] font-black text-white">{(Number(salon.rating) || 0).toFixed(1)}</span>
-                </div>
-
-                <div className="absolute bottom-6 left-6 flex items-end gap-4 pr-12">
-                  <img src={salon.logo_url} className="size-16 rounded-[24px] border-2 border-background-dark shadow-2xl object-cover" alt="logo" />
-                  <div className="flex-1 pb-1 min-w-0">
-                    <h2 className="text-xl font-display font-black italic text-white leading-[1.1] tracking-tighter drop-shadow-lg line-clamp-2 uppercase">
-                      {salon.nome}
-                    </h2>
-                    <p className="text-[9px] font-black text-primary uppercase tracking-[0.2em] mt-1.5">{salon.segmento}</p>
-                  </div>
-                </div>
+      <main className="flex-1 overflow-y-auto px-6 pt-2 pb-32 space-y-10 no-scrollbar w-full lg:px-6">
+        <div className="w-full max-w-none">
+          {viewMode === 'map' ? (
+            <div className="h-[600px] lg:h-[calc(100vh-320px)] w-full rounded-[40px] lg:rounded-[56px] overflow-hidden border border-white/5 shadow-2xl relative">
+              <Suspense fallback={<div className="h-full w-full bg-[#0c0d10] animate-pulse" />}>
+                <AuraMap
+                  center={[coords.lat, coords.lng]}
+                  zoom={13}
+                  userMarker={{
+                    position: [coords.lat, coords.lng],
+                    icon: UserIcon,
+                    popupContent: "Você está aqui"
+                  }}
+                  markers={filteredSalons.map(salon => ({
+                    id: salon.id,
+                    position: [salon.location?.lat || 0, salon.location?.lng || 0] as [number, number],
+                    icon: createSalonIcon(salon.logo_url),
+                    popup: (
+                      <Popup className="custom-popup">
+                        <div className="p-4 bg-surface-dark min-w-[200px]" onClick={() => navigate(`/salon/${salon.slug_publico}`)}>
+                          <h3 className="font-display font-black italic text-white mb-2">{salon.nome}</h3>
+                          <p className="text-[10px] text-primary font-black uppercase tracking-widest">{salon.segmento}</p>
+                        </div>
+                      </Popup>
+                    )
+                  })).filter(m => m.position[0] !== 0)}
+                  clusterIconFactory={createClusterCustomIcon}
+                />
+              </Suspense>
+              <div className="absolute bottom-2 right-4 text-[6px] text-white/20 uppercase tracking-[0.4em] pointer-events-none z-[1000] italic">
+                Aura Maps • © OSM • Carto
               </div>
+              <button onClick={() => setViewMode('list')} className="absolute bottom-6 left-1/2 -translate-x-1/2 px-6 py-3 bg-background-dark/90 border border-white/10 rounded-2xl flex items-center gap-2 text-[10px] font-black uppercase tracking-widest shadow-2xl z-[1000] text-primary backdrop-blur-xl hover:bg-white/5 active:scale-95 transition-all">
+                <span className="material-symbols-outlined text-sm">list</span> Ver Lista
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3 3xl:grid-cols-4 gap-10 w-full">
+              {filteredSalons.map((salon) => (
+                <div key={salon.id} onClick={() => navigate(`/salon/${salon.slug_publico}`)} className="group flex flex-col bg-surface-dark/20 border border-white/5 rounded-[40px] overflow-hidden hover:border-primary/20 transition-all active:scale-[0.98]">
+                  <div className="relative h-64 overflow-hidden">
+                    <img
+                      src={salon.banner_url || 'https://images.unsplash.com/photo-1560066984-138dadb4c035?q=80&w=1000&auto=format&fit=crop'}
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 grayscale opacity-60 group-hover:grayscale-0 group-hover:opacity-100"
+                      alt={salon.nome}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-background-dark via-transparent to-transparent opacity-80"></div>
 
-              <div className="p-7 flex items-center justify-between">
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <span className="material-symbols-outlined text-primary text-sm">location_on</span>
-                    <span className="text-[10px] font-black text-slate-300 uppercase tracking-tighter">{salon.distanceKm.toFixed(1)}km</span>
-                  </div>
-                  {Number(salon.reviews) > 0 ? (
-                    <div className="flex items-center gap-2">
-                      <div className="flex items-center justify-center size-5 rounded-full gold-gradient shadow-lg">
-                        <span className="material-symbols-outlined text-[10px] text-background-dark font-black">verified</span>
-                      </div>
-                      <p className="text-[9px] text-slate-500 font-bold uppercase tracking-widest leading-none">
-                        <span className="text-primary">{salon.reviews}</span> Avaliações Reais
-                      </p>
+                    {/* Rating Badge */}
+                    <div className="absolute top-4 right-4 px-3 py-1.5 bg-black/40 backdrop-blur-md rounded-full border border-white/10 flex items-center gap-1.5">
+                      <span className="material-symbols-outlined text-primary text-sm fill-1">star</span>
+                      <span className="text-[10px] font-black text-white">{(Number(salon.rating) || 5.0).toFixed(1)}</span>
                     </div>
-                  ) : (
-                    <p className="text-[9px] text-primary/40 font-black uppercase tracking-widest italic">Novo no Aura Premium</p>
-                  )}
-                </div>
+                  </div>
 
-                <div className="size-14 rounded-3xl gold-gradient flex items-center justify-center text-background-dark shadow-[0_10px_30px_rgba(193,165,113,0.3)] group-hover:scale-110 transition-transform duration-500">
-                  <span className="material-symbols-outlined text-2xl font-black">arrow_forward</span>
+                  <div className="p-8 relative -mt-4">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-4 mb-2">
+                          <div className="size-12 rounded-[20px] gold-gradient p-0.5 shadow-2xl shrink-0">
+                            {salon.logo_url ? (
+                              <img src={salon.logo_url} className="w-full h-full rounded-[18px] object-cover" alt="logo" />
+                            ) : (
+                              <div className="w-full h-full rounded-[18px] bg-background-dark flex items-center justify-center text-primary font-black text-sm">
+                                {salon.nome.substring(0, 2).toUpperCase()}
+                              </div>
+                            )}
+                          </div>
+                          <div className="min-w-0">
+                            <h3 className="font-display font-black italic text-xl text-white tracking-tight group-hover:text-primary transition-colors leading-tight uppercase truncate">{salon.nome}</h3>
+                            <p className="text-[10px] text-primary font-black uppercase tracking-[0.2em] mt-1">{salon.segmento}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-4 text-slate-500 mb-6 font-medium">
+                      <div className="flex items-center gap-1.5">
+                        <span className="material-symbols-outlined text-sm text-primary">location_on</span>
+                        <span className="text-[10px] font-black uppercase tracking-widest">{salon.distanceKm.toFixed(1)}km</span>
+                      </div>
+                      {Number(salon.reviews) > 0 && (
+                        <div className="flex items-center gap-1.5">
+                          <span className="material-symbols-outlined text-sm text-primary">verified</span>
+                          <span className="text-[10px] font-black uppercase tracking-widest">{salon.reviews} Avaliações</span>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex items-center justify-between pt-6 border-t border-white/5">
+                      <span className="text-[9px] font-black text-slate-600 uppercase tracking-[0.4em] italic">Novo no Aura Premium</span>
+                      <div className="size-12 rounded-full gold-gradient flex items-center justify-center text-background-dark shadow-xl group-hover:scale-110 group-hover:rotate-12 transition-all">
+                        <span className="material-symbols-outlined font-black">arrow_forward</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              </div>
+              ))}
             </div>
-          ))
-        )}
+          )}
+        </div>
       </main>
     </div>
   );

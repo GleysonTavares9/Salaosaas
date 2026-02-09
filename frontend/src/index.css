@@ -26,33 +26,34 @@
     --sat: env(safe-area-inset-top);
   }
 
+  html,
   body {
-    @apply bg-background-dark text-slate-200;
+    color: #e2e8f0;
     margin: 0;
     padding: 0;
     min-height: 100vh;
     min-height: 100dvh;
     width: 100vw;
     overflow-x: hidden;
-    background: #0c0d10;
+
+    /* Dark Warm Blur - Premium Background (fora da moldura) */
+    background:
+      radial-gradient(circle at top, rgba(255, 220, 160, 0.08), transparent 35%),
+      linear-gradient(180deg, #0f0d0b 0%, #050505 100%);
+    background-attachment: fixed;
   }
 
-  /* Efeito de background para Desktop */
+  /* Remover overrides claros antigos de desktop e manter textura se desejar */
   @media (min-width: 1024px) {
-    body {
-      background: radial-gradient(circle at top right, #1a1c22 0%, #0c0d10 100%);
-    }
-
     body::before {
       content: "";
       position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: url('https://www.transparenttextures.com/patterns/dark-matter.png');
-      opacity: 0.05;
+      inset: 0;
+      /* Mantendo textura sutil */
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.6' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+      opacity: 0.04;
       pointer-events: none;
+      z-index: 10;
     }
   }
 
@@ -66,23 +67,71 @@
     position: relative;
     background: #08090a;
     overflow: hidden;
+
+    /* Background do Tema - Luxe Aura Global (dentro da moldura) */
+    background-image:
+      radial-gradient(circle at 0% 0%, rgba(193, 165, 113, 0.12) 0%, transparent 45%),
+      radial-gradient(circle at 100% 100%, rgba(193, 165, 113, 0.12) 0%, transparent 45%),
+      radial-gradient(circle at 50% 10%, rgba(193, 165, 113, 0.05) 0%, transparent 70%);
+    background-attachment: fixed;
   }
 
-  /* No Desktop, o app foca no centro para manter a experiência mobile */
+  /* Animação de Aura Fluida */
+  @keyframes aura-shift {
+
+    0%,
+    100% {
+      opacity: 0.3;
+      transform: scale(1);
+    }
+
+    50% {
+      opacity: 0.5;
+      transform: scale(1.1);
+    }
+  }
+
+  #root::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+    opacity: 0.04;
+    pointer-events: none;
+    z-index: 100;
+  }
+
+  #root::after {
+    content: "";
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle at center, rgba(193, 165, 113, 0.03) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 1;
+    animation: aura-shift 10s ease-in-out infinite;
+  }
+
+  /* No Desktop, o app ocupa 100% do espaço */
   @media (min-width: 1024px) {
     #root {
-      max-width: 450px;
+      max-width: 100%;
+      margin: 0;
       height: 100vh;
-      box-shadow: 0 0 100px rgba(0, 0, 0, 0.8);
-      border-left: 1px solid rgba(255, 255, 255, 0.05);
-      border-right: 1px solid rgba(255, 255, 255, 0.05);
+      height: 100dvh;
+      border-radius: 0;
+      box-shadow: none;
+      border: none;
+      position: relative;
     }
   }
 }
 
 @layer components {
   .gold-gradient {
-    @apply bg-gradient-to-br from-[#c1a571] via-[#ecd3a5] to-[#c1a571];
+    background: linear-gradient(to bottom right, #c1a571, #ecd3a5, #c1a571);
   }
 
   .no-scrollbar {
@@ -95,7 +144,11 @@
   }
 
   .scroll-container {
-    @apply flex-1 overflow-y-auto no-scrollbar;
+    flex: 1 1 0%;
+    overflow-y: auto;
+    /* no-scrollbar */
+    -ms-overflow-style: none;
+    scrollbar-width: none;
     padding-bottom: calc(180px + var(--sab));
     /* Espaço extra para não cobrir conteúdo com footer flutuante + Safe Area */
     overscroll-behavior-y: contain;
@@ -104,20 +157,74 @@
 
   /* Utilitário Global para Limitar Elementos Fixos ao Frame do App */
   .mobile-constrained {
-    @apply fixed left-0 right-0 mx-auto w-full;
+    position: fixed;
+    left: 0;
+    right: 0;
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
     max-width: 100%;
   }
 
   @media (min-width: 1024px) {
     .mobile-constrained {
-      max-width: 450px;
+      max-width: 100%;
     }
+  }
+
+  /* Utilitários para Transparência de Background (Permite ver o Root) */
+  .bg-background-dark {
+    background-color: rgba(8, 9, 10, 0.85);
+    backdrop-filter: blur(8px);
+  }
+
+  .bg-surface-dark {
+    background-color: rgba(18, 19, 22, 0.7);
+    backdrop-filter: blur(12px);
+  }
+
+  /* Efeito de Vidro/Aura para Cards */
+  .aura-card {
+    background-color: rgba(18, 19, 22, 0.7);
+    /* surface-dark */
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    /* border-white/5 */
+    border-radius: 40px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    /* shadow-2xl */
+    position: relative;
+    overflow: hidden;
+  }
+
+  .aura-card::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(135deg, rgba(193, 165, 113, 0.05) 0%, transparent 50%);
   }
 
   /* Rodapé Flutuante Premium */
   .fixed-floating-footer {
-    @apply mobile-constrained bottom-0 z-[100] px-6 pb-8 pt-12;
-    background: linear-gradient(to top, #0c0d10 0%, #0c0d10 60%, transparent 100%);
+    /* mobile-constrained */
+    position: fixed;
+    left: 0;
+    right: 0;
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
+    bottom: 0;
+    z-index: 100;
+    padding-left: 1.5rem;
+    /* px-6 */
+    padding-right: 1.5rem;
+    /* px-6 */
+    padding-bottom: 2rem;
+    /* pb-8 */
+    padding-top: 3rem;
+    /* pt-12 */
+    background: linear-gradient(to top, #08090a 0%, rgba(8, 9, 10, 0.9) 60%, transparent 100%);
   }
 }
 
@@ -168,7 +275,14 @@
 
 /* Utilitário para imagens clicáveis */
 .direct-image-link {
-  @apply cursor-zoom-in active:scale-[0.98] transition-transform;
+  cursor: zoom-in;
+  transition-property: transform;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+.direct-image-link:active {
+  transform: scale(0.98);
 }
 
 /* Leaflet Overrides */

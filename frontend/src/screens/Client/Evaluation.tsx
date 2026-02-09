@@ -69,7 +69,7 @@ const Evaluation: React.FC = () => {
 
   if (isSuccess) {
     return (
-      <div className="flex-1 bg-background-dark flex flex-col items-center justify-center p-10 text-center animate-fade-in">
+      <div className="flex-1 flex flex-col items-center justify-center p-10 text-center animate-fade-in">
         <div className="size-24 rounded-full gold-gradient flex items-center justify-center shadow-[0_0_50px_rgba(193,165,113,0.3)] mb-8">
           <span className="material-symbols-outlined text-5xl text-background-dark font-black">verified</span>
         </div>
@@ -80,7 +80,7 @@ const Evaluation: React.FC = () => {
   }
 
   return (
-    <div className="flex-1 bg-background-dark min-h-screen flex flex-col p-8 overflow-y-auto no-scrollbar">
+    <div className="flex-1 min-h-screen flex flex-col p-8 overflow-y-auto no-scrollbar">
       <header className="pt-8 pb-12 flex items-center justify-between">
         <button onClick={() => navigate(-1)} className="size-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-white">
           <span className="material-symbols-outlined">close</span>

@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { api } from '../../lib/api';
 import { supabase } from '../../lib/supabase';
 import { Salon, Service, Professional, Appointment } from '../../types';
@@ -80,6 +80,7 @@ const TypingIndicator = () => (
 const QuickSchedule: React.FC = () => {
     const { slug } = useParams<{ slug: string }>();
     const navigate = useNavigate();
+    const location = useLocation();
 
     // Data
     const [salon, setSalon] = useState<Salon | null>(null);
@@ -182,24 +183,85 @@ const QuickSchedule: React.FC = () => {
         if (!slug || initialized.current) return;
         initialized.current = true;
 
+        // Limpa o estado antes de buscar novo salão
+        setSalon(null);
+
         api.salons.getBySlug(slug.toLowerCase())
             .then(data => {
-                if (!data) throw new Error("Unidade não encontrada.");
+                if (!data) {
+                    console.warn("Aura: Unidade não encontrada para o slug:", slug);
+                    addBotMessage("Ops! Não encontramos esta unidade ou o link expirou. 😕");
+                    setTimeout(() => navigate('/explore'), 3000);
+                    return;
+                }
+
                 setSalon(data);
                 setStep('WELCOME');
-                setStep('WELCOME');
                 addBotMessage(`Olá! Bem-vindo ao *${data.nome}*. ✨`);
-                setTimeout(() => {
-                    addBotMessage("Vamos realizar seu agendamento. Digite seu **celular** para começar.");
-                    setStep('PHONE');
-                }, 600);
+
+                // Checar se já existe sessão ativa para pular login
+                supabase.auth.getSession().then(async ({ data: { session } }) => {
+                    const params = new URLSearchParams(location.search);
+                    const isFromAI = params.get('promo') === 'true' && sessionStorage.getItem('aura_promo_verified') === 'true';
+                    const serviceId = params.get('serviceId');
+
+                    if (session?.user) {
+                        const profileData = session.user.user_metadata;
+                        const firstName = (profileData?.full_name || 'Usuário').split(' ')[0];
+                        setUserData({
+                            phone: profileData?.phone || '',
+                            name: profileData?.full_name || '',
+                            email: session.user.email || '',
+                            password: ''
+                        });
+
+                        setTimeout(async () => {
+                            addBotMessage(`Olá **${firstName}**! ✨`);
+
+                            if (isFromAI) {
+                                // Buscar serviços
+                                const svcs = await api.services.getBySalon(data.id);
+
+                                if (serviceId) {
+                                    const targetSvc = svcs.find(s => s.id === serviceId);
+                                    if (targetSvc) {
+                                        setSelectedServices([targetSvc]);
+                                        addBotMessage(`Como você escolheu **${targetSvc.name}** na nossa conversa, já preparei seu checkout com desconto.`);
+                                        addBotMessage("Com qual profissional você deseja agendar?");
+                                        setStep('PROFESSIONAL');
+                                        return;
+                                    }
+                                }
+
+                                // Fallback: se não tem serviceId mas é da IA, seleciona o primeiro
+                                if (svcs && svcs.length > 0) {
+                                    setSelectedServices([svcs[0]]);
+                                    addBotMessage(`Já deixei o ritual **${svcs[0].name}** preparado para você.`);
+                                    addBotMessage("Com qual profissional você deseja agendar?");
+                                    setStep('PROFESSIONAL');
+                                } else {
+                                    setStep('SERVICES');
+                                }
+                            } else {
+                                addBotMessage("Como você já está logado, vamos direto escolher seus rituais de hoje.");
+                                setStep('SERVICES');
+                            }
+                        }, 1000);
+                    } else {
+                        setTimeout(() => {
+                            addBotMessage("Vamos realizar seu agendamento. Digite seu **celular** para começar.");
+                            setStep('PHONE');
+                        }, 600);
+                    }
+                });
+
+                // Carregar dados complementares
                 api.services.getBySalon(data.id).then(setServices);
                 api.professionals.getBySalon(data.id).then(setProfessionals);
             })
             .catch(err => {
                 console.error("Erro QuickSchedule:", err);
-                addBotMessage("Ops! Não encontramos esta unidade ou o link expirou. 😕");
-                setTimeout(() => navigate('/explore'), 3000);
+                addBotMessage("Ocorreu um erro ao carregar as informações da unidade. Tente novamente mais tarde.");
             });
     }, [slug]);
 
@@ -212,7 +274,7 @@ const QuickSchedule: React.FC = () => {
 
     // Pre-fill from Query Params (AI Integration)
     useEffect(() => {
-        const params = new URLSearchParams(window.location.search);
+        const params = new URLSearchParams(location.search);
         const serviceId = params.get('serviceId');
         const proId = params.get('proId');
         const date = params.get('date');
@@ -295,7 +357,7 @@ const QuickSchedule: React.FC = () => {
         setShowElements(false); // Esconde elementos ao enviar nova mensagem
 
         switch (step) {
-            case 'PHONE':
+            case 'PHONE': {
                 const contact = text.trim();
                 const isEmail = contact.includes('@');
                 setUserData({ ...userData, phone: isEmail ? '' : contact.replace(/\D/g, ''), email: isEmail ? contact : '' });
@@ -325,6 +387,7 @@ const QuickSchedule: React.FC = () => {
                     }, 400);
                 }
                 break;
+            }
 
             case 'AUTH_CHECK':
                 const emailCheck = text.toLowerCase().trim();
@@ -348,18 +411,38 @@ const QuickSchedule: React.FC = () => {
                 }
                 break;
 
-            case 'PASSWORD':
-                const { error: loginError } = await supabase.auth.signInWithPassword({ email: userData.email, password: text });
+            case 'PASSWORD': {
+                const { data: { user }, error: loginError } = await supabase.auth.signInWithPassword({
+                    email: userData.email, password: text
+                });
                 if (loginError) {
-                    addBotMessage("Senha incorreta. Tente novamente ou peça ajuda ao suporte.");
-                } else {
-                    addBotMessage(`Excelente, **${(userData.name || '').split(' ')[0] || 'que bom te ver'}**! Vamos aos rituais de hoje.`);
-                    setTimeout(() => {
-                        addBotMessage("Selecione os serviços abaixo:");
-                        setStep('SERVICES');
-                    }, 400);
+                    addBotMessage("Senha incorreta. Tente novamente:");
+                    return;
                 }
+                const profile = user?.user_metadata;
+                const firstName = (profile?.full_name || userData.name).split(' ')[0];
+                addBotMessage(`Excelente, **${firstName}**!`);
+
+                const params = new URLSearchParams(location.search);
+                const serviceId = params.get('serviceId');
+
+                if (serviceId) {
+                    // Se temos um serviço vindo da IA, selecionamos e pulamos
+                    const svcs = await api.services.getBySalon(salon.id);
+                    const targetSvc = svcs.find(s => s.id === serviceId);
+                    if (targetSvc) {
+                        setSelectedServices([targetSvc]);
+                        addBotMessage(`Como você escolheu o ritual **${targetSvc.name}** na nossa conversa, já deixei ele pronto.`);
+                        addBotMessage("Com qual profissional você deseja agendar?");
+                        setStep('PROFESSIONAL');
+                        return;
+                    }
+                }
+
+                addBotMessage("Vamos aos rituais de hoje.");
+                setStep('SERVICES');
                 break;
+            }
 
             case 'REGISTER_NAME':
                 setUserData(prev => ({ ...prev, name: text }));
@@ -395,7 +478,23 @@ const QuickSchedule: React.FC = () => {
                 } else {
                     setUserData(prev => ({ ...prev, password: text }));
                     addBotMessage("Conta criada com sucesso! ✨🚀");
-                    setTimeout(() => {
+
+                    setTimeout(async () => {
+                        const params = new URLSearchParams(location.search);
+                        const serviceId = params.get('serviceId');
+
+                        if (serviceId && salon) {
+                            const svcs = await api.services.getBySalon(salon.id);
+                            const targetSvc = svcs.find(s => s.id === serviceId);
+                            if (targetSvc) {
+                                setSelectedServices([targetSvc]);
+                                addBotMessage(`Como você escolheu **${targetSvc.name}** na nossa conversa, já deixei tudo pronto.`);
+                                addBotMessage("Com qual profissional você deseja agendar?");
+                                setStep('PROFESSIONAL');
+                                return;
+                            }
+                        }
+
                         addBotMessage("Agora, selecione os serviços desejados:");
                         setStep('SERVICES');
                     }, 600);
@@ -473,7 +572,16 @@ const QuickSchedule: React.FC = () => {
         setShowElements(false);
         addUserMessage(time);
 
-        const total = selectedServices.reduce((acc, s) => acc + s.price, 0);
+        const params = new URLSearchParams(location.search);
+        const isFromAI = params.get('promo') === 'true' && sessionStorage.getItem('aura_promo_verified') === 'true';
+        const discountPercentage = (isFromAI && salon?.ai_enabled && salon?.ai_promo_discount) ? salon.ai_promo_discount : 0;
+
+        const subtotal = selectedServices.reduce((acc, s) => acc + s.price, 0);
+        const tax = subtotal * 0.05;
+        const baseTotalWithTax = subtotal + tax;
+        const discountValue = baseTotalWithTax * (discountPercentage / 100);
+        const finalTotal = Math.max(0, baseTotalWithTax - discountValue);
+
         const serviceNames = selectedServices.map(s => s.name).join(', ');
 
         // Formatar data
@@ -485,7 +593,7 @@ const QuickSchedule: React.FC = () => {
             `🗓️ **Data:** ${dateFormatted} às **${time}**\n` +
             `👤 **Profissional:** ${selectedPro?.name}\n` +
             `✂️ **Serviços:** ${serviceNames}\n` +
-            `💰 **Total:** R$ ${total},00\n\n` +
+            `💰 **Total:** ${discountPercentage > 0 ? `<s>R$ ${baseTotalWithTax.toFixed(2)}</s> **R$ ${finalTotal.toFixed(2)}**` : `R$ ${baseTotalWithTax.toFixed(2)}`}\n\n` +
             `Tudo certo?`);
 
         setStep('CONFIRM');
@@ -494,6 +602,35 @@ const QuickSchedule: React.FC = () => {
     const finalize = async () => {
         setShowElements(false);
         addUserMessage("Sim, confirmar!");
+
+        const params = new URLSearchParams(location.search);
+        const isFromAI = params.get('promo') === 'true' && sessionStorage.getItem('aura_promo_verified') === 'true';
+        const discountPercentage = (isFromAI && salon?.ai_enabled && salon?.ai_promo_discount) ? salon.ai_promo_discount : 0;
+
+        const subtotal = selectedServices.reduce((acc, s) => acc + s.price, 0);
+        const tax = subtotal * 0.05;
+        const baseTotalWithTax = subtotal + tax;
+        const discountValue = baseTotalWithTax * (discountPercentage / 100);
+        const finalTotal = Math.max(0, baseTotalWithTax - discountValue);
+
+        // Se o salão tem checkout integrado, mandamos para o Step CHECKOUT
+        if (salon?.mp_public_key) {
+            setBookingDraft({
+                salonId: salon.id,
+                salonName: salon.nome,
+                services: selectedServices,
+                products: [],
+                professionalId: selectedPro?.id,
+                professionalName: selectedPro?.name,
+                date: selectedDate,
+                time: selectedTime,
+                total: finalTotal,
+                discount_applied: discountPercentage
+            });
+            setStep('CHECKOUT');
+            return;
+        }
+
         addBotMessage("Finalizando seu agendamento...");
         const { data: { user } } = await supabase.auth.getUser();
         if (!user || !selectedPro || !salon) return;
@@ -502,8 +639,9 @@ const QuickSchedule: React.FC = () => {
                 client_id: user.id, salon_id: salon.id, date: selectedDate, time: selectedTime, status: 'pending',
                 service_names: selectedServices.map(s => s.name).join(', '),
                 professional_id: selectedPro.id,
-                valor: selectedServices.reduce((acc, s) => acc + s.price, 0),
-                duration_min: selectedServices.reduce((acc, s) => acc + (s.duration_min || 60), 0)
+                valor: finalTotal,
+                duration_min: selectedServices.reduce((acc, s) => acc + (s.duration_min || 60), 0),
+                booked_by_ai: isFromAI
             } as any);
             setStep('SUCCESS');
             addBotMessage("✅ **Agendamento Confirmado!**\nEstamos te esperando!");
@@ -520,13 +658,13 @@ const QuickSchedule: React.FC = () => {
 
     return (
         <div className="bg-[#0a0a0b] h-[100dvh] w-full flex items-center justify-center p-0 sm:p-6 overflow-hidden fixed inset-0 sm:relative">
-            <div className="w-full max-w-[440px] h-full sm:h-[90vh] bg-[#121214] sm:rounded-[40px] border border-white/5 shadow-2xl flex flex-col overflow-hidden relative font-sans pt-[env(safe-area-inset-top)]">
+            <div className="w-full max-w-[500px] lg:max-w-[650px] h-full sm:h-[90vh] bg-[#121214] sm:rounded-[40px] border border-white/5 shadow-2xl flex flex-col overflow-hidden relative font-sans pt-[env(safe-area-inset-top)]">
 
                 {/* Header Premium Aura */}
                 <div className="px-6 py-5 bg-[#18181b] border-b border-white/5 flex items-center justify-between z-10 shrink-0">
                     <div className="flex items-center gap-3">
                         <div className="relative">
-                            <img src={salon?.logo_url || 'https://via.placeholder.com/50'} className="w-11 h-11 rounded-full border-2 object-cover transition-colors" style={{ borderColor: auraGold }} />
+                            <img src={salon?.logo_url || `https://api.dicebear.com/7.x/initials/svg?seed=${salon?.nome || 'Salon'}`} className="w-11 h-11 rounded-full border-2 object-cover transition-colors" style={{ borderColor: auraGold }} />
                             <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-[#18181b]"></div>
                         </div>
                         <div>
@@ -621,7 +759,7 @@ const QuickSchedule: React.FC = () => {
                                 {professionals.filter(p => !selectedPro || p.id === selectedPro.id).map(pro => (
                                     <div key={pro.id} onClick={() => handleProSelect(pro)} className="shrink-0 flex flex-col items-center gap-3 cursor-pointer active:scale-95 transition-transform p-1">
                                         <div className={`size-20 rounded-[28px] p-1 border-2 transition-all ${selectedPro?.id === pro.id ? 'shadow-xl' : 'border-white/5'}`} style={{ borderColor: selectedPro?.id === pro.id ? auraGold : 'transparent' }}>
-                                            <img src={pro.image || 'https://via.placeholder.com/80'} className="w-full h-full rounded-[22px] object-cover" />
+                                            <img src={pro.image || `https://api.dicebear.com/7.x/initials/svg?seed=${pro.name}`} className="w-full h-full rounded-[22px] object-cover" />
                                         </div>
                                         <div className="text-center">
                                             <p className="text-[10px] font-black text-white uppercase tracking-widest">{pro.name.split(' ')[0]}</p>

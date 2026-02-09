@@ -365,8 +365,8 @@ const TeamManagement: React.FC<TeamManagementProps> = ({ salon, salonId: explici
   };
 
   return (
-    <div className="flex-1 bg-background-dark overflow-y-auto h-full no-scrollbar">
-      <header className="sticky top-0 z-50 bg-background-dark/95 backdrop-blur-xl px-6 pt-12 pb-6 border-b border-white/5 flex items-center justify-between">
+    <div className="flex-1 overflow-y-auto h-full no-scrollbar">
+      <header className="sticky top-0 z-50 bg-background-dark/60 backdrop-blur-xl px-6 pt-12 pb-6 border-b border-white/5 flex items-center justify-between lg:px-6">
         <button onClick={() => navigate('/pro')} className="size-10 rounded-full border border-white/10 flex items-center justify-center text-white active:scale-95 transition-all">
           <span className="material-symbols-outlined">arrow_back</span>
         </button>
@@ -377,10 +377,10 @@ const TeamManagement: React.FC<TeamManagementProps> = ({ salon, salonId: explici
         <div className="size-10"></div>
       </header>
 
-      <main className="px-6 py-10 space-y-10 safe-area-bottom pb-40 max-w-[450px] mx-auto">
+      <main className="w-full px-6 py-10 space-y-10 pb-40 animate-fade-in lg:px-6">
 
         {/* KPI da Equipe (Standardized) */}
-        <section className="grid grid-cols-2 gap-4">
+        <section className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="bg-surface-dark/40 border border-white/5 rounded-[32px] p-6 shadow-xl relative overflow-hidden group">
             <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
               <span className="material-symbols-outlined text-4xl">groups</span>
@@ -454,9 +454,9 @@ const TeamManagement: React.FC<TeamManagementProps> = ({ salon, salonId: explici
             <span className="text-[8px] font-bold text-slate-500 uppercase tracking-widest">Base de Dados</span>
           </div>
 
-          <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
             {isLoading ? (
-              <div className="py-20 text-center flex flex-col items-center">
+              <div className="py-20 text-center flex flex-col items-center col-span-full">
                 <div className="size-8 border-2 border-primary/20 border-t-primary rounded-full animate-spin"></div>
               </div>
             ) : (
@@ -510,8 +510,8 @@ const TeamManagement: React.FC<TeamManagementProps> = ({ salon, salonId: explici
           const selectedPro = team.find(p => p.id === selectedProId);
           if (!selectedPro) return null;
           return (
-            <div className="fixed inset-0 z-[70] bg-background-dark/95 backdrop-blur-xl animate-fade-in flex flex-col items-center overflow-hidden">
-              <div className="flex-1 flex flex-col bg-background-dark max-w-[450px] w-full h-full">
+            <div className="fixed inset-0 z-[70] bg-background-dark/80 backdrop-blur-xl animate-fade-in flex flex-col items-center overflow-hidden">
+              <div className="flex-1 flex flex-col max-w-[450px] w-full h-full">
                 <header className="px-8 pt-8 flex items-center justify-between">
                   <h2 className="text-xl font-display font-black text-white italic tracking-tighter uppercase">Editar Artista</h2>
                   <button onClick={() => setSelectedProId(null)} className="text-slate-500">
@@ -667,8 +667,8 @@ const TeamManagement: React.FC<TeamManagementProps> = ({ salon, salonId: explici
 
         {/* Modal de Cadastro (Com Senha e Anti-Logout) */}
         {isAdding && (
-          <div className="fixed inset-0 z-[60] bg-background-dark/95 backdrop-blur-xl animate-fade-in flex flex-col items-center overflow-hidden">
-            <div className="flex-1 flex flex-col bg-background-dark max-w-[450px] w-full h-full">
+          <div className="fixed inset-0 z-[60] bg-background-dark/80 backdrop-blur-xl animate-fade-in flex flex-col items-center overflow-hidden">
+            <div className="flex-1 flex flex-col max-w-[450px] w-full h-full">
               <header className="p-8 flex items-center justify-between">
                 <h2 className="text-xl font-display font-black text-white italic tracking-tighter uppercase">Novo Artista</h2>
                 <button onClick={() => setIsAdding(false)} className="text-slate-500"><span className="material-symbols-outlined">close</span></button>

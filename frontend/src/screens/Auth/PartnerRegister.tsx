@@ -95,10 +95,10 @@ const PartnerRegister: React.FC<PartnerRegisterProps> = ({ onRegister }) => {
   };
 
   return (
-    <div className="relative flex-1 flex flex-col min-h-screen bg-background-dark overflow-hidden">
+    <div className="relative flex-1 flex flex-col min-h-screen overflow-hidden">
       <div className="absolute inset-0 z-0">
-        <img src="https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?auto=format&fit=crop&q=80&w=1200" className="w-full h-full object-cover opacity-10 grayscale" alt="Interior" />
-        <div className="absolute inset-0 bg-gradient-to-t from-background-dark via-background-dark/80 to-transparent"></div>
+        <img src="https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?auto=format&fit=crop&q=80&w=1200" className="w-full h-full object-cover opacity-5 grayscale" alt="Interior" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background-dark/80 via-background-dark/20 to-transparent"></div>
       </div>
 
       <header className="relative z-10 p-8 flex items-center justify-between">

@@ -37,6 +37,9 @@ export interface Salon {
   subscription_plan?: 'free' | 'starter' | 'pro' | 'premium' | 'lifetime';
   trial_ends_at?: string;
   subscription_status?: 'trialing' | 'active' | 'past_due' | 'canceled';
+  ai_promo_text?: string;
+  ai_promo_discount?: number;
+  ai_enabled?: boolean;
 }
 
 export interface Product {
@@ -89,6 +92,7 @@ export interface Appointment {
   duration_min?: number;
   status: 'confirmed' | 'pending' | 'completed' | 'canceled';
   valor: number;
+  booked_by_ai?: boolean;
   // Legacy fields for backward compatibility (not in DB)
   clientName?: string;
   clientPhone?: string;

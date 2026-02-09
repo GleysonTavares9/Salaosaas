@@ -78,8 +78,8 @@ const SelectService: React.FC<SelectServiceProps> = ({ bookingDraft, setBookingD
   const itemCount = servicesInDraft.length + productsInDraft.length;
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-background-dark relative overflow-hidden">
-      <header className="px-6 pt-12 pb-4 bg-background-dark/95 backdrop-blur-xl border-b border-white/5 z-50 shrink-0 flex items-center justify-between">
+    <div className="flex-1 flex flex-col h-full relative overflow-hidden">
+      <header className="px-6 pt-12 pb-4 bg-background-dark/30 backdrop-blur-xl border-b border-white/5 z-50 shrink-0 flex items-center justify-between">
         <button onClick={() => navigate(-1)} className="size-10 rounded-xl border border-white/10 flex items-center justify-center text-white">
           <span className="material-symbols-outlined">arrow_back</span>
         </button>

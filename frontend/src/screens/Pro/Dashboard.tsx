@@ -160,6 +160,7 @@ const Dashboard: React.FC<DashboardProps> = ({ role, salon, appointments, userId
     { label: 'Minha Assinatura', icon: 'stars', path: '/pro/billing', color: 'amber', desc: 'Planos e faturamento' },
     { label: 'Horários Funcionamento', icon: 'more_time', path: '/pro/operating-hours', color: 'amber', desc: 'Configurar abertura/fechamento' },
     { label: 'Equipe', icon: 'groups', path: '/pro/team', color: 'purple', desc: 'Artistas e metas' },
+    { label: 'Aura Concierge', icon: 'auto_awesome', path: '/pro/aura', color: 'amber', desc: 'Sua recepcionista virtual' },
     { label: 'Catálogo Serviços', icon: 'menu_book', path: '/pro/catalog', color: 'indigo', desc: 'Rituais e preços' },
     { label: 'Configurações', icon: 'settings', path: '/pro/business-setup', color: 'slate', desc: 'Branding da unidade' },
     { label: 'Mensagens', icon: 'chat_bubble', path: '/messages', color: 'slate', desc: 'SAC Cliente', badge: totalUnreadMessages },
@@ -176,37 +177,40 @@ const Dashboard: React.FC<DashboardProps> = ({ role, salon, appointments, userId
   const menuItems = role === 'admin' ? adminMenu : proMenu;
 
   return (
-    <div className="flex-1 bg-background-dark h-full overflow-y-auto no-scrollbar">
-      <header className="p-6 pt-16 flex items-center justify-between sticky top-0 bg-background-dark/95 backdrop-blur-xl z-50 border-b border-white/5">
-        <div className="flex items-center gap-4">
-          <div className="size-12 rounded-2xl gold-gradient flex items-center justify-center text-background-dark shadow-lg transition-transform active:scale-90 relative">
-            <span className="material-symbols-outlined font-black">{role === 'admin' ? 'admin_panel_settings' : 'content_cut'}</span>
-          </div>
-          <div className="min-w-0">
-            <div className="flex items-center gap-2 mb-1">
-              <p className="text-[10px] text-primary font-black uppercase tracking-[0.2em] leading-none shrink-0">
-                {role === 'admin' ? 'Painel Executivo' : 'Dashboard do Artista'}
-              </p>
-              {salon?.segmento && (
-                <span className="text-[7px] bg-primary/10 text-primary border border-primary/20 px-1.5 py-0.5 rounded-md font-black uppercase tracking-widest leading-none">
-                  {salon.segmento}
-                </span>
-              )}
+    <div className="flex-1 h-full overflow-y-auto no-scrollbar">
+      <header className="sticky top-0 bg-background-dark/80 backdrop-blur-2xl z-50 border-b border-white/5 lg:py-2 w-full">
+        <div className="w-full p-4 lg:p-6 flex items-center justify-between lg:px-6">
+          <div className="flex items-center gap-5 lg:gap-8">
+            <div className="size-14 lg:size-20 rounded-[22px] lg:rounded-[32px] gold-gradient flex items-center justify-center text-background-dark shadow-[0_0_30px_rgba(193,165,113,0.3)] transition-all hover:scale-105 active:scale-90 relative">
+              <span className="material-symbols-outlined text-3xl lg:text-5xl font-black">{role === 'admin' ? 'admin_panel_settings' : 'content_cut'}</span>
+              <div className="absolute -bottom-1 w-8 h-1.5 bg-primary/40 rounded-full blur-[4px] animate-pulse"></div>
             </div>
-            <h2 className="text-sm font-display font-black text-white italic tracking-tighter leading-tight truncate">
-              {role === 'admin'
-                ? `${proProfile?.name || userProfile?.full_name || 'Gestor'} • ${salon?.nome || 'Minha Unidade'}`
-                : (proProfile?.name || userProfile?.full_name || 'Portal Aura')}
-            </h2>
+            <div className="min-w-0">
+              <div className="flex items-center gap-3 mb-2">
+                <p className="text-[10px] lg:text-xs text-primary font-black uppercase tracking-[0.3em] leading-none shrink-0">
+                  {role === 'admin' ? 'Painel Executivo' : 'Dashboard do Artista'}
+                </p>
+                {salon?.segmento && (
+                  <span className="text-[8px] lg:text-[10px] bg-primary/10 text-primary border border-primary/20 px-2 py-1 rounded-lg font-black uppercase tracking-widest leading-none">
+                    {salon.segmento}
+                  </span>
+                )}
+              </div>
+              <h2 className="text-sm lg:text-3xl font-display font-black text-white italic tracking-tighter leading-tight truncate uppercase">
+                {role === 'admin'
+                  ? `${proProfile?.name || userProfile?.full_name || 'Gestor'} • ${salon?.nome || 'Minha Unidade'}`
+                  : (proProfile?.name || userProfile?.full_name || 'Portal Aura')}
+              </h2>
+            </div>
           </div>
+          <button onClick={() => navigate('/profile')} className="size-14 lg:size-20 bg-surface-dark rounded-[22px] lg:rounded-[32px] flex items-center justify-center text-slate-400 border border-white/10 overflow-hidden active:scale-95 transition-all shadow-2xl shrink-0 ring-4 ring-white/5">
+            <img
+              src={userProfile?.avatar_url || (role === 'admin' ? (salon?.logo_url || 'https://i.pravatar.cc/150?u=admin') : (proProfile?.image || 'https://i.pravatar.cc/150?u=pro'))}
+              className="size-full object-cover transition-transform hover:scale-110 duration-700"
+              alt="Profile"
+            />
+          </button>
         </div>
-        <button onClick={() => navigate('/profile')} className="size-12 bg-surface-dark rounded-2xl flex items-center justify-center text-slate-400 border border-white/10 overflow-hidden active:scale-95 transition-transform shadow-xl shrink-0">
-          <img
-            src={userProfile?.avatar_url || (role === 'admin' ? (salon?.logo_url || 'https://i.pravatar.cc/150?u=admin') : (proProfile?.image || 'https://i.pravatar.cc/150?u=pro'))}
-            className="size-full object-cover"
-            alt="Profile"
-          />
-        </button>
       </header>
 
       {/* Subscription Status Banner (New) */}
@@ -252,7 +256,7 @@ const Dashboard: React.FC<DashboardProps> = ({ role, salon, appointments, userId
         </div>
       )}
 
-      <main className="p-6 space-y-8 pb-32 safe-area-bottom animate-fade-in">
+      <main className="w-full p-6 lg:p-10 space-y-10 pb-32 animate-fade-in lg:px-6">
 
         {/* Link de Agendamento Profissional Elite */}
         {salon?.slug_publico && (
@@ -307,14 +311,14 @@ const Dashboard: React.FC<DashboardProps> = ({ role, salon, appointments, userId
         <section className="p-8 bg-surface-dark rounded-[40px] border border-white/5 shadow-2xl overflow-hidden relative group">
           <div className="flex justify-between items-start mb-6">
             <div>
-              <p className="text-slate-500 font-black text-[10px] uppercase tracking-[0.4em] mb-2">{stats.label}</p>
-              <h1 className="font-display text-4xl font-black text-white tracking-tighter">
+              <p className="text-slate-500 font-black text-[10px] lg:text-sm uppercase tracking-[0.4em] mb-2">{stats.label}</p>
+              <h1 className="font-display text-4xl lg:text-8xl font-black text-white tracking-tighter">
                 R$ {stats.gross.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
               </h1>
               {role === 'pro' && (
-                <div className="flex items-center gap-2 mt-2">
-                  <span className="text-[10px] text-emerald-500 font-black">Minha Comissão:</span>
-                  <span className="text-lg text-emerald-500 font-display font-black">
+                <div className="flex items-center gap-3 mt-4">
+                  <span className="text-[10px] lg:text-base text-emerald-500 font-black uppercase tracking-widest">Minha Comissão:</span>
+                  <span className="text-lg lg:text-4xl text-emerald-500 font-display font-black">
                     R$ {stats.net.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                   </span>
                 </div>
@@ -354,7 +358,7 @@ const Dashboard: React.FC<DashboardProps> = ({ role, salon, appointments, userId
             )}
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6">
             {menuItems.map(item => {
               // Lógica de Travamento Visual
               let isLocked = false;

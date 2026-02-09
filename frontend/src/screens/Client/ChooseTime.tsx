@@ -207,8 +207,8 @@ const ChooseTime: React.FC<ChooseTimeProps> = ({ bookingDraft, setBookingDraft }
   const canProceed = bookingDraft.professionalId && bookingDraft.time;
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-background-dark relative overflow-hidden">
-      <header className="px-6 pt-12 pb-4 bg-background-dark/95 backdrop-blur-xl border-b border-white/5 z-50 shrink-0 flex items-center justify-between">
+    <div className="flex-1 flex flex-col h-full relative overflow-hidden">
+      <header className="px-6 pt-12 pb-4 bg-background-dark/30 backdrop-blur-xl border-b border-white/5 z-50 shrink-0 flex items-center justify-between">
         <button onClick={() => navigate(-1)} className="size-10 rounded-xl border border-white/10 flex items-center justify-center text-white active:scale-90 transition-all">
           <span className="material-symbols-outlined">arrow_back</span>
         </button>
@@ -319,7 +319,7 @@ const ChooseTime: React.FC<ChooseTimeProps> = ({ bookingDraft, setBookingDraft }
         <div className="w-full max-w-md bg-background-dark/95 backdrop-blur-2xl border border-white/10 p-6 rounded-[32px] shadow-2xl pointer-events-auto">
           <button
             disabled={!canProceed}
-            onClick={() => navigate('/checkout')}
+            onClick={() => navigate(`/checkout${window.location.search}`)}
             className={`w-full py-6 rounded-3xl font-black uppercase tracking-[0.4em] text-[11px] flex items-center justify-center gap-3 transition-all shadow-[0_20px_50px_rgba(0,0,0,0.5)] ${canProceed ? 'gold-gradient text-background-dark active:scale-95' : 'bg-white/5 text-slate-800 cursor-not-allowed opacity-50'}`}
           >
             AVANÇAR PARA CHECKOUT

@@ -67,8 +67,8 @@ const ChatList: React.FC<ChatListProps> = ({ userId }) => {
   }, [userId]);
 
   return (
-    <div className="flex-1 bg-background-dark min-h-screen no-scrollbar overflow-y-auto">
-      <header className="sticky top-0 z-50 bg-background-dark/95 backdrop-blur-md px-6 pt-12 pb-6 border-b border-white/5 flex items-center justify-between">
+    <div className="flex-1 min-h-screen no-scrollbar overflow-y-auto">
+      <header className="sticky top-0 z-50 bg-background-dark/30 backdrop-blur-md px-6 pt-12 pb-6 border-b border-white/5 flex items-center justify-between">
         <button onClick={() => navigate(-1)} className="size-10 rounded-full border border-white/10 flex items-center justify-center text-white active:scale-95 transition-all">
           <span className="material-symbols-outlined">arrow_back</span>
         </button>

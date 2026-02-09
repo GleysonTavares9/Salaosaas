@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Appointment, Service, Salon, Product } from '../../types';
 import { api } from '../../lib/api';
 import { supabase } from '../../lib/supabase';
@@ -42,6 +42,9 @@ const Checkout: React.FC<CheckoutProps> = ({ bookingDraft, salons, onConfirm, se
   const [activeSalon, setActiveSalon] = useState<Salon | undefined>(salons.find(s => s.id === bookingDraft.salonId));
   const [lastOrder, setLastOrder] = useState<any>(null);
   const [isPix, setIsPix] = useState(false);
+  const location = useLocation();
+  const [promoDiscount, setPromoDiscount] = useState(bookingDraft.discount_applied || 0);
+  const [isFromAI, setIsFromAI] = useState(!!bookingDraft.discount_applied);
   // Mantemos o state para compatibilidade, mas não usaremos para renderização condicional estrita de abas
   const [activeItemTab, setActiveItemTab] = useState<'services' | 'products'>(
     (bookingDraft.services?.length > 0 && bookingDraft.products?.length === 0) ? 'products' : 'services'
@@ -55,7 +58,23 @@ const Checkout: React.FC<CheckoutProps> = ({ bookingDraft, salons, onConfirm, se
         setUserEmail(user.email || 'anonimo@luxe-aura.com');
       }
     });
-  }, []);
+
+    // Detecção de promoção da Aura via URL ou Draft
+    const urlParams = new URLSearchParams(location.search);
+    const hasPromoParam = urlParams.get('promo') === 'true';
+
+    if (hasPromoParam || bookingDraft.discount_applied) {
+      setIsFromAI(true);
+      const discount = bookingDraft.discount_applied || activeSalon?.ai_promo_discount;
+      if (discount) {
+        setPromoDiscount(discount);
+        // Só mostra o toast se não estiver já no draft (para não repetir)
+        if (!bookingDraft.discount_applied) {
+          showToast(`✨ Oferta Aura aplicada: ${discount}% de desconto!`, 'success');
+        }
+      }
+    }
+  }, [activeSalon, location.search, bookingDraft.discount_applied]);
 
   // Validação robusta para garantir que a chave MP é válida e não um e-mail ou lixo
   const isMpEnabled = React.useMemo(() => {
@@ -64,33 +83,33 @@ const Checkout: React.FC<CheckoutProps> = ({ bookingDraft, salons, onConfirm, se
     return !!(key && typeof key === 'string' && !key.includes('@') && key.length > 10);
   }, [activeSalon?.mp_public_key]);
 
+  const lastInitedKey = useRef<string | null>(null);
+
   useEffect(() => {
-    if (isMpEnabled && activeSalon?.mp_public_key) {
+    if (isMpEnabled && activeSalon?.mp_public_key && lastInitedKey.current !== activeSalon.mp_public_key) {
       try {
+        console.log("Iniciando Mercado Pago para o salão...");
         initMercadoPago(activeSalon.mp_public_key, { locale: 'pt-BR' });
+        lastInitedKey.current = activeSalon.mp_public_key;
         setMpReady(true);
       } catch (e) {
         console.error("Erro ao inicializar MP:", e);
         setMpReady(false);
       }
+    } else if (isMpEnabled && activeSalon?.mp_public_key) {
+      setMpReady(true);
     } else {
       setMpReady(false);
     }
   }, [isMpEnabled, activeSalon?.mp_public_key]);
 
+  // Efeito para carregar produtos se necessário (opcional, pode vir do pai também)
   useEffect(() => {
-    const fetchSalon = async () => {
-      if (bookingDraft.salonId) {
-        try {
-          const salon = await api.salons.getById(bookingDraft.salonId);
-          setActiveSalon(salon);
-          console.log("Dados do salão atualizados:", salon.paga_no_local ? "Pagar no local habilitado" : "Checkout online obrigatório");
-        } catch (error) {
-          console.error('Erro ao carregar salão:', error);
-        }
-      }
-    };
-    fetchSalon();
+    if (bookingDraft.salonId && !availableProducts.length) {
+      api.products.getBySalon(bookingDraft.salonId)
+        .then(data => setAvailableProducts(data))
+        .catch(err => console.error('Erro ao buscar produtos:', err));
+    }
   }, [bookingDraft.salonId]);
 
   // Fetch available products
@@ -112,7 +131,8 @@ const Checkout: React.FC<CheckoutProps> = ({ bookingDraft, salons, onConfirm, se
   const subtotalProducts = products.reduce((acc: number, curr: Product) => acc + curr.price, 0);
   const subtotal = subtotalServices + subtotalProducts;
   const tax = subtotal * 0.05;
-  const total = subtotal + tax;
+  const calculatedDiscount = (subtotal + tax) * (promoDiscount / 100);
+  const total = Math.max(0, subtotal + tax - calculatedDiscount);
 
   const removeItem = (id: string, type: 'service' | 'product') => {
     if (type === 'service') {
@@ -208,9 +228,14 @@ const Checkout: React.FC<CheckoutProps> = ({ bookingDraft, salons, onConfirm, se
         date: bookingDraft.date || new Date().toISOString().split('T')[0],
         time: bookingDraft.time || '10:00:00',
         duration_min: totalDuration,
-        status: isPixMethod ? 'pending' : 'confirmed' // Pendente se for PIX
+        status: isPixMethod ? 'pending' : 'confirmed', // Pendente se for PIX
+        booked_by_ai: isFromAI
       });
-      onConfirm(newAppt);
+
+      // Se não for PIX (ex: Cartão aprovado na hora), finaliza a UI do bot
+      if (!isPixMethod) {
+        onConfirm(newAppt);
+      }
 
       // 3. DIRECIONAR PARA A TELA CORRETA
       if (isPixMethod) {
@@ -528,6 +553,12 @@ const Checkout: React.FC<CheckoutProps> = ({ bookingDraft, salons, onConfirm, se
                 <span>Taxa Concierge (5%)</span>
                 <span className="text-white">R$ {tax.toFixed(2)}</span>
               </div>
+              {promoDiscount > 0 && (
+                <div className="flex justify-between items-center text-[10px] font-black text-emerald-400 uppercase tracking-widest animate-pulse">
+                  <span>Desconto Aura ({promoDiscount}%) ✨</span>
+                  <span>- R$ {calculatedDiscount.toFixed(2)}</span>
+                </div>
+              )}
               <div className="pt-6 border-t border-white/5 flex justify-between items-center">
                 <span className="text-xs font-black text-primary uppercase tracking-[0.3em]">Total Investido</span>
                 <span className="text-3xl font-display font-black text-white italic tracking-tighter">R$ {total.toFixed(2)}</span>
@@ -552,7 +583,7 @@ const Checkout: React.FC<CheckoutProps> = ({ bookingDraft, salons, onConfirm, se
           <div className="animate-fade-in space-y-8 pb-32">
             <div className="bg-surface-dark/40 border border-white/5 rounded-[40px] overflow-hidden shadow-2xl relative">
               <div className="p-4 min-h-[450px]">
-                {mpReady ? (
+                {mpReady && total > 0 ? (
                   <MPPaymentWrapper
                     total={total}
                     handleFinalConfirm={stableSubmit}
@@ -694,7 +725,7 @@ const MPPaymentWrapper: React.FC<{ total: number, handleFinalConfirm: (param: an
   }, []);
 
   const initialization = React.useMemo(() => ({
-    amount: Number(total.toFixed(2)),
+    amount: total > 0 ? Number(total.toFixed(2)) : 0.01, // Valor mínimo seguro
   }), [total]);
 
   const customization = React.useMemo(() => ({

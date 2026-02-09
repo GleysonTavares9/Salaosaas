@@ -127,8 +127,8 @@ const ServiceCatalog: React.FC<ServiceCatalogProps> = ({ salon }) => {
   };
 
   return (
-    <div className="flex-1 bg-background-dark overflow-y-auto h-full no-scrollbar">
-      <header className="sticky top-0 z-50 bg-background-dark/95 backdrop-blur-md px-6 pt-12 pb-6 border-b border-white/5">
+    <div className="flex-1 overflow-y-auto h-full no-scrollbar">
+      <header className="sticky top-0 z-50 bg-background-dark/30 backdrop-blur-md px-6 pt-12 pb-6 border-b border-white/5">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="font-display text-2xl font-black tracking-tight text-white italic uppercase tracking-tighter">Rituais & Estética</h1>
@@ -156,8 +156,8 @@ const ServiceCatalog: React.FC<ServiceCatalogProps> = ({ salon }) => {
         </div>
       </header>
 
-      <main className="px-6 py-8 pb-40 max-w-[450px] mx-auto">
-        <div className="mb-8">
+      <main className="w-full px-6 py-8 pb-40 animate-fade-in lg:px-6 space-y-8">
+        <div className="mb-0 max-w-xl">
           <button
             onClick={() => setIsAdding(true)}
             className="w-full bg-white/5 border border-dashed border-white/10 rounded-[32px] py-8 flex flex-col items-center justify-center gap-3 group hover:border-primary/20 hover:bg-white/[0.07] transition-all active:scale-[0.98]"
@@ -174,7 +174,7 @@ const ServiceCatalog: React.FC<ServiceCatalogProps> = ({ salon }) => {
             <div className="size-8 border-2 border-primary/20 border-t-primary rounded-full animate-spin"></div>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
             {services.filter(s => activeCategory === 'Todos' || s.category === activeCategory).map((s) => (
               <div key={s.id} className="group relative bg-surface-dark/60 p-5 rounded-[32px] border border-white/5 shadow-xl hover:border-primary/20 transition-all">
                 <div className="flex items-center gap-5">
@@ -193,7 +193,7 @@ const ServiceCatalog: React.FC<ServiceCatalogProps> = ({ salon }) => {
                       </div>
                     </div>
                   </div>
-                  <div className="text-right flex flex-col items-end gap-3">
+                  <div className="text-right flex flex-col items-end gap-3 shrink-0">
                     <div className="space-y-1">
                       <p className="text-[8px] font-black text-slate-600 uppercase tracking-widest leading-none text-right">Ritual</p>
                       <p className="text-xl font-display font-black text-primary tracking-tight italic leading-none text-right">R$ {s.price.toFixed(2)}</p>
@@ -219,7 +219,7 @@ const ServiceCatalog: React.FC<ServiceCatalogProps> = ({ salon }) => {
             ))}
 
             {services.filter(s => activeCategory === 'Todos' || s.category === activeCategory).length === 0 && !isAdding && (
-              <div className="py-20 text-center flex flex-col items-center opacity-30">
+              <div className="py-20 text-center flex flex-col items-center opacity-30 col-span-full">
                 <span className="material-symbols-outlined text-6xl mb-4 text-slate-600">content_paste_off</span>
                 <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Nenhum ritual cadastrado</p>
               </div>

@@ -167,8 +167,8 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ userId }) => {
   }, [messageText, id, userId, showToast]);
 
   return (
-    <div className="flex-1 bg-background-dark min-h-screen flex flex-col overflow-hidden">
-      <header className="sticky top-0 z-50 bg-background-dark/95 backdrop-blur-md px-6 pt-12 pb-6 border-b border-white/5 flex items-center gap-4">
+    <div className="flex-1 min-h-screen flex flex-col overflow-hidden">
+      <header className="sticky top-0 z-50 bg-background-dark/30 backdrop-blur-md px-6 pt-12 pb-6 border-b border-white/5 flex items-center gap-4">
         <button onClick={() => navigate(-1)} className="size-10 rounded-full border border-white/10 flex items-center justify-center text-white active:scale-95 transition-all">
           <span className="material-symbols-outlined">arrow_back</span>
         </button>
@@ -234,7 +234,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ userId }) => {
         )}
       </main>
 
-      <footer className="fixed bottom-0 left-0 right-0 p-6 bg-background-dark/95 backdrop-blur-xl border-t border-white/5 max-w-[450px] mx-auto z-50">
+      <footer className="fixed bottom-0 left-0 right-0 p-6 bg-background-dark/40 backdrop-blur-xl border-t border-white/5 max-w-[450px] mx-auto z-50">
         <form onSubmit={handleSend} className="flex items-center gap-4">
           <input
             type="text"

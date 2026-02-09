@@ -21,7 +21,7 @@ const UserLogin: React.FC<UserLoginProps> = ({ onLogin }) => {
   };
 
   return (
-    <div className="flex-1 bg-background-dark h-full overflow-y-auto flex flex-col p-8 no-scrollbar">
+    <div className="flex-1 h-full overflow-y-auto flex flex-col p-8 no-scrollbar">
       <header className="pt-8 pb-12">
         <button onClick={() => navigate('/')} className="size-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-white">
           <span className="material-symbols-outlined">close</span>

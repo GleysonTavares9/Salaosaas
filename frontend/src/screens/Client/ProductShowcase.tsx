@@ -125,8 +125,8 @@ const ProductShowcase: React.FC<ProductShowcaseProps> = ({ bookingDraft, setBook
   const itemCount = (bookingDraft?.services?.length || 0) + (bookingDraft?.products?.length || 0);
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-background-dark relative overflow-hidden">
-      <header className="sticky top-0 z-50 bg-background-dark/95 backdrop-blur-md px-6 pt-12 pb-6 border-b border-white/5 flex items-center justify-between">
+    <div className="flex-1 flex flex-col h-full relative overflow-hidden">
+      <header className="sticky top-0 z-50 bg-background-dark/30 backdrop-blur-md px-6 pt-12 pb-6 border-b border-white/5 flex items-center justify-between">
         <button onClick={() => navigate(-1)} className="size-10 rounded-full border border-white/10 flex items-center justify-center text-white">
           <span className="material-symbols-outlined">arrow_back</span>
         </button>

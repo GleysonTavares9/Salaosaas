@@ -43,6 +43,7 @@ const SaaSMaster = lazy(() => import('./screens/Pro/SaaSMaster'));
 const Billing = lazy(() => import('./screens/Pro/Billing'));
 const PrivacyPolicy = lazy(() => import('./screens/Public/PrivacyPolicy'));
 const TermsOfUse = lazy(() => import('./screens/Public/TermsOfUse'));
+const AISettings = lazy(() => import('./screens/Pro/AISettings'));
 
 import { ToastProvider, useToast } from './contexts/ToastContext.tsx';
 
@@ -199,8 +200,10 @@ const AppContent: React.FC = () => {
             const delay = (event === 'SIGNED_IN' || isAuthPage) ? 2500 : 0;
 
             setTimeout(() => {
-              if (uRole === 'admin' || uRole === 'pro') {
+              if (uRole === 'admin') {
                 navigate('/pro', { replace: true });
+              } else if (uRole === 'pro') {
+                navigate('/pro/schedule', { replace: true });
               } else if (uRole === 'client' && isAuthPage) {
                 navigate('/', { replace: true });
               }
@@ -419,7 +422,7 @@ const AppContent: React.FC = () => {
   const isBookingFlow = ['/select-service', '/choose-time', '/checkout'].includes(location.pathname);
 
   const shouldShowNav = !isFullView && !isChat && !isSalon && !isGallery && !isBookingFlow && !isQuickSchedule;
-  const shouldShowAI = role === 'client' && !isQuickSchedule;
+  const shouldShowAI = (isSalon || location.pathname.startsWith('/pro')) && !isQuickSchedule;
 
   // Loading Screen
   if (isLoading) {
@@ -475,7 +478,7 @@ const AppContent: React.FC = () => {
   };
 
   return (
-    <div className="flex-1 flex flex-col min-h-full bg-background-dark">
+    <div className="flex-1 flex flex-col min-h-full">
       <ScrollToTop />
 
       {/* Native Email Confirmation Banner */}
@@ -497,7 +500,7 @@ const AppContent: React.FC = () => {
         </div>
       )}
 
-      <div className={`flex-1 flex flex-col min-h-0 ${shouldShowNav ? 'pb-24' : ''}`}>
+      <div className={`flex-1 flex flex-col min-h-0 ${shouldShowNav ? 'pb-24 lg:pb-0 lg:pl-[280px]' : ''}`}>
         <Suspense fallback={
           <div className="flex-1 bg-background-dark flex flex-col items-center justify-center">
             <div className="size-8 border-2 border-primary/20 border-t-primary rounded-full animate-spin mb-4"></div>
@@ -579,6 +582,12 @@ const AppContent: React.FC = () => {
                 : <Navigate to="/login" replace />
             } />
 
+            <Route path="/pro/aura" element={
+              role === 'admin'
+                ? (isSubscriptionValid(salons[0]) ? <AISettings /> : <Navigate to="/pro/billing" replace />)
+                : <Navigate to="/login" replace />
+            } />
+
             <Route path="/pro/catalog" element={
               role === 'admin'
                 ? (isSubscriptionValid(salons[0]) ? <ServiceCatalog salon={salons[0]} /> : <Navigate to="/pro/billing" replace />)
@@ -616,7 +625,7 @@ const AppContent: React.FC = () => {
         </Suspense>
       </div>
       {shouldShowNav && <BottomNav role={role} />}
-      {shouldShowAI && <AIConcierge />}
+      {shouldShowAI && <AIConcierge setBookingDraft={setBookingDraft} />}
     </div>
   );
 };

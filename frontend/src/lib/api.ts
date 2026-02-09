@@ -12,12 +12,12 @@ export const api = {
         },
 
         async getBySlug(slug: string) {
-            const { data, error } = await supabase.from('salons').select('id, nome, slug_publico, segmento, descricao, logo_url, banner_url, endereco, cidade, rating, reviews, telefone, amenities, gallery_urls, location, horario_funcionamento, paga_no_local, subscription_plan, trial_ends_at, subscription_status, mp_public_key').eq('slug_publico', slug).single();
+            const { data, error } = await supabase.from('salons').select('*, ai_enabled, ai_promo_text, ai_promo_discount, ai_voice_tone').eq('slug_publico', slug).maybeSingle();
             if (error) throw error;
             return data as Salon;
         },
         async getById(id: string) {
-            const { data, error } = await supabase.from('salons').select('id, nome, slug_publico, segmento, descricao, logo_url, banner_url, endereco, cidade, rating, reviews, telefone, amenities, gallery_urls, location, horario_funcionamento, paga_no_local, subscription_plan, trial_ends_at, subscription_status, mp_public_key').eq('id', id).single();
+            const { data, error } = await supabase.from('salons').select('*, ai_enabled, ai_promo_text, ai_promo_discount, ai_voice_tone').eq('id', id).maybeSingle();
             if (error) throw error;
             return data as Salon;
         },

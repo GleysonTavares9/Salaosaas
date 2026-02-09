@@ -1,18 +1,19 @@
 import { supabase } from './supabase';
 
 interface ContextData {
-  services: any[];
-  products: any[];
+  services?: any[];
+  products?: any[];
+  salonId?: string;
+  salonName?: string;
+  mode?: 'specific_salon' | 'global_search';
 }
 
-export async function getBeautyAdvice(prompt: string, context?: ContextData) {
+export async function getBeautyAdvice(prompt: string, history?: any[], context?: ContextData) {
   try {
-    // Busca a sessão atual
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) throw new Error("Sessão não encontrada");
+    // Chamada liberada para visitantes
 
     const { data, error } = await supabase.functions.invoke('beauty-advisor', {
-      body: { prompt, context }
+      body: { prompt, history, context }
     });
 
     if (error) {

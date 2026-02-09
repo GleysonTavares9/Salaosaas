@@ -213,7 +213,7 @@ const Profile: React.FC<ProfileProps> = ({ onLogout }) => {
   };
 
   return (
-    <div className="flex-1 bg-background-dark h-full overflow-y-auto pb-32 no-scrollbar">
+    <div className="flex-1 h-full overflow-y-auto pb-32 no-scrollbar">
       {/* ... Header ... */}
       <header className="p-8 pt-20 flex flex-col items-center gap-6 bg-gradient-to-b from-primary/20 via-primary/5 to-transparent">
         <div className="relative group">
@@ -299,7 +299,7 @@ const Profile: React.FC<ProfileProps> = ({ onLogout }) => {
 
       {/* MODAL EDIT PERFIL */}
       {isEditing && (
-        <div className="fixed inset-0 z-[100] bg-background-dark/95 backdrop-blur-2xl flex items-center justify-center p-8 animate-fade-in">
+        <div className="fixed inset-0 z-[100] bg-background-dark/80 backdrop-blur-2xl flex items-center justify-center p-8 animate-fade-in">
           <div className="w-full max-w-sm space-y-10">
             <div className="text-center">
               <h2 className="text-4xl font-display font-black text-white italic tracking-tighter mb-2">Editar <span className="text-primary italic">Perfil.</span></h2>
@@ -377,7 +377,7 @@ const Profile: React.FC<ProfileProps> = ({ onLogout }) => {
 
       {/* MODAL NOTIFICAÇÕES */}
       {isNotificationsOpen && (
-        <div className="fixed inset-0 z-[100] bg-background-dark/95 backdrop-blur-2xl flex items-center justify-center p-8 animate-fade-in">
+        <div className="fixed inset-0 z-[100] bg-background-dark/80 backdrop-blur-2xl flex items-center justify-center p-8 animate-fade-in">
           <div className="w-full max-w-sm space-y-8">
             <div className="text-center">
               <h2 className="text-3xl font-display font-black text-white italic tracking-tighter mb-2">Central de <span className="text-primary italic">Alertas.</span></h2>
@@ -420,7 +420,7 @@ const Profile: React.FC<ProfileProps> = ({ onLogout }) => {
 
       {/* MODAL PRIVACIDADE */}
       {isPrivacyOpen && (
-        <div className="fixed inset-0 z-[100] bg-background-dark/95 backdrop-blur-2xl flex items-center justify-center p-8 animate-fade-in">
+        <div className="fixed inset-0 z-[100] bg-background-dark/80 backdrop-blur-2xl flex items-center justify-center p-8 animate-fade-in">
           <div className="w-full max-w-sm space-y-8">
             <div className="text-center">
               <h2 className="text-3xl font-display font-black text-white italic tracking-tighter mb-2">Seus <span className="text-primary italic">Dados.</span></h2>

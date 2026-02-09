@@ -55,23 +55,26 @@ const UserRegister: React.FC<UserRegisterProps> = ({ onRegister }) => {
   };
 
   return (
-    <div className="flex-1 bg-background-dark h-full overflow-y-auto flex flex-col p-8 no-scrollbar">
-      <header className="pt-8 pb-12">
-        <button onClick={() => navigate(-1)} className="size-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-white">
+    <div className="flex-1 h-full overflow-y-auto flex flex-col p-8 no-scrollbar">
+      <header className="relative z-10 p-8 pt-[calc(env(safe-area-inset-top)+1rem)] flex items-center justify-between">
+        <button onClick={() => navigate(-1)} className="size-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-white active:scale-95 transition-all">
           <span className="material-symbols-outlined">arrow_back</span>
         </button>
+        <div className="px-4 py-2 rounded-xl bg-primary/10 border border-primary/20">
+          <span className="text-[9px] font-black text-primary uppercase tracking-[0.2em]">Novo Cliente</span>
+        </div>
       </header>
 
-      <main className="flex-1 flex flex-col justify-center max-w-sm mx-auto w-full">
-        <div className="mb-10 text-center">
-          <div className="px-4 py-2 bg-primary/10 border border-primary/20 rounded-full inline-block mb-4">
-            <span className="text-[8px] font-black text-primary uppercase tracking-[0.3em]">Cadastro de Cliente</span>
+      <main className="relative z-10 flex-1 flex flex-col justify-center px-8 pb-32">
+        <div className="space-y-4 mb-8 text-center max-w-lg mx-auto">
+          <div className="size-20 lg:size-24 rounded-[28px] lg:rounded-[32px] gold-gradient flex items-center justify-center text-background-dark shadow-[0_0_50px_rgba(193,165,113,0.4)] mx-auto mb-6 transform hover:rotate-6 transition-transform">
+            <span className="material-symbols-outlined text-4xl lg:text-5xl font-black">person_add</span>
           </div>
-          <h1 className="text-4xl font-display font-black text-white italic tracking-tighter mb-2">Sua Aura <br /><span className="text-primary text-5xl">Começa Aqui.</span></h1>
-          <p className="text-slate-500 text-xs font-medium uppercase tracking-widest">Para você que ama se cuidar</p>
+          <h1 className="text-4xl lg:text-6xl font-display font-black text-white italic tracking-tighter leading-none uppercase">Sua Aura <br /><span className="text-primary italic">Começa Aqui.</span></h1>
+          <p className="text-secondary text-[11px] lg:text-xs font-black uppercase tracking-[0.4em] mt-6 opacity-80">Para você que ama se cuidar</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-5 max-w-sm mx-auto w-full">
           <div className="space-y-1.5">
             <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Nome Completo</label>
             <input type="text" required value={formData.nome} onChange={(e) => setFormData({ ...formData, nome: e.target.value })} placeholder="Como quer ser chamado?" className="w-full bg-surface-dark border border-white/5 rounded-2xl py-4 px-6 text-white text-sm outline-none focus:border-primary/50 transition-all" />
