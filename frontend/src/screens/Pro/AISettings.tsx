@@ -150,7 +150,7 @@ const AISettings: React.FC = () => {
                             </div>
                         </div>
                         <div>
-                            <h1 className="text-2xl font-display font-black italic tracking-tighter leading-none mb-1">Aura Concierge</h1>
+                            <h1 className="font-display font-black italic tracking-tighter leading-none mb-1" style={{ fontSize: 'var(--step-2)' }}>Aura Concierge</h1>
                             <div className="flex items-center gap-2">
                                 <span className={`size-1.5 rounded-full ${isEnabled ? 'bg-emerald-500 animate-pulse' : 'bg-slate-700'}`} />
                                 <p className="text-[9px] text-primary font-black uppercase tracking-[0.2em]">{isEnabled ? 'Atendimento Ativo' : 'Sistema Offline'}</p>
@@ -252,31 +252,31 @@ const AISettings: React.FC = () => {
                         <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-white/60">Performance IA</h2>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="bg-[#0b0c0d] border border-white/5 p-5 rounded-[2rem] relative overflow-hidden group">
+                    <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                        <div className="bg-[#0b0c0d] border border-white/5 p-4 sm:p-5 rounded-[2rem] relative overflow-hidden group">
                             <div className="absolute top-0 right-0 p-3 opacity-[0.05] group-hover:rotate-12 transition-transform">
                                 <span className="material-symbols-outlined text-4xl">forum</span>
                             </div>
                             <h4 className="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-1">Atendimentos</h4>
-                            <p className="text-2xl font-display font-black text-white italic">{aiStats.atendimentos}</p>
+                            <p className="font-display font-black text-white italic" style={{ fontSize: 'var(--step-2)' }}>{aiStats.atendimentos}</p>
                             <div className="mt-2 text-[7px] text-emerald-500 font-black uppercase tracking-widest">Conversas Únicas</div>
                         </div>
 
-                        <div className="bg-[#0b0c0d] border border-white/5 p-5 rounded-[2rem] relative overflow-hidden group">
+                        <div className="bg-[#0b0c0d] border border-white/5 p-4 sm:p-5 rounded-[2rem] relative overflow-hidden group">
                             <div className="absolute top-0 right-0 p-3 opacity-[0.05] group-hover:rotate-12 transition-transform">
                                 <span className="material-symbols-outlined text-4xl">event_available</span>
                             </div>
                             <h4 className="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-1">Agendamentos</h4>
-                            <p className="text-2xl font-display font-black text-primary italic">{aiStats.conversoes}</p>
+                            <p className="font-display font-black text-primary italic" style={{ fontSize: 'var(--step-2)' }}>{aiStats.conversoes}</p>
                             <div className="mt-2 text-[7px] text-primary/70 font-black uppercase tracking-widest">{aiStats.taxa} Conversão</div>
                         </div>
 
-                        <div className="col-span-2 bg-gradient-to-r from-primary/10 to-transparent border border-primary/20 p-5 rounded-[2rem] flex items-center justify-between">
+                        <div className="col-span-2 bg-gradient-to-r from-primary/10 to-transparent border border-primary/20 p-4 sm:p-5 rounded-[2rem] flex items-center justify-between">
                             <div>
-                                <h4 className="text-[8px] font-black text-primary uppercase tracking-widest mb-1">Receita Gerada pela Aura</h4>
-                                <p className="text-xl font-display font-black text-white italic">{aiStats.receita_estimada}</p>
+                                <h4 className="text-[8px] font-black text-primary uppercase tracking-widest mb-1">Receita Gerada</h4>
+                                <p className="font-display font-black text-white italic" style={{ fontSize: 'var(--step-1)' }}>{aiStats.receita_estimada}</p>
                             </div>
-                            <div className="size-12 rounded-2xl gold-gradient flex items-center justify-center text-black">
+                            <div className="size-10 sm:size-12 rounded-2xl gold-gradient flex items-center justify-center text-black">
                                 <span className="material-symbols-outlined text-xl font-black">trending_up</span>
                             </div>
                         </div>

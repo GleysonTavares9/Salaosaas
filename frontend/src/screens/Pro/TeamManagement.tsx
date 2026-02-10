@@ -365,42 +365,46 @@ const TeamManagement: React.FC<TeamManagementProps> = ({ salon, salonId: explici
   };
 
   return (
-    <div className="flex-1 overflow-y-auto h-full no-scrollbar">
-      <header className="sticky top-0 z-50 bg-background-dark/60 backdrop-blur-xl px-6 pt-12 pb-6 border-b border-white/5 flex items-center justify-between lg:px-6">
-        <button onClick={() => navigate('/pro')} className="size-10 rounded-full border border-white/10 flex items-center justify-center text-white active:scale-95 transition-all">
-          <span className="material-symbols-outlined">arrow_back</span>
-        </button>
-        <div>
-          <h1 className="text-xl font-display font-black text-white italic tracking-tighter uppercase leading-none text-center">Gestão de Talentos</h1>
-          <p className="text-primary text-[8px] font-black uppercase tracking-[0.2em] mt-1 text-center">Artistas da Unidade</p>
+    <div className="flex-1 overflow-y-auto h-full no-scrollbar bg-background-dark relative">
+      <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.02] pointer-events-none"></div>
+
+      <header className="sticky top-0 z-50 bg-background-dark/80 backdrop-blur-3xl px-6 pt-12 pb-10 border-b border-white/5">
+        <div className="max-w-[1400px] mx-auto w-full flex items-center justify-between">
+          <button onClick={() => navigate('/pro')} className="size-12 rounded-2xl bg-black/40 border border-white/10 flex items-center justify-center text-white active:scale-95 transition-all">
+            <span className="material-symbols-outlined text-xl">arrow_back</span>
+          </button>
+          <div className="text-center">
+            <h1 className="font-display font-black text-white italic tracking-widest uppercase leading-none" style={{ fontSize: 'var(--step-1)' }}>Gestão de Talentos</h1>
+            <p className="text-[7px] text-primary font-black uppercase tracking-[0.4em] mt-3">Artistas & Parceiros Aura</p>
+          </div>
+          <div className="size-12"></div>
         </div>
-        <div className="size-10"></div>
       </header>
 
-      <main className="w-full px-6 py-10 space-y-10 pb-40 animate-fade-in lg:px-6">
+      <main className="max-w-[1400px] mx-auto w-full px-6 py-10 lg:py-16 space-y-16 pb-40 animate-fade-in relative z-10">
 
-        {/* KPI da Equipe (Standardized) */}
-        <section className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-surface-dark/40 border border-white/5 rounded-[32px] p-6 shadow-xl relative overflow-hidden group">
-            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-              <span className="material-symbols-outlined text-4xl">groups</span>
+        {/* KPI da Equipe (Luxurious) */}
+        <section className="grid grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="bg-surface-dark/40 border border-white/5 rounded-[40px] p-8 shadow-3xl relative overflow-hidden group backdrop-blur-xl">
+            <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
+              <span className="material-symbols-outlined text-6xl">groups</span>
             </div>
-            <p className="text-[10px] uppercase font-black tracking-widest text-slate-500 mb-2">Equipe Ativa</p>
-            <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-display font-black text-white tracking-tight italic">{team.length}</span>
-              <span className="text-[8px] font-black text-primary uppercase">Artistas</span>
+            <p className="text-[10px] uppercase font-black tracking-[0.4em] text-slate-500 mb-4">Time Ativo</p>
+            <div className="flex items-baseline gap-3">
+              <span className="text-4xl lg:text-5xl font-display font-black text-white tracking-tight italic">{team.length}</span>
+              <span className="text-[9px] font-black text-primary uppercase tracking-widest">Artistas</span>
             </div>
           </div>
-          <div className="bg-surface-dark/40 border border-white/5 rounded-[32px] p-6 shadow-xl relative overflow-hidden group">
-            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-              <span className="material-symbols-outlined text-4xl">analytics</span>
+          <div className="bg-surface-dark/40 border border-white/5 rounded-[40px] p-8 shadow-3xl relative overflow-hidden group backdrop-blur-xl">
+            <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
+              <span className="material-symbols-outlined text-6xl">auto_graph</span>
             </div>
-            <p className="text-[10px] uppercase font-black tracking-widest text-slate-500 mb-2">Média Prod.</p>
-            <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-display font-black text-white tracking-tight italic">
+            <p className="text-[10px] uppercase font-black tracking-[0.4em] text-slate-500 mb-4">Média Produtividade</p>
+            <div className="flex items-baseline gap-3">
+              <span className="text-4xl lg:text-5xl font-display font-black text-white tracking-tight italic">
                 {team.length > 0 ? (team.reduce((acc, curr) => acc + (curr.productivity || 0), 0) / team.length).toFixed(0) : 0}%
               </span>
-              <span className="text-[8px] font-black text-slate-500 uppercase">Geral</span>
+              <span className="text-[9px] font-black text-emerald-500 uppercase tracking-widest">Score</span>
             </div>
           </div>
         </section>
@@ -420,25 +424,25 @@ const TeamManagement: React.FC<TeamManagementProps> = ({ salon, salonId: explici
                   }
                   setIsAdding(true);
                 }}
-                className={`w-full border border-dashed rounded-[32px] py-10 flex flex-col items-center justify-center gap-4 group transition-all active:scale-[0.98]
+                className={`w-full border-2 border-dashed rounded-[50px] py-16 flex flex-col items-center justify-center gap-6 group transition-all active:scale-[0.99] shadow-inner
                   ${isCapReached
-                    ? 'bg-red-500/5 border-red-500/20 cursor-not-allowed opacity-70'
-                    : 'bg-white/5 border-white/10 hover:border-primary/20 hover:bg-white/[0.07]'}
+                    ? 'bg-red-500/[0.02] border-red-500/10 cursor-not-allowed opacity-60'
+                    : 'bg-white/[0.02] border-white/5 hover:border-primary/20 hover:bg-white/[0.04]'}
                 `}
               >
-                <div className={`size-14 rounded-full flex items-center justify-center text-background-dark shadow-xl transition-transform ${!isCapReached && 'group-hover:scale-110'} 
-                  ${isCapReached ? 'bg-slate-500 shadow-none' : 'gold-gradient shadow-primary/20'}`}>
-                  <span className="material-symbols-outlined text-2xl font-black">
+                <div className={`size-20 rounded-[32px] flex items-center justify-center text-background-dark shadow-2xl transition-all duration-500 ${!isCapReached && 'group-hover:scale-110 group-hover:rotate-12'} 
+                  ${isCapReached ? 'bg-slate-700' : 'gold-gradient shadow-gold'}`}>
+                  <span className="material-symbols-outlined text-3xl font-black">
                     {isCapReached ? 'lock' : 'person_add'}
                   </span>
                 </div>
-                <div className="flex flex-col items-center gap-1">
-                  <span className={`text-[11px] font-black uppercase tracking-[0.4em] ${isCapReached ? 'text-slate-500' : 'text-white'}`}>
-                    {isCapReached ? 'Limite Atingido' : 'Contratar Novo Artista'}
+                <div className="flex flex-col items-center gap-3">
+                  <span className={`text-xs lg:text-sm font-black uppercase tracking-[0.6em] ${isCapReached ? 'text-slate-600' : 'text-white'}`}>
+                    {isCapReached ? 'Capacidade Máxima atingida' : 'Integrar Novo Talento'}
                   </span>
                   {isCapReached && (
-                    <span className="text-[8px] font-bold text-red-400 uppercase tracking-widest bg-red-500/10 px-2 py-1 rounded-lg">
-                      Upgrade Necessário
+                    <span className="text-[9px] font-black text-red-400 uppercase tracking-[0.4em] bg-red-500/10 px-4 py-2 rounded-full border border-red-500/10">
+                      Liberar Slots no Combo Pro
                     </span>
                   )}
                 </div>
@@ -447,53 +451,66 @@ const TeamManagement: React.FC<TeamManagementProps> = ({ salon, salonId: explici
           })()}
         </section>
 
-        {/* Lista de Profissionais */}
-        <section className="space-y-6">
-          <div className="flex items-center justify-between px-2">
-            <h3 className="text-[10px] uppercase font-black tracking-[0.25em] text-primary">Artistas & Parceiros</h3>
-            <span className="text-[8px] font-bold text-slate-500 uppercase tracking-widest">Base de Dados</span>
+        {/* Lista de Profissionais (Elite Gallery) */}
+        <section className="space-y-12">
+          <div className="flex items-center justify-between px-4">
+            <div className="flex items-center gap-6">
+              <div className="h-px w-10 bg-primary/30"></div>
+              <h3 className="text-[11px] uppercase font-black tracking-[0.5em] text-primary">Galeria de Especialistas</h3>
+            </div>
+            <span className="text-[9px] font-black text-slate-600 uppercase tracking-[0.3em] italic">Curadoria Aura</span>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-10">
             {isLoading ? (
-              <div className="py-20 text-center flex flex-col items-center col-span-full">
-                <div className="size-8 border-2 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+              <div className="py-40 text-center flex flex-col items-center col-span-full gap-6">
+                <div className="size-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+                <p className="text-[10px] font-black text-primary uppercase tracking-[0.4em] animate-pulse">Sincronizando time...</p>
               </div>
             ) : (
               <>
                 {team.map(pro => (
-                  <div key={pro.id} onClick={() => setSelectedProId(pro.id)} className="relative group bg-surface-dark/60 rounded-[32px] border border-white/5 p-5 shadow-2xl transition-all active:scale-[0.98] cursor-pointer hover:border-primary/20">
-                    <div className="flex gap-5">
+                  <div key={pro.id} onClick={() => setSelectedProId(pro.id)} className="relative group bg-surface-dark/40 rounded-[48px] border border-white/5 p-8 lg:p-10 shadow-[0_30px_80px_rgba(0,0,0,0.4)] transition-all active:scale-95 cursor-pointer hover:border-primary/20 backdrop-blur-xl overflow-hidden">
+                    <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <span className="material-symbols-outlined text-primary/40">edit_square</span>
+                    </div>
+
+                    <div className="flex gap-10">
                       <div className="relative shrink-0">
-                        <div className="size-24 rounded-2xl bg-cover bg-center border border-white/5 shadow-xl overflow-hidden grayscale-[0.3] group-hover:grayscale-0 transition-all duration-700" style={{ backgroundImage: `url('${pro.image || "https://i.pravatar.cc/150?u=pro"}')` }}>
-                          <div className="absolute inset-x-0 bottom-0 bg-black/40 backdrop-blur-md py-1">
-                            <p className="text-[7px] text-emerald-400 font-black text-center uppercase tracking-widest leading-none">Status: {pro.status === 'active' ? 'ON' : 'OFF'}</p>
-                          </div>
+                        <div className="size-32 lg:size-40 rounded-[40px] border-2 border-white/5 p-1 transition-all group-hover:border-primary/20 shadow-2xl relative z-10">
+                          <img
+                            src={pro.image || "https://i.pravatar.cc/150?u=pro"}
+                            className="size-full rounded-[38px] object-cover grayscale-[0.5] group-hover:grayscale-0 transition-all duration-1000"
+                            alt={pro.name}
+                          />
                         </div>
-                        {pro.status === 'active' && (
-                          <div className="absolute -top-1 -right-1 bg-emerald-500 size-4 rounded-full border-2 border-surface-dark shadow-lg shadow-emerald-500/40"></div>
-                        )}
+                        <div className="absolute -bottom-2 -right-2 bg-background-dark/90 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/10 z-20 shadow-xl">
+                          <p className={`text-[8px] font-black text-center uppercase tracking-widest leading-none ${pro.status === 'active' ? 'text-emerald-500' : 'text-amber-500'}`}>
+                            {pro.status === 'active' ? 'ESTÚDIO ON' : 'AUSENTE'}
+                          </p>
+                        </div>
                       </div>
-                      <div className="flex-1 flex flex-col justify-center py-1 min-w-0">
-                        <div className="flex justify-between items-start mb-2">
-                          <div className="min-w-0">
-                            <h4 className="text-base font-display font-black text-white tracking-tight uppercase leading-tight italic truncate">{pro.name}</h4>
-                            <div className="flex items-center gap-2 mt-1.5">
-                              <span className="text-[8px] uppercase font-black tracking-[0.2em] text-primary">{pro.role || 'Profissional'}</span>
+
+                      <div className="flex-1 flex flex-col justify-center py-2 min-w-0">
+                        <div className="space-y-4">
+                          <div>
+                            <h4 className="text-xl lg:text-2xl font-display font-black text-white tracking-tight uppercase leading-none italic truncate group-hover:text-primary transition-colors">{pro.name}</h4>
+                            <div className="flex items-center gap-3 mt-3">
+                              <span className="text-[9px] uppercase font-black tracking-[0.3em] text-primary">{pro.role || 'Mestre Aura'}</span>
                               {!pro.user_id && (
-                                <span className="text-[7px] bg-red-500/10 text-red-500 px-2 py-0.5 rounded-lg font-black uppercase border border-red-500/10">Sem Login</span>
+                                <span className="text-[7px] bg-red-500/10 text-red-500 px-3 py-1.5 rounded-full font-black uppercase border border-red-500/10">Acesso Pendente</span>
                               )}
                             </div>
                           </div>
-                          <span className="material-symbols-outlined text-slate-600 text-lg group-hover:text-primary transition-colors">tune</span>
-                        </div>
-                        <div className="mt-2">
-                          <div className="flex justify-between items-end mb-1.5">
-                            <p className="text-[8px] font-bold text-slate-600 uppercase tracking-widest">Produtividade Semanal</p>
-                            <span className="text-[10px] font-black text-primary font-display italic">{pro.productivity || 0}%</span>
-                          </div>
-                          <div className="w-full h-1 bg-background-dark/50 rounded-full overflow-hidden border border-white/5">
-                            <div className="bg-primary h-full transition-all duration-1000 shadow-[0_0_10px_rgba(193,165,113,0.5)]" style={{ width: `${pro.productivity || 0}%` }}></div>
+
+                          <div className="space-y-3">
+                            <div className="flex justify-between items-end">
+                              <p className="text-[8px] font-black text-slate-600 uppercase tracking-widest leading-none">Desempenho Profissional</p>
+                              <span className="text-xl font-display font-black text-primary font-display italic leading-none">{pro.productivity || 0}%</span>
+                            </div>
+                            <div className="w-full h-1.5 bg-black/40 rounded-full overflow-hidden border border-white/5">
+                              <div className="bg-primary h-full transition-all duration-1500 shadow-gold" style={{ width: `${pro.productivity || 0}%` }}></div>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -505,97 +522,127 @@ const TeamManagement: React.FC<TeamManagementProps> = ({ salon, salonId: explici
           </div>
         </section>
 
-        {/* Modal de Edição (Restaurado Completo) */}
+        {/* Modal de Edição Refinado */}
         {selectedProId && (() => {
           const selectedPro = team.find(p => p.id === selectedProId);
           if (!selectedPro) return null;
           return (
-            <div className="fixed inset-0 z-[70] bg-background-dark/80 backdrop-blur-xl animate-fade-in flex flex-col items-center overflow-hidden">
-              <div className="flex-1 flex flex-col max-w-[450px] w-full h-full">
-                <header className="px-8 pt-8 flex items-center justify-between">
-                  <h2 className="text-xl font-display font-black text-white italic tracking-tighter uppercase">Editar Artista</h2>
-                  <button onClick={() => setSelectedProId(null)} className="text-slate-500">
-                    <span className="material-symbols-outlined">close</span>
+            <div className="fixed inset-0 z-[100] bg-background-dark/95 backdrop-blur-3xl animate-fade-in flex flex-col items-center overflow-hidden">
+              <div className="flex-1 flex flex-col max-w-[600px] w-full h-full relative">
+                <header className="px-10 pt-16 flex items-center justify-between shrink-0">
+                  <div>
+                    <h2 className="text-2xl lg:text-3xl font-display font-black text-white italic tracking-tighter uppercase">Editar Registro</h2>
+                    <p className="text-[9px] text-primary font-black uppercase tracking-[0.4em] mt-2 leading-none">Perfil de {selectedPro.name}</p>
+                  </div>
+                  <button onClick={() => setSelectedProId(null)} className="size-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-500 hover:text-white transition-all">
+                    <span className="material-symbols-outlined font-black">close</span>
                   </button>
                 </header>
 
-                {/* Tabs de Edição */}
-                <div className="px-8 mt-6">
-                  <div className="flex bg-surface-dark p-1 rounded-2xl border border-white/5">
-                    <button onClick={() => setActiveEditTab('info')} className={`flex-1 py-3 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${activeEditTab === 'info' ? 'bg-primary text-background-dark shadow-lg' : 'text-slate-500'}`}>Perfil Básico</button>
-                    <button onClick={() => setActiveEditTab('hours')} className={`flex-1 py-3 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${activeEditTab === 'hours' ? 'bg-primary text-background-dark shadow-lg' : 'text-slate-500'}`}>Agenda Individual</button>
+                <div className="px-10 mt-10 shrink-0">
+                  <div className="flex bg-surface-dark/60 p-1.5 rounded-[24px] border border-white/5 backdrop-blur-md">
+                    <button onClick={() => setActiveEditTab('info')} className={`flex-1 py-4 lg:py-5 rounded-[18px] text-[10px] font-black uppercase tracking-[0.2em] transition-all ${activeEditTab === 'info' ? 'gold-gradient text-background-dark shadow-gold' : 'text-slate-500 hover:text-slate-300'}`}>DADOS DE ACESSO</button>
+                    <button onClick={() => setActiveEditTab('hours')} className={`flex-1 py-4 lg:py-5 rounded-[18px] text-[10px] font-black uppercase tracking-[0.2em] transition-all ${activeEditTab === 'hours' ? 'gold-gradient text-background-dark shadow-gold' : 'text-slate-500 hover:text-slate-300'}`}>AGENDAS ELITE</button>
                   </div>
                 </div>
 
-                <div className="flex-1 overflow-y-auto p-8 space-y-6 pb-40 min-h-0 no-scrollbar">
+                <div className="flex-1 overflow-y-auto p-10 space-y-10 pb-40 no-scrollbar min-h-0">
                   {activeEditTab === 'info' ? (
-                    <div className="space-y-6 animate-fade-in">
-                      <div className="flex items-center gap-6">
+                    <div className="space-y-10 animate-fade-in">
+                      <div className="flex items-center gap-10">
                         <div className="relative group shrink-0">
-                          <div className="size-24 rounded-3xl bg-cover bg-center border-2 border-primary/20 shadow-xl overflow-hidden" style={{ backgroundImage: `url('${editData.image}')` }}>
-                            <label htmlFor="edit-pro-photo" className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
-                              <span className="material-symbols-outlined text-white text-xl">add_a_photo</span>
+                          <div className="size-32 lg:size-40 rounded-[40px] border-2 border-primary/20 p-1 shadow-3xl overflow-hidden bg-surface-dark cursor-pointer relative">
+                            <img src={editData.image} className="size-full rounded-[35px] object-cover group-hover:scale-110 transition-transform duration-700" alt="Avatar" />
+                            <label htmlFor="edit-pro-photo" className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer z-10">
+                              <span className="material-symbols-outlined text-white text-3xl font-black">add_a_photo</span>
                             </label>
                           </div>
                           <input type="file" id="edit-pro-photo" accept="image/*" className="hidden" onChange={async (e) => {
                             const file = e.target.files?.[0];
                             if (file) {
                               try {
+                                showNotification('success', 'Carregando arte...');
                                 const publicUrl = await api.storage.upload(file);
                                 setEditData({ ...editData, image: publicUrl });
-                                showNotification('success', 'Foto atualizada!');
                               } catch (err) { showNotification('error', 'Falha no upload'); }
                             }
                           }} />
                         </div>
-                        <div className="flex-1">
-                          <input type="text" value={editData.name} onChange={(e) => setEditData({ ...editData, name: e.target.value })} className="text-2xl font-display font-black text-white italic bg-transparent border-b border-white/20 outline-none w-full" />
-                          <input type="text" value={editData.role} onChange={(e) => setEditData({ ...editData, role: e.target.value })} className="text-primary text-xs font-black uppercase tracking-widest mt-1 bg-transparent border-b border-primary/20 outline-none w-full shadow-none" />
+                        <div className="flex-1 space-y-4">
+                          <div className="relative">
+                            <label className="text-[8px] font-black text-slate-600 uppercase tracking-widest absolute -top-5 left-0">NOME DO ARTISTA</label>
+                            <input type="text" value={editData.name} onChange={(e) => setEditData({ ...editData, name: e.target.value })} className="text-3xl font-display font-black text-white italic bg-transparent border-b border-white/20 outline-none w-full py-2 hover:border-primary/40 focus:border-primary transition-all" />
+                          </div>
+                          <div className="relative pt-4">
+                            <label className="text-[8px] font-black text-primary/60 uppercase tracking-widest absolute top-1 left-0">CARGO / ESPECIALIDADE</label>
+                            <input type="text" value={editData.role} onChange={(e) => setEditData({ ...editData, role: e.target.value })} className="text-sm font-black text-primary uppercase tracking-widest bg-transparent border-b border-primary/20 outline-none w-full py-2 focus:border-primary transition-all" />
+                          </div>
                         </div>
                       </div>
 
-                      <div className="bg-surface-dark border border-white/5 rounded-3xl p-6 space-y-5">
-                        <div className="space-y-1">
-                          <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-1 leading-none">E-mail de Acesso</p>
-                          <input type="email" value={editData.email} onChange={(e) => setEditData({ ...editData, email: e.target.value })} className="text-sm font-bold text-white italic bg-transparent border-b border-white/10 outline-none w-full py-1 focus:border-primary transition-colors" />
-                        </div>
-                        <div className="space-y-1">
-                          <p className="text-[8px] font-black text-primary uppercase tracking-widest mb-1 leading-none">Alterar Senha (Login)</p>
-                          <input type="password" value={editData.password} onChange={(e) => setEditData({ ...editData, password: e.target.value })} placeholder="•••••••• (vazio mantém a atual)" className="text-sm font-bold text-white italic bg-transparent border-b border-primary/20 outline-none w-full py-1 focus:border-primary transition-colors placeholder:text-white/20" />
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="bg-surface-dark border border-white/5 rounded-3xl p-6">
-                          <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-2">Produtividade</p>
-                          <input type="number" value={editData.productivity} onChange={(e) => setEditData({ ...editData, productivity: parseInt(e.target.value) || 0 })} className="text-3xl font-display font-black text-primary italic bg-transparent outline-none w-full" />
-                        </div>
-                        <div className="bg-surface-dark border border-white/5 rounded-3xl p-6">
-                          <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-2">Comissão %</p>
-                          <input type="number" value={editData.comissao} onChange={(e) => setEditData({ ...editData, comissao: parseInt(e.target.value) || 0 })} className="text-3xl font-display font-black text-white italic bg-transparent outline-none w-full" />
+                      <div className="bg-surface-dark border border-white/5 rounded-[40px] p-8 lg:p-10 space-y-8 shadow-2xl">
+                        <div className="space-y-4">
+                          <p className="text-[10px] font-black text-white uppercase tracking-[0.3em] flex items-center gap-3">
+                            <span className="material-symbols-outlined text-primary text-lg">key</span>
+                            Credenciais de Logística
+                          </p>
+                          <div className="space-y-6">
+                            <div className="space-y-2">
+                              <label className="text-[8px] font-black text-slate-600 uppercase tracking-widest ml-2">E-mail Aura</label>
+                              <input type="email" value={editData.email} onChange={(e) => setEditData({ ...editData, email: e.target.value })} className="w-full bg-background-dark border border-white/5 rounded-2xl p-5 text-white text-sm font-bold italic outline-none focus:border-primary/40 transition-all" />
+                            </div>
+                            <div className="space-y-2">
+                              <label className="text-[8px] font-black text-primary uppercase tracking-widest ml-2">Redefinir Senha</label>
+                              <input type="password" value={editData.password} onChange={(e) => setEditData({ ...editData, password: e.target.value })} placeholder="•••••••• (deixe vazio para manter)" className="w-full bg-background-dark border border-primary/10 rounded-2xl p-5 text-white text-sm font-bold italic outline-none focus:border-primary transition-all placeholder:text-white/10" />
+                            </div>
+                          </div>
                         </div>
                       </div>
 
-                      <div className="bg-surface-dark border border-white/5 rounded-3xl p-6">
-                        <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-3">Status de Atendimento</p>
-                        <div className="flex gap-4">
-                          <button onClick={() => setEditData({ ...editData, status: 'active' })} className={`flex-1 p-4 rounded-2xl border transition-all ${editData.status === 'active' ? 'bg-emerald-500/20 border-emerald-500 text-emerald-500' : 'border-white/10 text-slate-500'}`}>
-                            <span className="text-xs font-black uppercase">Ativo</span>
+                      <div className="grid grid-cols-2 gap-8">
+                        <div className="bg-surface-dark border border-white/5 rounded-[32px] p-8 shadow-xl">
+                          <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-4">Meta Produtiva</p>
+                          <div className="flex items-center gap-4">
+                            <input type="number" value={editData.productivity} onChange={(e) => setEditData({ ...editData, productivity: parseInt(e.target.value) || 0 })} className="text-4xl font-display font-black text-primary italic bg-transparent outline-none w-full" />
+                            <span className="text-2xl font-display font-black text-primary/40 italic">%</span>
+                          </div>
+                        </div>
+                        <div className="bg-surface-dark border border-white/5 rounded-[32px] p-8 shadow-xl">
+                          <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-4">Comissão Base</p>
+                          <div className="flex items-center gap-4">
+                            <input type="number" value={editData.comissao} onChange={(e) => setEditData({ ...editData, comissao: parseInt(e.target.value) || 0 })} className="text-4xl font-display font-black text-white italic bg-transparent outline-none w-full" />
+                            <span className="text-2xl font-display font-black text-white/20 italic">%</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="bg-surface-dark/60 border border-white/5 rounded-[40px] p-8 lg:p-10 shadow-2xl">
+                        <p className="text-[10px] font-black text-white uppercase tracking-[0.4em] mb-8 text-center lg:text-left">Status do Estúdio</p>
+                        <div className="flex gap-6">
+                          <button onClick={() => setEditData({ ...editData, status: 'active' })} className={`flex-1 h-20 rounded-3xl border-2 flex items-center justify-center gap-3 transition-all ${editData.status === 'active' ? 'bg-emerald-500/10 border-emerald-500 text-emerald-500 shadow-[0_0_30px_rgba(16,185,129,0.1)]' : 'border-white/5 text-slate-700 hover:border-white/10'}`}>
+                            <span className="material-symbols-outlined text-xl">check_circle</span>
+                            <span className="text-[11px] font-black uppercase tracking-widest">Ativo</span>
                           </button>
-                          <button onClick={() => setEditData({ ...editData, status: 'away' })} className={`flex-1 p-4 rounded-2xl border transition-all ${editData.status === 'away' ? 'bg-red-500/10 border-red-500 text-red-400' : 'border-white/10 text-slate-500'}`}>
-                            <span className="text-xs font-black uppercase">Ausente</span>
+                          <button onClick={() => setEditData({ ...editData, status: 'away' })} className={`flex-1 h-20 rounded-3xl border-2 flex items-center justify-center gap-3 transition-all ${editData.status === 'away' ? 'bg-red-500/10 border-red-500 text-red-500 shadow-[0_0_30px_rgba(239,68,68,0.1)]' : 'border-white/5 text-slate-700 hover:border-white/10'}`}>
+                            <span className="material-symbols-outlined text-xl">block</span>
+                            <span className="text-[11px] font-black uppercase tracking-widest">Ausente</span>
                           </button>
                         </div>
                       </div>
                     </div>
                   ) : (
-                    <div className="space-y-6 animate-fade-in">
-                      <div className="bg-primary/5 border border-primary/20 rounded-[32px] p-6 mb-6">
-                        <p className="text-[9px] font-black text-primary uppercase tracking-[0.2em] mb-2">Personalização Aura</p>
-                        <p className="text-[10px] text-white/60 leading-relaxed font-bold">Defina horários específicos para este artista. Se deixado vazio, ele seguirá o horário padrão da unidade.</p>
+                    <div className="space-y-10 animate-fade-in pb-20">
+                      <div className="gold-gradient p-10 rounded-[40px] shadow-gold-sm">
+                        <div className="flex items-center gap-6 mb-4">
+                          <div className="size-12 rounded-2xl bg-background-dark/30 flex items-center justify-center text-background-dark">
+                            <span className="material-symbols-outlined text-2xl font-black">auto_awesome</span>
+                          </div>
+                          <h4 className="text-sm font-black text-background-dark uppercase tracking-[0.4em]">Agenda de Alta Performance</h4>
+                        </div>
+                        <p className="text-[11px] text-background-dark/80 font-bold uppercase tracking-widest leading-relaxed">Personalize a disponibilidade única deste mestre aura. Se vazio, o sistema herda o horário geral da unidade.</p>
                       </div>
 
-                      <div className="space-y-4">
+                      <div className="space-y-6">
                         {DAYS_OF_WEEK.map(({ key, label }) => {
                           const dayData = editData.horario_funcionamento?.[key] || { closed: true, open: '09:00', close: '18:00' };
 
@@ -612,36 +659,36 @@ const TeamManagement: React.FC<TeamManagementProps> = ({ salon, salonId: explici
                           };
 
                           return (
-                            <div key={key} className="bg-surface-dark border border-white/5 rounded-3xl p-5">
-                              <div className="flex items-center justify-between mb-4">
-                                <span className="text-white font-black text-[10px] uppercase tracking-widest">{label}</span>
+                            <div key={key} className={`bg-surface-dark border p-8 rounded-[40px] transition-all ${!dayData.closed ? 'border-primary/20 shadow-3xl' : 'border-white/5 opacity-40 shadow-none'}`}>
+                              <div className="flex items-center justify-between">
+                                <span className={`text-[11px] font-black uppercase tracking-[0.3em] ${!dayData.closed ? 'text-white' : 'text-slate-700'}`}>{label}</span>
                                 <button
                                   type="button"
                                   onClick={toggleDay}
-                                  className={`relative w-12 h-6 rounded-full transition-all ${!dayData.closed ? 'bg-primary' : 'bg-white/10'}`}
+                                  className={`relative w-16 h-8 rounded-full transition-all ${!dayData.closed ? 'gold-gradient' : 'bg-white/10'}`}
                                 >
-                                  <div className={`absolute top-1 size-4 rounded-full bg-white shadow-lg transition-all ${!dayData.closed ? 'left-7' : 'left-1'}`} />
+                                  <div className={`absolute top-1.5 size-5 rounded-full bg-background-dark shadow-2xl transition-all ${!dayData.closed ? 'left-9' : 'left-1.5'}`} />
                                 </button>
                               </div>
 
                               {!dayData.closed && (
-                                <div className="grid grid-cols-2 gap-4 animate-fade-in">
-                                  <div className="space-y-1">
-                                    <label className="text-[7px] font-black text-slate-500 uppercase tracking-widest ml-1">Início</label>
+                                <div className="grid grid-cols-2 gap-8 mt-8 animate-slide-up">
+                                  <div className="space-y-3">
+                                    <label className="text-[8px] font-black text-primary uppercase tracking-[0.2em] ml-2">Abertura Elite</label>
                                     <input
                                       type="time"
                                       value={dayData.open}
                                       onChange={(e) => updateTime('open', e.target.value)}
-                                      className="w-full bg-background-dark border border-white/10 rounded-xl p-3 text-white text-xs outline-none focus:border-primary"
+                                      className="w-full bg-background-dark border border-white/10 rounded-2xl p-5 text-white text-sm font-bold outline-none focus:border-primary"
                                     />
                                   </div>
-                                  <div className="space-y-1">
-                                    <label className="text-[7px] font-black text-slate-500 uppercase tracking-widest ml-1">Fim</label>
+                                  <div className="space-y-3">
+                                    <label className="text-[8px] font-black text-primary uppercase tracking-[0.2em] ml-2">Encerramento Elite</label>
                                     <input
                                       type="time"
                                       value={dayData.close}
                                       onChange={(e) => updateTime('close', e.target.value)}
-                                      className="w-full bg-background-dark border border-white/10 rounded-xl p-3 text-white text-xs outline-none focus:border-primary"
+                                      className="w-full bg-background-dark border border-white/10 rounded-2xl p-5 text-white text-sm font-bold outline-none focus:border-primary"
                                     />
                                   </div>
                                 </div>
@@ -652,35 +699,44 @@ const TeamManagement: React.FC<TeamManagementProps> = ({ salon, salonId: explici
                       </div>
                     </div>
                   )}
+                </div>
 
-                  <div className="pt-4 space-y-4">
-                    <button onClick={handleUpdate} className="w-full gold-gradient text-background-dark py-5 rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl active:scale-95 transition-all">Salvar Alterações</button>
-                    {activeEditTab === 'info' && (
-                      <button onClick={handleDelete} className="w-full bg-red-500/10 border border-red-500/30 text-red-500 py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] active:scale-95 transition-all">Revogar Acesso</button>
-                    )}
-                  </div>
+                <div className="absolute bottom-0 left-0 right-0 p-10 bg-gradient-to-t from-background-dark via-background-dark to-transparent flex flex-col gap-6">
+                  <button onClick={handleUpdate} className="w-full gold-gradient text-background-dark h-20 rounded-[28px] font-black uppercase tracking-[0.5em] text-[11px] lg:text-[12px] shadow-gold-sm active:scale-95 transition-all hover:brightness-110">
+                    Sincronizar Atualizações
+                  </button>
+                  {activeEditTab === 'info' && (
+                    <button onClick={handleDelete} className="w-full bg-red-500/10 border border-red-500/20 text-red-500 h-16 rounded-[22px] font-black uppercase tracking-[0.4em] text-[9px] active:scale-95 transition-all text-center">
+                      Revogar Acesso do Artista
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
           );
         })()}
 
-        {/* Modal de Cadastro (Com Senha e Anti-Logout) */}
+        {/* Modal de Cadastro Completo Refinado */}
         {isAdding && (
-          <div className="fixed inset-0 z-[60] bg-background-dark/80 backdrop-blur-xl animate-fade-in flex flex-col items-center overflow-hidden">
-            <div className="flex-1 flex flex-col max-w-[450px] w-full h-full">
-              <header className="p-8 flex items-center justify-between">
-                <h2 className="text-xl font-display font-black text-white italic tracking-tighter uppercase">Novo Artista</h2>
-                <button onClick={() => setIsAdding(false)} className="text-slate-500"><span className="material-symbols-outlined">close</span></button>
+          <div className="fixed inset-0 z-[100] bg-background-dark/95 backdrop-blur-3xl animate-fade-in flex flex-col items-center overflow-hidden">
+            <div className="flex-1 flex flex-col max-w-[600px] w-full h-full relative">
+              <header className="px-10 pt-16 flex items-center justify-between shrink-0">
+                <div>
+                  <h2 className="text-2xl lg:text-3xl font-display font-black text-white italic tracking-tighter uppercase">Integrar Especialista</h2>
+                  <p className="text-[9px] text-primary font-black uppercase tracking-[0.4em] mt-2 leading-none">Novos Talentos Aura</p>
+                </div>
+                <button onClick={() => setIsAdding(false)} className="size-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-500 hover:text-white transition-all">
+                  <span className="material-symbols-outlined font-black">close</span>
+                </button>
               </header>
-              <form onSubmit={handleCreate} className="p-8 flex-1 overflow-y-auto space-y-6 pb-40 min-h-0">
-                {/* Upload de Foto no Cadastro */}
-                <div className="flex flex-col items-center gap-4 mb-8">
+
+              <form onSubmit={handleCreate} className="flex-1 overflow-y-auto p-10 space-y-12 pb-60 no-scrollbar min-h-0">
+                <div className="flex flex-col items-center gap-6">
                   <div className="relative group shrink-0">
-                    <div className="size-28 rounded-[40px] bg-cover bg-center border-2 border-primary/20 shadow-2xl overflow-hidden bg-surface-dark flex items-center justify-center" style={{ backgroundImage: newPro.image ? `url('${newPro.image}')` : 'none' }}>
-                      {!newPro.image && <span className="material-symbols-outlined text-slate-700 text-4xl">person_add</span>}
-                      <label htmlFor="new-pro-photo" className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
-                        <span className="material-symbols-outlined text-white text-2xl">add_a_photo</span>
+                    <div className="size-40 rounded-[50px] bg-cover bg-center border-2 border-dashed border-white/10 shadow-2xl overflow-hidden bg-surface-dark flex items-center justify-center relative" style={{ backgroundImage: newPro.image ? `url('${newPro.image}')` : 'none' }}>
+                      {!newPro.image && <span className="material-symbols-outlined text-slate-700 text-6xl">person_add</span>}
+                      <label htmlFor="new-pro-photo" className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer z-10">
+                        <span className="material-symbols-outlined text-white text-3xl font-black">add_a_photo</span>
                       </label>
                     </div>
                     <input type="file" id="new-pro-photo" accept="image/*" className="hidden" onChange={async (e) => {
@@ -690,95 +746,74 @@ const TeamManagement: React.FC<TeamManagementProps> = ({ salon, salonId: explici
                           setIsLoading(true);
                           const publicUrl = await api.storage.upload(file);
                           setNewPro({ ...newPro, image: publicUrl });
-                          showNotification('success', 'Foto carregada!');
-                        } catch (err) {
-                          showNotification('error', 'Falha no upload');
-                        } finally {
-                          setIsLoading(false);
-                        }
+                          showNotification('success', 'Arte integrada!');
+                        } catch (err) { showNotification('error', 'Falha no upload'); } finally { setIsLoading(false); }
                       }
                     }} />
                   </div>
-                  <p className="text-[9px] font-black text-primary uppercase tracking-widest">Foto de Perfil (Opcional)</p>
+                  <p className="text-[10px] font-black text-primary uppercase tracking-[0.4em]">Curadoria Visual</p>
                 </div>
 
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Nome Completo</label>
-                  <input type="text" required value={newPro.name} onChange={e => setNewPro({ ...newPro, name: e.target.value })} className="w-full bg-surface-dark border border-white/5 rounded-2xl p-5 text-white text-sm outline-none focus:border-primary" />
-                </div>
-
-                <div className="bg-primary/5 border border-primary/20 rounded-3xl p-6 space-y-4">
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-primary uppercase tracking-widest ml-1">E-mail (Login)</label>
-                    <input type="email" required value={newPro.email} onChange={e => setNewPro({ ...newPro, email: e.target.value })} className="w-full bg-surface-dark border border-white/5 rounded-2xl p-5 text-white text-sm outline-none focus:border-primary" />
+                <div className="space-y-10">
+                  <div className="relative">
+                    <label className="text-[8px] font-black text-slate-600 uppercase tracking-widest absolute -top-5 left-0">NOME COMPLETO</label>
+                    <input type="text" required value={newPro.name} onChange={e => setNewPro({ ...newPro, name: e.target.value })} className="w-full bg-transparent border-b-2 border-white/5 p-4 text-white text-2xl font-display font-black italic outline-none focus:border-primary transition-all" placeholder="MASTER NOME" />
                   </div>
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black text-primary uppercase tracking-widest ml-1">Senha Inicial</label>
-                      <div className="relative">
-                        <input
-                          type={showPassword ? "text" : "password"}
-                          required
-                          value={newPro.password}
-                          onChange={e => setNewPro({ ...newPro, password: e.target.value })}
-                          className="w-full bg-surface-dark border border-white/5 rounded-2xl p-5 text-white text-sm outline-none focus:border-primary"
-                          placeholder="••••••••"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-500"
-                        >
-                          <span className="material-symbols-outlined text-sm">
-                            {showPassword ? 'visibility' : 'visibility_off'}
-                          </span>
-                        </button>
+
+                  <div className="bg-primary/5 border border-primary/20 rounded-[40px] p-8 lg:p-10 space-y-8 shadow-2xl">
+                    <div className="space-y-3">
+                      <p className="text-[10px] font-black text-primary uppercase tracking-[0.4em] mb-4 text-center">Protocolo de Acesso Digital</p>
+                      <div className="space-y-8">
+                        <div className="space-y-2">
+                          <label className="text-[8px] font-black text-primary/60 uppercase tracking-widest ml-4">E-mail Corporativo</label>
+                          <input type="email" required value={newPro.email} onChange={e => setNewPro({ ...newPro, email: e.target.value })} className="w-full bg-background-dark border border-primary/10 rounded-2xl p-6 text-white text-sm font-bold italic outline-none focus:border-primary" placeholder="artista@aura.com" />
+                        </div>
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                          <div className="space-y-2">
+                            <label className="text-[8px] font-black text-primary/60 uppercase tracking-widest ml-4">Senha Segura</label>
+                            <div className="relative">
+                              <input type={showPassword ? "text" : "password"} required value={newPro.password} onChange={e => setNewPro({ ...newPro, password: e.target.value })} className="w-full bg-background-dark border border-primary/10 rounded-2xl p-6 text-white text-sm font-bold italic outline-none focus:border-primary" placeholder="••••••••" />
+                              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-500">
+                                <span className="material-symbols-outlined text-sm">{showPassword ? 'visibility' : 'visibility_off'}</span>
+                              </button>
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-[8px] font-black text-primary/60 uppercase tracking-widest ml-4">Validar Senha</label>
+                            <div className="relative">
+                              <input type={showConfirmPassword ? "text" : "password"} required value={newPro.confirmPassword} onChange={e => setNewPro({ ...newPro, confirmPassword: e.target.value })} className="w-full bg-background-dark border border-primary/10 rounded-2xl p-6 text-white text-sm font-bold italic outline-none focus:border-primary" placeholder="••••••••" />
+                              <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-500">
+                                <span className="material-symbols-outlined text-sm">{showConfirmPassword ? 'visibility' : 'visibility_off'}</span>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black text-primary uppercase tracking-widest ml-1">Confirmar Senha</label>
-                      <div className="relative">
-                        <input
-                          type={showConfirmPassword ? "text" : "password"}
-                          required
-                          value={newPro.confirmPassword}
-                          onChange={e => setNewPro({ ...newPro, confirmPassword: e.target.value })}
-                          className="w-full bg-surface-dark border border-white/5 rounded-2xl p-5 text-white text-sm outline-none focus:border-primary"
-                          placeholder="••••••••"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                          className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-500"
-                        >
-                          <span className="material-symbols-outlined text-sm">
-                            {showConfirmPassword ? 'visibility' : 'visibility_off'}
-                          </span>
-                        </button>
-                      </div>
+                  </div>
+
+                  <div className="relative pt-6">
+                    <label className="text-[8px] font-black text-slate-600 uppercase tracking-widest absolute top-0 left-0">CARGO / ESPECIALIDADE</label>
+                    <input type="text" required value={newPro.role} onChange={e => setNewPro({ ...newPro, role: e.target.value })} className="w-full bg-transparent border-b-2 border-white/5 p-4 text-white text-xl font-display font-black italic outline-none focus:border-primary" placeholder="EX: DESIGNER DE OLHARES" />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-8">
+                    <div className="bg-surface-dark border border-white/5 rounded-[32px] p-8">
+                      <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-4">Comissão %</p>
+                      <input type="number" required value={newPro.comissao} onChange={e => setNewPro({ ...newPro, comissao: parseInt(e.target.value) })} className="text-4xl font-display font-black text-white italic bg-transparent outline-none w-full" />
+                    </div>
+                    <div className="bg-surface-dark border border-white/5 rounded-[32px] p-8">
+                      <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-4">Meta Prod %</p>
+                      <input type="number" required value={newPro.productivity} onChange={e => setNewPro({ ...newPro, productivity: parseInt(e.target.value) })} className="text-4xl font-display font-black text-primary italic bg-transparent outline-none w-full" />
                     </div>
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Cargo / Especialidade</label>
-                  <input type="text" required value={newPro.role} onChange={e => setNewPro({ ...newPro, role: e.target.value })} className="w-full bg-surface-dark border border-white/5 rounded-2xl p-5 text-white text-sm outline-none" />
+                <div className="absolute bottom-0 left-0 right-0 p-10 bg-gradient-to-t from-background-dark via-background-dark to-transparent">
+                  <button type="submit" disabled={isLoading} className="w-full gold-gradient text-background-dark h-24 rounded-[32px] font-black shadow-[0_30px_70px_rgba(0,0,0,0.5)] uppercase tracking-[0.6em] text-[11px] lg:text-[13px] active:scale-95 transition-all hover:brightness-110">
+                    {isLoading ? 'SINCRONIZANDO...' : 'FINALIZAR E ATIVAR ACESSO'}
+                  </button>
                 </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Comissão %</label>
-                    <input type="number" required value={newPro.comissao} onChange={e => setNewPro({ ...newPro, comissao: parseInt(e.target.value) })} className="w-full bg-surface-dark border border-white/5 rounded-2xl p-5 text-white text-sm outline-none" />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Produtividade %</label>
-                    <input type="number" required value={newPro.productivity} onChange={e => setNewPro({ ...newPro, productivity: parseInt(e.target.value) })} className="w-full bg-surface-dark border border-white/5 rounded-2xl p-5 text-white text-sm outline-none" />
-                  </div>
-                </div>
-
-                <button type="submit" disabled={isLoading} className="w-full gold-gradient text-background-dark font-black py-5 rounded-2xl shadow-xl uppercase tracking-widest text-xs active:scale-95 transition-all">
-                  {isLoading ? 'Contratando...' : 'Finalizar e Gerar Acesso'}
-                </button>
               </form>
             </div>
           </div>
@@ -787,22 +822,28 @@ const TeamManagement: React.FC<TeamManagementProps> = ({ salon, salonId: explici
       </main>
 
       {confirmDialog.show && (
-        <div className="fixed inset-0 z-[80] bg-black/80 backdrop-blur-sm flex items-center justify-center p-6 animate-fade-in text-center">
-          <div className="bg-surface-dark border border-white/10 rounded-3xl p-8 max-w-sm w-full shadow-2xl">
-            <h3 className="text-xl font-display font-black text-white italic mb-2">{confirmDialog.title}</h3>
-            <p className="text-slate-400 text-sm mb-8">{confirmDialog.message}</p>
-            <div className="flex gap-3">
-              <button onClick={() => setConfirmDialog({ ...confirmDialog, show: false })} className="flex-1 bg-white/5 border border-white/10 text-white py-4 rounded-2xl font-black uppercase tracking-widest text-[10px]">Não</button>
-              <button onClick={confirmDialog.onConfirm} className="flex-1 bg-red-500 text-white py-4 rounded-2xl font-black uppercase tracking-widest text-[10px]">Sim, Confirmar</button>
+        <div className="fixed inset-0 z-[200] bg-black/90 backdrop-blur-md flex items-center justify-center p-8 animate-fade-in text-center">
+          <div className="bg-surface-dark border border-white/10 rounded-[48px] p-12 max-w-sm w-full shadow-3xl">
+            <div className="size-20 rounded-3xl bg-red-500/10 flex items-center justify-center text-red-500 mx-auto mb-8 animate-pulse">
+              <span className="material-symbols-outlined text-4xl">warning</span>
+            </div>
+            <h3 className="text-2xl font-display font-black text-white italic mb-4 uppercase tracking-tighter">{confirmDialog.title}</h3>
+            <p className="text-slate-500 text-[11px] font-bold uppercase tracking-widest leading-relaxed mb-10">{confirmDialog.message}</p>
+            <div className="flex flex-col gap-4">
+              <button onClick={confirmDialog.onConfirm} className="w-full bg-red-500 text-white h-16 rounded-2xl font-black uppercase tracking-[0.4em] text-[10px] shadow-2xl active:scale-95 transition-all">Revogar e Excluir</button>
+              <button onClick={() => setConfirmDialog({ ...confirmDialog, show: false })} className="w-full bg-white/5 border border-white/10 text-white h-16 rounded-2xl font-black uppercase tracking-[0.4em] text-[10px]">Cancelar</button>
             </div>
           </div>
         </div>
       )}
 
       {notification.show && (
-        <div className="fixed top-6 left-6 right-6 z-[90] animate-slide-down">
-          <div className={`p-5 rounded-2xl shadow-2xl border backdrop-blur-xl ${notification.type === 'success' ? 'bg-emerald-500/20 border-emerald-500/30 text-emerald-500' : 'bg-red-500/20 border-red-500/30 text-red-500'}`}>
-            <p className="font-bold text-sm text-center italic">{notification.message}</p>
+        <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[300] animate-slide-up">
+          <div className={`px-10 py-5 rounded-full border shadow-3xl backdrop-blur-xl flex items-center gap-4 ${notification.type === 'success' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500' : 'bg-red-500/10 border-red-500/20 text-red-500'}`}>
+            <span className="material-symbols-outlined font-black">
+              {notification.type === 'success' ? 'verified' : 'error'}
+            </span>
+            <span className="text-[10px] font-black uppercase tracking-[0.4em]">{notification.message}</span>
           </div>
         </div>
       )}

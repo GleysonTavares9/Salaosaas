@@ -207,123 +207,158 @@ const ChooseTime: React.FC<ChooseTimeProps> = ({ bookingDraft, setBookingDraft }
   const canProceed = bookingDraft.professionalId && bookingDraft.time;
 
   return (
-    <div className="flex-1 flex flex-col h-full relative overflow-hidden">
-      <header className="px-6 pt-12 pb-4 bg-background-dark/30 backdrop-blur-xl border-b border-white/5 z-50 shrink-0 flex items-center justify-between">
-        <button onClick={() => navigate(-1)} className="size-10 rounded-xl border border-white/10 flex items-center justify-center text-white active:scale-90 transition-all">
-          <span className="material-symbols-outlined">arrow_back</span>
-        </button>
-        <h1 className="font-display text-lg font-black text-white italic tracking-tighter uppercase">Escolha o Momento</h1>
-        <div className="size-10"></div>
+    <div className="flex-1 flex flex-col h-full relative overflow-hidden bg-background-dark">
+      <header className="sticky top-0 z-50 bg-background-dark/80 backdrop-blur-2xl px-6 pt-12 pb-8 border-b border-white/5">
+        <div className="max-w-[1200px] mx-auto w-full flex items-center justify-between">
+          <button onClick={() => navigate(-1)} className="size-12 rounded-2xl bg-black/30 border border-white/10 flex items-center justify-center text-white active:scale-95 transition-all">
+            <span className="material-symbols-outlined text-xl">arrow_back</span>
+          </button>
+          <div className="text-center">
+            <h1 className="font-display font-black text-white italic tracking-[0.2em] uppercase leading-none" style={{ fontSize: 'var(--step-1)' }}>Escolha o Momento</h1>
+            <p className="text-[7px] text-primary font-black uppercase tracking-[0.4em] mt-2">Sincronize sua Aura</p>
+          </div>
+          <div className="size-12"></div>
+        </div>
       </header>
 
-      <main className="flex-1 overflow-y-auto px-6 pt-8 space-y-12 no-scrollbar pb-[350px]">
-        <section className="animate-fade-in">
-          <div className="flex justify-between items-center mb-6 px-1">
-            <h3 className="text-[10px] font-black text-primary uppercase tracking-[0.4em]">Seu Artista</h3>
-            <span className="text-[8px] font-bold text-slate-600 uppercase tracking-widest">Inspirados por você</span>
-          </div>
-          <div
-            ref={proScrollRef}
-            {...proDrag}
-            className="flex gap-6 overflow-x-auto no-scrollbar py-4 px-1 cursor-grab active:cursor-grabbing select-none"
-          >
-            {isLoading ? (
-              <div className="flex gap-6 w-full">
-                {[1, 2, 3].map(i => (
-                  <div key={i} className="flex flex-col items-center gap-3 shrink-0">
-                    <div className="size-20 rounded-[28px] bg-white/5 animate-pulse border border-white/5"></div>
-                    <div className="h-2 w-10 bg-white/5 rounded animate-pulse"></div>
-                  </div>
-                ))}
+      <main className="flex-1 overflow-y-auto no-scrollbar scroll-smooth">
+        <div className="max-w-[1200px] mx-auto w-full px-6 py-10 pb-48 space-y-16">
+          <section className="animate-fade-in">
+            <div className="flex justify-between items-center mb-8 px-2">
+              <div className="flex items-center gap-4">
+                <div className="h-0.5 w-8 bg-primary"></div>
+                <h3 className="text-[10px] font-black text-primary uppercase tracking-[0.4em]">Seu Artista</h3>
               </div>
-            ) : (
-              professionals.length > 0 ? (
-                professionals.map(pro => (
-                  <button
-                    key={pro.id}
-                    onClick={() => selectPro(pro)}
-                    className={`flex flex-col items-center gap-3 shrink-0 transition-all duration-500 ${bookingDraft.professionalId === pro.id ? 'opacity-100 scale-105' : bookingDraft.professionalId ? 'opacity-30 grayscale blur-[1px]' : 'opacity-100'}`}
-                  >
-                    <div className={`size-20 rounded-[28px] border-2 p-1.5 transition-all shadow-2xl ${bookingDraft.professionalId === pro.id ? 'border-primary bg-primary/5' : 'border-white/5 bg-surface-dark'}`}>
-                      <img src={pro.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(pro.name)}&background=c1a571&color=0c0d10&bold=true`} className="size-full rounded-[20px] object-cover" alt={pro.name} />
-                    </div>
-                    <div className="text-center">
-                      <p className={`text-[9px] font-black uppercase tracking-tighter leading-none mb-1 transition-colors ${bookingDraft.professionalId === pro.id ? 'text-primary' : 'text-white'}`}>{pro.name.split(' ')[0]}</p>
-                      <p className="text-[7px] font-bold text-slate-500 uppercase tracking-[0.1em]">{pro.role}</p>
-                    </div>
-                  </button>
-                ))
-              ) : (
-                <div className="w-full py-4 text-center border border-white/5 rounded-2xl bg-surface-dark/40">
-                  <p className="text-[8px] font-black text-slate-600 uppercase tracking-widest">Nenhum artista disponível nesta unidade</p>
-                </div>
-              )
-            )}
-          </div>
-        </section>
-
-        <section className="animate-fade-in" style={{ animationDelay: '100ms' }}>
-          <h3 className="text-[10px] font-black text-primary uppercase tracking-[0.4em] mb-6 ml-1">Data Aura</h3>
-          <div
-            ref={dateScrollRef}
-            {...dateDrag}
-            className="flex gap-4 overflow-x-auto no-scrollbar pb-2 px-1 cursor-grab active:cursor-grabbing select-none"
-          >
-            {nextDays.map(d => (
-              <button
-                key={d.date}
-                onClick={() => !d.isClosed && setSelectedDay(d.date)}
-                disabled={d.isClosed}
-                className={`shrink-0 w-24 py-6 rounded-[24px] border flex flex-col items-center transition-all shadow-xl ${d.isClosed
-                  ? 'bg-red-500/5 border-red-500/10 opacity-30 cursor-not-allowed'
-                  : selectedDay === d.date
-                    ? 'gold-gradient text-background-dark border-primary'
-                    : 'bg-surface-dark border-white/5 text-slate-500'
-                  }`}
-              >
-                <span className={`text-[8px] font-black uppercase mb-1.5 tracking-widest ${d.isClosed ? 'text-red-400' : ''}`}>
-                  {d.isClosed ? 'FECHADO' : d.label}
-                </span>
-                <span className={`text-sm font-black italic font-display ${d.isClosed ? 'text-slate-700' : ''}`}>
-                  {d.display.toUpperCase()}
-                </span>
-              </button>
-            ))}
-          </div>
-        </section>
-
-        <section className="animate-fade-in" style={{ animationDelay: '200ms' }}>
-          <h3 className="text-[10px] font-black text-primary uppercase tracking-[0.4em] mb-6 ml-1">Horário Disponível</h3>
-
-          {isLoading ? (
-            <div className="text-center py-10">
-              <span className="size-8 border-2 border-primary/20 border-t-primary rounded-full animate-spin inline-block"></span>
+              <span className="text-[8px] font-black text-slate-600 uppercase tracking-[0.2em] italic">Inspirados por você</span>
             </div>
-          ) : (
-            <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
-              {availableSlots.length > 0 ? availableSlots.map(t => (
-                <button key={t} onClick={() => selectTime(t)} className={`py-4 rounded-2xl border text-xs font-black font-display italic transition-all shadow-md ${bookingDraft.time === t ? 'bg-primary text-background-dark border-primary' : 'bg-surface-dark border-white/5 text-slate-600 hover:border-primary/50'}`}>
-                  {t}
-                </button>
-              )) : (
-                <p className="col-span-3 text-center text-[10px] text-slate-500 font-bold uppercase py-8 border border-white/5 rounded-2xl bg-surface-dark">
-                  Nenhum horário livre para essa duração ({totalDuration} min) nesta data.
-                </p>
+            <div
+              ref={proScrollRef}
+              {...proDrag}
+              className="flex gap-8 overflow-x-auto no-scrollbar py-6 px-2 cursor-grab active:cursor-grabbing select-none"
+            >
+              {isLoading ? (
+                <div className="flex gap-8 w-full">
+                  {[1, 2, 3, 4].map(i => (
+                    <div key={i} className="flex flex-col items-center gap-4 shrink-0">
+                      <div className="size-24 rounded-[32px] bg-white/5 animate-pulse border border-white/5"></div>
+                      <div className="h-2 w-12 bg-white/5 rounded animate-pulse"></div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                professionals.length > 0 ? (
+                  professionals.map(pro => (
+                    <button
+                      key={pro.id}
+                      onClick={() => selectPro(pro)}
+                      className={`flex flex-col items-center gap-4 shrink-0 transition-all duration-500 ${bookingDraft.professionalId === pro.id ? 'opacity-100 scale-110' : bookingDraft.professionalId ? 'opacity-20 grayscale blur-[2px] scale-90' : 'opacity-100 hover:scale-105'}`}
+                    >
+                      <div className={`size-24 lg:size-28 rounded-[36px] border-2 p-1.5 transition-all shadow-2xl relative ${bookingDraft.professionalId === pro.id ? 'border-primary bg-primary/10 shadow-[0_0_30px_rgba(193,165,113,0.3)]' : 'border-white/5 bg-surface-dark/40 hover:border-white/20'}`}>
+                        <img src={pro.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(pro.name)}&background=c1a571&color=0c0d10&bold=true`} className="size-full rounded-[28px] object-cover" alt={pro.name} />
+                        {bookingDraft.professionalId === pro.id && (
+                          <div className="absolute -top-2 -right-2 size-8 bg-primary rounded-full flex items-center justify-center border-4 border-background-dark shadow-gold">
+                            <span className="material-symbols-outlined text-background-dark text-sm font-black">check</span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="text-center">
+                        <p className={`text-[10px] font-black uppercase tracking-widest leading-none mb-1.5 transition-colors ${bookingDraft.professionalId === pro.id ? 'text-primary' : 'text-white'}`}>{pro.name.split(' ')[0]}</p>
+                        <p className="text-[7px] font-black text-slate-600 uppercase tracking-[0.2em]">{pro.role}</p>
+                      </div>
+                    </button>
+                  ))
+                ) : (
+                  <div className="w-full py-12 text-center border-2 border-dashed border-white/5 rounded-[40px] bg-surface-dark/20">
+                    <p className="text-[9px] font-black text-slate-700 uppercase tracking-[0.4em]">Nenhum artista disponível nesta unidade</p>
+                  </div>
+                )
               )}
             </div>
-          )}
-        </section>
+          </section>
+
+          <section className="animate-fade-in" style={{ animationDelay: '100ms' }}>
+            <div className="flex items-center gap-4 mb-8 px-2">
+              <div className="h-0.5 w-8 bg-slate-800"></div>
+              <h3 className="text-[10px] font-black text-primary uppercase tracking-[0.4em]">Calendário Aura</h3>
+            </div>
+            <div
+              ref={dateScrollRef}
+              {...dateDrag}
+              className="flex gap-6 overflow-x-auto no-scrollbar pb-6 px-2 cursor-grab active:cursor-grabbing select-none"
+            >
+              {nextDays.map(d => (
+                <button
+                  key={d.date}
+                  onClick={() => !d.isClosed && setSelectedDay(d.date)}
+                  disabled={d.isClosed}
+                  className={`shrink-0 w-28 py-8 rounded-[32px] border-2 flex flex-col items-center transition-all shadow-2xl ${d.isClosed
+                    ? 'bg-red-500/5 border-red-500/10 opacity-20 cursor-not-allowed'
+                    : selectedDay === d.date
+                      ? 'bg-primary border-primary text-background-dark shadow-[0_15px_40px_rgba(193,165,113,0.3)]'
+                      : 'bg-surface-dark/40 border-white/5 text-slate-500 hover:border-white/10 hover:bg-surface-dark/60'
+                    }`}
+                >
+                  <span className={`text-[9px] font-black uppercase mb-3 tracking-[0.2em] ${d.isClosed ? 'text-red-400' : selectedDay === d.date ? 'text-background-dark/60' : ''}`}>
+                    {d.isClosed ? 'FECHADO' : d.label}
+                  </span>
+                  <span className={`text-base font-display font-black italic uppercase tracking-tighter ${d.isClosed ? 'text-slate-800' : ''}`}>
+                    {d.display}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </section>
+
+          <section className="animate-fade-in" style={{ animationDelay: '200ms' }}>
+            <div className="flex items-center gap-4 mb-8 px-2">
+              <div className="h-0.5 w-8 bg-slate-800"></div>
+              <h3 className="text-[10px] font-black text-primary uppercase tracking-[0.4em]">Momentos Livres</h3>
+            </div>
+
+            {isLoading ? (
+              <div className="text-center py-20">
+                <span className="size-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin inline-block"></span>
+                <p className="text-[9px] font-black uppercase tracking-[0.4em] text-primary mt-6 animate-pulse">Consultando disponibilidade...</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-4 px-2">
+                {availableSlots.length > 0 ? availableSlots.map(t => (
+                  <button
+                    key={t}
+                    onClick={() => selectTime(t)}
+                    className={`py-5 rounded-[24px] border-2 text-sm font-black font-display italic tracking-tight transition-all shadow-xl ${bookingDraft.time === t
+                      ? 'bg-primary border-primary text-background-dark shadow-[0_10px_30px_rgba(193,165,113,0.3)]'
+                      : 'bg-surface-dark/40 border-white/5 text-slate-600 hover:border-primary/40 hover:text-primary active:scale-95'
+                      }`}
+                  >
+                    {t}
+                  </button>
+                )) : (
+                  <div className="col-span-full py-16 text-center border border-dashed border-white/5 rounded-[40px] bg-surface-dark/10">
+                    <p className="text-[10px] text-slate-700 font-black uppercase tracking-[0.3em]">
+                      Nenhuma vaga para esta duração na data selecionada.
+                    </p>
+                    <p className="text-[8px] text-slate-800 font-bold uppercase tracking-widest mt-2 italic">Duração do Ritual: {totalDuration} min</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </section>
+        </div>
       </main>
 
-      <footer className="fixed bottom-0 left-0 right-0 z-50 flex justify-center pointer-events-none p-4 md:p-8 pb-[calc(1rem+var(--sab))]">
-        <div className="w-full max-w-md bg-background-dark/95 backdrop-blur-2xl border border-white/10 p-6 rounded-[32px] shadow-2xl pointer-events-auto">
+      <footer className="fixed bottom-0 left-0 right-0 z-50 flex justify-center p-6 lg:p-10 pointer-events-none pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
+        <div className="w-full max-w-[450px] bg-background-dark/80 backdrop-blur-3xl border border-white/10 p-5 rounded-[40px] shadow-[0_30px_100px_rgba(0,0,0,0.8)] pointer-events-auto animate-slide-up">
           <button
             disabled={!canProceed}
             onClick={() => navigate(`/checkout${window.location.search}`)}
-            className={`w-full py-6 rounded-3xl font-black uppercase tracking-[0.4em] text-[11px] flex items-center justify-center gap-3 transition-all shadow-[0_20px_50px_rgba(0,0,0,0.5)] ${canProceed ? 'gold-gradient text-background-dark active:scale-95' : 'bg-white/5 text-slate-800 cursor-not-allowed opacity-50'}`}
+            className={`w-full py-6 lg:py-8 rounded-[32px] font-black uppercase tracking-[0.4em] text-[10px] lg:text-[11px] flex items-center justify-center gap-4 transition-all group ${canProceed
+              ? 'gold-gradient text-background-dark active:scale-95 shadow-[0_15px_40px_rgba(193,165,113,0.3)]'
+              : 'bg-white/5 text-slate-800 cursor-not-allowed opacity-40'
+              }`}
           >
-            AVANÇAR PARA CHECKOUT
-            <span className="material-symbols-outlined font-black">arrow_forward</span>
+            CONFIRMAR AGENDAMENTO
+            <span className="material-symbols-outlined font-black group-hover:translate-x-1 transition-transform">arrow_forward</span>
           </button>
         </div>
       </footer>

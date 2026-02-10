@@ -277,161 +277,187 @@ const AdminBookings: React.FC<AdminBookingsProps> = ({ appointments, role, salon
 
 
   return (
-    <div className="flex-1 overflow-y-auto h-full no-scrollbar">
-      <header className="sticky top-0 z-50 bg-background-dark/30 backdrop-blur-xl px-6 pt-12 pb-6 border-b border-white/5 lg:px-6">
-        <div className="flex items-center gap-4 mb-6">
-          <button onClick={() => navigate('/pro')} className="size-10 rounded-full border border-white/10 flex items-center justify-center text-white">
-            <span className="material-symbols-outlined">arrow_back</span>
-          </button>
-          <div className="flex-1">
-            <h1 className="text-xl font-display font-black text-white italic tracking-tighter uppercase leading-none">{role === 'admin' ? 'Faturamento & Agenda' : 'Meus Atendimentos'}</h1>
-            <p className="text-primary text-[8px] font-black uppercase tracking-[0.2em] mt-1">Gestão de Sessões em Tempo Real</p>
-          </div>
-          <button
-            onClick={() => navigate('/pro/analytics')}
-            className="size-10 rounded-full gold-gradient flex items-center justify-center text-background-dark shadow-lg">
-            <span className="material-symbols-outlined">assessment</span>
-          </button>
-        </div>
+    <div className="flex-1 overflow-y-auto h-full no-scrollbar bg-background-dark relative">
+      <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.02] pointer-events-none"></div>
 
-        <div
-          ref={filterScrollRef}
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
-          onMouseLeave={handleMouseLeave}
-          className={`flex gap-2 overflow-x-auto no-scrollbar select-none ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
-        >
-          {['all', 'confirmed', 'pending', 'completed', 'canceled'].map(f => (
-            <button
-              key={f}
-              onClick={() => setFilter(f)}
-              className={`px-5 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap border ${filter === f ? 'gold-gradient text-background-dark border-primary shadow-lg' : 'bg-surface-dark text-slate-500 border-white/5'
-                }`}
-            >
-              {f === 'all' ? 'Ver Todos' : f.toUpperCase()}
+      <header className="sticky top-0 z-50 bg-background-dark/80 backdrop-blur-3xl px-6 pt-12 pb-10 border-b border-white/5">
+        <div className="max-w-[1400px] mx-auto w-full">
+          <div className="flex items-center justify-between mb-12">
+            <button onClick={() => navigate('/pro')} className="size-12 rounded-2xl bg-black/40 border border-white/10 flex items-center justify-center text-white active:scale-95 transition-all">
+              <span className="material-symbols-outlined text-xl">arrow_back</span>
             </button>
-          ))}
+            <div className="text-center">
+              <h1 className="font-display font-black text-white italic tracking-[0.2em] uppercase leading-none" style={{ fontSize: 'var(--step-1)' }}>
+                {role === 'admin' ? 'Visão do Caixa' : 'Minha Agenda'}
+              </h1>
+              <p className="text-[7px] text-primary font-black uppercase tracking-[0.4em] mt-3">Sessões & Fluxo Aura</p>
+            </div>
+            <button
+              onClick={() => navigate('/pro/analytics')}
+              className="size-12 rounded-2xl gold-gradient flex items-center justify-center text-background-dark shadow-gold active:scale-95 transition-all">
+              <span className="material-symbols-outlined text-xl">insights</span>
+            </button>
+          </div>
+
+          <div
+            ref={filterScrollRef}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseLeave}
+            className={`flex gap-4 overflow-x-auto no-scrollbar select-none ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+          >
+            {[
+              { id: 'all', label: 'Todos' },
+              { id: 'confirmed', label: 'Confirmados' },
+              { id: 'pending', label: 'Pendentes' },
+              { id: 'completed', label: 'Concluídos' },
+              { id: 'canceled', label: 'Cancelados' }
+            ].map(f => (
+              <button
+                key={f.id}
+                onClick={() => setFilter(f.id)}
+                className={`px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all whitespace-nowrap border ${filter === f.id
+                  ? 'gold-gradient text-background-dark border-transparent shadow-gold-sm scale-105 z-10'
+                  : 'bg-surface-dark/40 text-slate-500 border-white/5 hover:border-white/10'
+                  }`}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
         </div>
       </header>
 
 
-      <main className="w-full px-6 py-8 space-y-8 pb-40 animate-fade-in lg:px-6">
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+      <main className="max-w-[1400px] mx-auto w-full px-6 py-12 lg:py-20 space-y-12 pb-40 animate-fade-in relative z-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-10">
           {filteredAppts.map(appt => (
-            <div key={appt.id} className={`bg-surface-dark/60 rounded-[32px] border p-5 shadow-2xl relative overflow-hidden transition-all ${appt.status === 'canceled' ? 'opacity-50 grayscale border-white/5' :
-              appt.status === 'completed' ? 'border-emerald-500/20' :
-                'border-white/10 hover:border-primary/20'
+            <div key={appt.id} className={`bg-surface-dark/40 rounded-[48px] border p-8 lg:p-10 shadow-[0_30px_80px_rgba(0,0,0,0.4)] relative overflow-hidden transition-all backdrop-blur-3xl group ${appt.status === 'canceled' ? 'opacity-40 grayscale border-white/5' :
+              appt.status === 'completed' ? 'border-emerald-500/20 shadow-emerald-900/10' :
+                'border-white/5 hover:border-primary/20'
               }`}>
 
-              {/* Header com Status e Valor */}
-              <div className="flex justify-between items-start mb-5">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest ${appt.status === 'completed' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' :
-                      appt.status === 'confirmed' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' :
-                        appt.status === 'pending' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' :
-                          'bg-red-500/20 text-red-400 border border-red-500/30'
-                      }`}>
-                      {appt.status}
-                    </span>
-                  </div>
-                  <h3 className="text-xl font-display font-black text-white italic tracking-tighter mb-1 uppercase leading-tight">{appt.clientName || "Cliente Aura"}</h3>
-                  <div className="flex items-center gap-2">
-                    <p className="text-[10px] font-black text-primary uppercase tracking-widest">{appt.service_names || appt.serviceName}</p>
-                    <span className="text-slate-700">•</span>
-                    <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">
-                      {appt.professionalName || "Sem Profissional"}
-                    </p>
+              {/* Status Badge Overlays */}
+              <div className="absolute top-0 right-0 p-6">
+                <span className={`px-4 py-2 rounded-full text-[8px] font-black uppercase tracking-[0.3em] border ${appt.status === 'completed' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' :
+                  appt.status === 'confirmed' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
+                    appt.status === 'pending' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' :
+                      'bg-red-500/10 text-red-500 border-red-500/20'
+                  }`}>
+                  {appt.status}
+                </span>
+              </div>
+
+              {/* Header Info */}
+              <div className="mb-10 space-y-4">
+                <div>
+                  <h3 className="text-2xl lg:text-3xl font-display font-black text-white italic tracking-tighter uppercase leading-none truncate pr-16">{appt.clientName || "Cliente Aura"}</h3>
+                  <div className="flex items-center gap-3 mt-4">
+                    <p className="text-[10px] font-black text-primary uppercase tracking-[0.3em] bg-primary/5 px-3 py-1.5 rounded-lg border border-primary/10">{appt.service_names || appt.serviceName}</p>
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className="text-2xl font-display font-black text-primary mb-1 italic">R$ {appt.valor}</p>
-                  <div className="flex flex-col items-end gap-0.5 opacity-60">
-                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{appt.date}</p>
-                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{appt.time}</p>
+
+                <div className="flex items-center justify-between pt-4 border-t border-white/5">
+                  <div className="flex items-center gap-3">
+                    <div className="size-8 rounded-full bg-slate-800 border border-white/10 flex items-center justify-center">
+                      <span className="material-symbols-outlined text-[14px] text-slate-500">person</span>
+                    </div>
+                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest truncate max-w-[120px]">
+                      {appt.professionalName || "Sem Atribuir"}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-3xl font-display font-black text-white italic">R$ {appt.valor}</p>
                   </div>
                 </div>
               </div>
 
-              {/* ID do Agendamento */}
-              <div className="mb-4 pb-4 border-b border-white/5">
-                <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">ID: {appt.id}</p>
+              {/* Date & Time Ribbon */}
+              <div className="flex items-center justify-between bg-black/40 rounded-3xl p-5 mb-8 border border-white/5">
+                <div className="flex items-center gap-3">
+                  <span className="material-symbols-outlined text-primary text-lg">calendar_today</span>
+                  <p className="text-[10px] font-black text-white uppercase tracking-widest">{appt.date}</p>
+                </div>
+                <div className="h-4 w-px bg-white/10"></div>
+                <div className="flex items-center gap-3">
+                  <span className="material-symbols-outlined text-primary text-lg">schedule</span>
+                  <p className="text-[10px] font-black text-white uppercase tracking-widest">{appt.time}</p>
+                </div>
               </div>
 
               {/* Ações de Comunicação */}
-              <div className="grid grid-cols-2 gap-3 mb-4">
+              <div className="grid grid-cols-2 gap-4 mb-6">
                 <button
                   onClick={async () => {
                     try {
                       if (!userId) {
-                        showToast("Erro: Usuário não identificado para chat.", 'error');
+                        showToast("Erro: Usuário não identificado.", 'error');
                         return;
                       }
-                      // Buscar ou criar conversa real (ajustado para o novo schema)
                       const conv = await api.chat.startConversation(userId, appt.client_id);
                       navigate(`/chat/${conv.id}`);
                     } catch (error: any) {
                       showToast('Falha ao iniciar chat.', 'error');
                     }
                   }}
-                  className="flex items-center justify-center gap-2 bg-white/5 border border-white/10 rounded-2xl py-3.5 text-[10px] font-black text-white uppercase tracking-widest hover:bg-white/10 active:scale-95 transition-all"
+                  className="flex items-center justify-center gap-3 bg-white/[0.03] border border-white/5 rounded-2xl py-4 lg:py-5 text-[10px] font-black text-white uppercase tracking-widest hover:bg-white/[0.07] active:scale-95 transition-all"
                 >
                   <span className="material-symbols-outlined text-base">chat</span>
-                  Chat Interno
+                  Aura Chat
                 </button>
                 <button
                   onClick={() => openWhatsApp(appt)}
-                  className="flex items-center justify-center gap-2 bg-emerald-600/10 border border-emerald-600/30 rounded-2xl py-3.5 text-[10px] font-black text-emerald-400 uppercase tracking-widest hover:bg-emerald-600/20 active:scale-95 transition-all"
+                  className="flex items-center justify-center gap-3 bg-emerald-500/[0.03] border border-emerald-500/10 rounded-2xl py-4 lg:py-5 text-[10px] font-black text-emerald-400 uppercase tracking-widest hover:bg-emerald-500/[0.06] active:scale-95 transition-all"
                 >
-                  <span className="material-symbols-outlined text-base">send</span>
+                  <span className="material-symbols-outlined text-base">mail</span>
                   WhatsApp
                 </button>
               </div>
 
               {/* Ações de Gestão de Agenda */}
               {appt.status === 'completed' ? (
-                <div className="pt-4 border-t border-white/5">
-                  <div className="w-full bg-emerald-500/5 border border-emerald-500/10 text-emerald-400 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2">
-                    <span className="material-symbols-outlined text-base">verified</span>
-                    Atendimento Concluído
+                <div className="pt-6 border-t border-white/5">
+                  <div className="w-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 py-5 rounded-2xl text-[11px] font-black uppercase tracking-[0.2em] flex items-center justify-center gap-3">
+                    <span className="material-symbols-outlined text-base font-black">verified</span>
+                    Sessão Finalizada
                   </div>
                 </div>
               ) : appt.status === 'canceled' ? (
-                <div className="pt-4 border-t border-white/5">
+                <div className="pt-6 border-t border-white/5">
                   <button
                     onClick={() => handleAction(appt.id, 'deletar')}
-                    className="w-full bg-red-500/10 border border-red-500/20 text-red-500 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 active:scale-95 transition-all"
+                    className="w-full bg-red-500/10 border border-red-500/20 text-red-500 py-5 rounded-2xl text-[11px] font-black uppercase tracking-[0.2em] flex items-center justify-center gap-3 active:scale-95 transition-all"
                   >
-                    <span className="material-symbols-outlined text-base">delete</span>
-                    Apagar Permanente
+                    <span className="material-symbols-outlined text-base">delete_forever</span>
+                    Expurgar Registro
                   </button>
                 </div>
               ) : (
-                <div className="space-y-3 pt-4 border-t border-white/5">
+                <div className="space-y-4 pt-6 border-t border-white/5">
                   {/* Botão Principal: Finalizar */}
                   <button
                     onClick={() => handleCloseAppointment(appt.id)}
-                    className="w-full gold-gradient text-background-dark py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 shadow-xl shadow-primary/10 active:scale-95 transition-all"
+                    className="w-full gold-gradient text-background-dark py-6 rounded-[24px] text-[11px] font-black uppercase tracking-[0.3em] flex items-center justify-center gap-3 shadow-gold-sm active:scale-95 transition-all hover:brightness-110"
                   >
-                    <span className="material-symbols-outlined text-base font-black">check_circle</span>
-                    Finalizar Atendimento
+                    <span className="material-symbols-outlined text-xl font-black">lock_open</span>
+                    Fechar Comanda
                   </button>
 
                   {/* Botões Secundários: Remarcar/Cancelar */}
-                  <div className="flex gap-3">
+                  <div className="flex gap-4">
                     <button
                       onClick={() => handleAction(appt.id, 'remarcar')}
-                      className="flex-1 bg-white/5 border border-white/10 text-slate-400 py-3.5 rounded-2xl text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-2 active:scale-95 transition-all"
+                      className="flex-1 bg-white/[0.03] border border-white/5 text-slate-400 py-4 lg:py-5 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 active:scale-95 transition-all hover:text-white"
                     >
-                      <span className="material-symbols-outlined text-base">event_repeat</span>
-                      Remarcar
+                      <span className="material-symbols-outlined text-base">update</span>
+                      Mudar Data
                     </button>
                     <button
                       onClick={() => handleAction(appt.id, 'cancelar')}
-                      className="flex-1 bg-white/5 border border-white/10 text-red-500/60 py-3.5 rounded-2xl text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-2 active:scale-95 transition-all"
+                      className="flex-1 bg-red-500/[0.02] border border-red-500/10 text-red-500/60 py-4 lg:py-5 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 active:scale-95 transition-all hover:text-red-500"
                     >
-                      <span className="material-symbols-outlined text-base">close</span>
+                      <span className="material-symbols-outlined text-base">block</span>
                       Cancelar
                     </button>
                   </div>
@@ -442,106 +468,113 @@ const AdminBookings: React.FC<AdminBookingsProps> = ({ appointments, role, salon
         </div>
 
         {filteredAppts.length === 0 && (
-          <div className="py-20 text-center flex flex-col items-center opacity-30">
-            <span className="material-symbols-outlined text-6xl mb-4 text-slate-600">event_busy</span>
-            <p className="text-xs font-black uppercase tracking-widest text-slate-500">Nenhuma sessão encontrada</p>
+          <div className="py-40 text-center flex flex-col items-center gap-6">
+            <div className="size-20 rounded-[32px] bg-white/[0.02] border border-white/5 flex items-center justify-center text-slate-700">
+              <span className="material-symbols-outlined text-4xl">event_busy</span>
+            </div>
+            <p className="text-[11px] font-black uppercase tracking-[0.5em] text-slate-600">Nenhuma sessão encontrada na galeria</p>
           </div>
         )}
       </main>
 
-      {/* Modal de Remarcação */}
+      {/* Modal de Remarcação Refinado */}
       {showRescheduleModal && selectedAppt && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-md px-4 sm:px-6 animate-fade-in">
-          <div className="bg-surface-dark border border-white/10 rounded-[40px] p-6 sm:p-8 w-full max-w-sm shadow-2xl animate-scale-in max-h-[90vh] overflow-y-auto">
-            <div className="text-center mb-6">
-              <h2 className="text-2xl font-display font-black text-white italic tracking-tighter mb-1">Remarcar Sessão</h2>
-              <p className="text-[10px] text-primary uppercase font-black tracking-widest">{selectedAppt.clientName}</p>
-            </div>
-
-            <div className="space-y-8 mb-8">
-              {/* Seleção de Data */}
+        <div className="fixed inset-0 z-[120] bg-background-dark/95 backdrop-blur-3xl animate-fade-in flex flex-col items-center overflow-hidden">
+          <div className="flex-1 flex flex-col max-w-[600px] w-full h-full relative">
+            <header className="px-10 pt-16 flex items-center justify-between shrink-0">
               <div>
-                <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-3 block ml-1">Selecione a Data</label>
-                <div className="flex gap-3 overflow-x-auto no-scrollbar pb-2">
-                  {availableDates.map(d => (
-                    <button
-                      key={d.value}
-                      onClick={() => {
-                        setNewDate(d.value);
-                        setNewTime('');
-                      }}
-                      className={`shrink-0 flex flex-col items-center justify-center size-16 rounded-[20px] border transition-all ${newDate === d.value ? 'gold-gradient text-background-dark border-primary shadow-lg' : 'bg-background-dark border-white/5 text-slate-500'}`}
-                    >
-                      <span className="text-[7px] font-black uppercase tracking-tighter mb-0.5">{d.weekday}</span>
-                      <span className="text-sm font-black italic font-display leading-tight">{d.display.split('/')[0]}</span>
-                    </button>
-                  ))}
-                </div>
+                <h2 className="text-2xl lg:text-3xl font-display font-black text-white italic tracking-tighter uppercase">Remarcar Fluxo</h2>
+                <p className="text-[10px] text-primary font-black uppercase tracking-[0.4em] mt-2 leading-none">{selectedAppt.clientName}</p>
               </div>
+              <button onClick={() => setShowRescheduleModal(false)} className="size-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-500 hover:text-white transition-all">
+                <span className="material-symbols-outlined font-black">close</span>
+              </button>
+            </header>
 
-              {/* Seleção de Horário */}
-              <div>
-                <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-3 block ml-1">Horários Livres</label>
-                {isLoadingSlots ? (
-                  <div className="flex justify-center py-10">
-                    <div className="size-6 border-2 border-primary/20 border-t-primary rounded-full animate-spin"></div>
-                  </div>
-                ) : availableSlots.length > 0 ? (
-                  <div className="grid grid-cols-3 gap-2">
-                    {availableSlots.map(slot => (
+            <div className="flex-1 overflow-y-auto p-10 space-y-12 no-scrollbar min-h-0">
+              <div className="space-y-10">
+                {/* Calendário Horizontal Elite */}
+                <div>
+                  <p className="text-[10px] font-black text-primary uppercase tracking-[0.4em] mb-6 text-center">Calendário de Disponibilidade</p>
+                  <div className="flex gap-4 overflow-x-auto no-scrollbar pb-4 select-none">
+                    {availableDates.map(d => (
                       <button
-                        key={slot}
-                        onClick={() => setNewTime(slot)}
-                        className={`py-3 rounded-xl border text-[11px] font-black font-display italic transition-all ${newTime === slot ? 'bg-primary text-background-dark border-primary shadow-lg' : 'bg-background-dark border-white/5 text-slate-500'}`}
+                        key={d.value}
+                        onClick={() => {
+                          setNewDate(d.value);
+                          setNewTime('');
+                        }}
+                        className={`shrink-0 flex flex-col items-center justify-center size-24 rounded-[32px] border transition-all duration-500 ${newDate === d.value
+                          ? 'gold-gradient text-background-dark border-transparent shadow-gold scale-110 z-10'
+                          : 'bg-surface-dark/40 border-white/10 text-slate-500 hover:border-white/30'}`}
                       >
-                        {slot}
+                        <span className="text-[9px] font-black uppercase tracking-tighter mb-1">{d.weekday}</span>
+                        <span className="text-xl font-black italic font-display leading-tight">{d.display.split('/')[0]}</span>
                       </button>
                     ))}
                   </div>
-                ) : (
-                  <div className="py-8 text-center border border-dashed border-white/5 rounded-2xl bg-white/5">
-                    <p className="text-[9px] font-bold text-slate-600 uppercase tracking-widest">Sem horários para esta data</p>
-                  </div>
-                )}
+                </div>
+
+                {/* Horários Grid Luxe */}
+                <div className="bg-primary/5 border border-primary/20 rounded-[48px] p-8 lg:p-10 space-y-8">
+                  <p className="text-[10px] font-black text-primary uppercase tracking-[0.4em] text-center">Slots Magnéticos</p>
+                  {isLoadingSlots ? (
+                    <div className="flex justify-center py-12">
+                      <div className="size-10 border-2 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+                    </div>
+                  ) : availableSlots.length > 0 ? (
+                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-4">
+                      {availableSlots.map(slot => (
+                        <button
+                          key={slot}
+                          onClick={() => setNewTime(slot)}
+                          className={`py-5 rounded-2xl border text-[13px] font-black font-display italic transition-all duration-300 ${newTime === slot
+                            ? 'bg-primary text-background-dark border-primary shadow-gold-sm'
+                            : 'bg-background-dark/60 border-white/5 text-slate-500 hover:border-white/20'}`}
+                        >
+                          {slot}
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="py-20 text-center border-2 border-dashed border-white/5 rounded-[40px] bg-white/[0.02]">
+                      <span className="material-symbols-outlined text-4xl text-slate-700 mb-4">block</span>
+                      <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest">Sem brechas para esta data</p>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
-            <div className="flex flex-col gap-3">
+            <div className="p-10 bg-gradient-to-t from-background-dark via-background-dark to-transparent">
               <button
                 disabled={!newDate || !newTime}
                 onClick={handleReschedule}
-                className={`w-full py-5 rounded-2xl text-[11px] font-extrabold uppercase tracking-[0.2em] shadow-xl transition-all ${newDate && newTime ? 'gold-gradient text-background-dark active:scale-95' : 'bg-white/5 text-white/20 cursor-not-allowed'}`}
+                className={`w-full h-24 rounded-[32px] text-[13px] font-black uppercase tracking-[0.5em] transition-all duration-500 shadow-[0_30px_70px_rgba(0,0,0,0.5)] ${newDate && newTime
+                  ? 'gold-gradient text-background-dark active:scale-95 hover:brightness-110'
+                  : 'bg-white/5 text-white/10 cursor-not-allowed opacity-50'}`}
               >
-                confirmar Remarcação
-              </button>
-              <button
-                onClick={() => setShowRescheduleModal(false)}
-                className="w-full text-slate-500 py-3 text-[9px] font-black uppercase tracking-[0.3em] active:scale-95 transition-all"
-              >
-                Manter Agendamento
+                PROJETAR NOVA SESSÃO
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Dialog de Confirmação */}
+      {/* Dialog de Confirmação Refinado */}
       {confirmDialog.show && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/90 backdrop-blur-md px-6 animate-fade-in">
-          <div className="bg-surface-dark border border-white/10 rounded-[40px] p-8 w-full max-w-sm shadow-2xl animate-scale-in">
-            <h3 className="text-2xl font-display font-black text-white italic tracking-tighter mb-2">{confirmDialog.title}</h3>
-            <p className="text-xs text-slate-400 mb-8 leading-relaxed font-medium">{confirmDialog.message}</p>
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                onClick={() => setConfirmDialog({ show: false, title: '', message: '', onConfirm: () => { } })}
-                className="bg-white/5 border border-white/10 text-white py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all">
-                Voltar
-              </button>
-              <button
-                onClick={confirmDialog.onConfirm}
-                className={`py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl active:scale-95 transition-all ${confirmDialog.title === 'Excluir Permanente' || confirmDialog.title === 'Cancelar Agendamento' ? 'bg-red-500 text-white shadow-red-500/20' : 'gold-gradient text-background-dark'}`}>
-                Confirmar
-              </button>
+        <div className="fixed inset-0 z-[200] bg-black/95 backdrop-blur-md flex items-center justify-center p-8 animate-fade-in text-center">
+          <div className="bg-surface-dark border border-white/10 rounded-[48px] p-12 max-w-sm w-full shadow-3xl">
+            <div className={`size-20 rounded-3xl mx-auto mb-8 flex items-center justify-center animate-pulse ${confirmDialog.title.includes('Excluir') || confirmDialog.title.includes('Cancelar') ? 'bg-red-500/10 text-red-500' : 'bg-primary/10 text-primary'}`}>
+              <span className="material-symbols-outlined text-4xl">
+                {confirmDialog.title.includes('Excluir') || confirmDialog.title.includes('Cancelar') ? 'warning' : 'task_alt'}
+              </span>
+            </div>
+            <h3 className="text-2xl font-display font-black text-white italic mb-4 uppercase tracking-tighter">{confirmDialog.title}</h3>
+            <p className="text-slate-500 text-[11px] font-bold uppercase tracking-widest leading-relaxed mb-10">{confirmDialog.message}</p>
+            <div className="flex flex-col gap-4">
+              <button onClick={confirmDialog.onConfirm} className={`w-full h-16 rounded-2xl font-black uppercase tracking-[0.4em] text-[10px] shadow-2xl active:scale-95 transition-all ${confirmDialog.title.includes('Excluir') || confirmDialog.title.includes('Cancelar') ? 'bg-red-500 text-white shadow-red-500/20' : 'gold-gradient text-background-dark'}`}>Confirmar Ação</button>
+              <button onClick={() => setConfirmDialog({ show: false, title: '', message: '', onConfirm: () => { } })} className="w-full bg-white/5 border border-white/10 text-white h-16 rounded-2xl font-black uppercase tracking-[0.4em] text-[10px]">Voltar</button>
             </div>
           </div>
         </div>

@@ -97,6 +97,8 @@ const QuickSchedule: React.FC = () => {
     // UI
     const [step, setStep] = useState<Step>('LOADING');
     const [messages, setMessages] = useState<Message[]>([]);
+    const [userAppointments, setUserAppointments] = useState<Appointment[]>([]);
+    const [showMyAppointments, setShowMyAppointments] = useState(false);
     const [inputValue, setInputValue] = useState('');
     const [userData, setUserData] = useState({ phone: '', name: '', email: '', password: '' });
     const [bookingDraft, setBookingDraft] = useState<any>(null);
@@ -114,6 +116,19 @@ const QuickSchedule: React.FC = () => {
     const initialized = useRef(false);
 
     // Optimized handlers with useCallback
+    const fetchUserAppointments = async (userId: string, salonId: string) => {
+        try {
+            const { data, error } = await supabase
+                .from('appointments')
+                .select('*')
+                .eq('client_id', userId)
+                .eq('salon_id', salonId)
+                .in('status', ['pending', 'confirmed'])
+                .order('date', { ascending: true });
+            if (!error) setUserAppointments(data || []);
+        } catch (err) { }
+    };
+
     const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         setInputValue(e.target.value);
     }, []);
@@ -206,6 +221,7 @@ const QuickSchedule: React.FC = () => {
                     const serviceId = params.get('serviceId');
 
                     if (session?.user) {
+                        fetchUserAppointments(session.user.id, data.id);
                         const profileData = session.user.user_metadata;
                         const firstName = (profileData?.full_name || 'Usuário').split(' ')[0];
                         setUserData({
@@ -520,16 +536,18 @@ const QuickSchedule: React.FC = () => {
         setStep('PROFESSIONAL');
     };
 
-    const handleProSelect = (pro: Professional) => {
-        setSelectedPro(pro);
-        setShowElements(false); // Esconde UI enquanto bot fala
-        addUserMessage(pro.name);
+    const confirmPro = () => {
+        if (!selectedPro) return;
+        setShowElements(false);
+        addUserMessage(selectedPro.name);
         addBotMessage("Para quando deseja agendar?");
         setStep('DATE');
     };
 
-    const handleDateSelect = async (date: string, label: string) => {
-        setSelectedDate(date);
+    const confirmDate = async () => {
+        if (!selectedDate) return;
+        const d = new Date(selectedDate + 'T12:00:00');
+        const label = d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', weekday: 'long' });
         setShowElements(false); // Esconde UI enquanto bot fala
         addUserMessage(label);
         addBotMessage(`Ótimo! Agora escolha o melhor **horário** para ${label.toLowerCase()}:`);
@@ -547,7 +565,7 @@ const QuickSchedule: React.FC = () => {
         try {
             const { data, error: rpcError } = await supabase.rpc('get_available_slots_rpc', {
                 p_pro_id: selectedPro.id,
-                p_date: date,
+                p_date: selectedDate,
                 p_duration_min: totalDuration,
                 p_client_now_min: nowMin
             });
@@ -567,10 +585,10 @@ const QuickSchedule: React.FC = () => {
         }
     };
 
-    const handleTimeSelect = (time: string) => {
-        setSelectedTime(time);
+    const confirmTime = () => {
+        if (!selectedTime) return;
         setShowElements(false);
-        addUserMessage(time);
+        addUserMessage(selectedTime);
 
         const params = new URLSearchParams(location.search);
         const isFromAI = params.get('promo') === 'true' && sessionStorage.getItem('aura_promo_verified') === 'true';
@@ -584,13 +602,12 @@ const QuickSchedule: React.FC = () => {
 
         const serviceNames = selectedServices.map(s => s.name).join(', ');
 
-        // Formatar data
         const [year, month, day] = selectedDate.split('-').map(Number);
         const dateObj = new Date(year, month - 1, day);
         const dateFormatted = dateObj.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', weekday: 'long' });
 
         addBotMessage(`Por favor, confira os detalhes:\n\n` +
-            `🗓️ **Data:** ${dateFormatted} às **${time}**\n` +
+            `🗓️ **Data:** ${dateFormatted} às **${selectedTime}**\n` +
             `👤 **Profissional:** ${selectedPro?.name}\n` +
             `✂️ **Serviços:** ${serviceNames}\n` +
             `💰 **Total:** ${discountPercentage > 0 ? `<s>R$ ${baseTotalWithTax.toFixed(2)}</s> **R$ ${finalTotal.toFixed(2)}**` : `R$ ${baseTotalWithTax.toFixed(2)}`}\n\n` +
@@ -658,7 +675,7 @@ const QuickSchedule: React.FC = () => {
 
     return (
         <div className="bg-[#0a0a0b] h-[100dvh] w-full flex items-center justify-center p-0 sm:p-6 overflow-hidden fixed inset-0 sm:relative">
-            <div className="w-full max-w-[500px] lg:max-w-[650px] h-full sm:h-[90vh] bg-[#121214] sm:rounded-[40px] border border-white/5 shadow-2xl flex flex-col overflow-hidden relative font-sans pt-[env(safe-area-inset-top)]">
+            <div className="w-full max-w-[500px] lg:max-w-[850px] h-full lg:h-[95vh] bg-[#121214] lg:rounded-[40px] border border-white/5 shadow-2xl flex flex-col overflow-hidden relative font-sans pt-[env(safe-area-inset-top)]">
 
                 {/* Header Premium Aura */}
                 <div className="px-6 py-5 bg-[#18181b] border-b border-white/5 flex items-center justify-between z-10 shrink-0">
@@ -668,20 +685,59 @@ const QuickSchedule: React.FC = () => {
                             <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-[#18181b]"></div>
                         </div>
                         <div>
-                            <h1 className="font-bold text-base text-white leading-tight">{salon?.nome || 'Carregando...'}</h1>
+                            <h1 className="font-bold text-white leading-tight" style={{ fontSize: 'var(--step-1)' }}>{salon?.nome || 'Carregando...'}</h1>
                             <div className="flex items-center gap-1.5 mt-0.5">
-                                <span className="text-[9px] font-black uppercase tracking-[0.1em]" style={{ color: auraGold }}>LUXE CONCIERGE</span>
+                                <span className="font-black uppercase tracking-[0.1em]" style={{ color: auraGold, fontSize: '9px' }}>LUXE CONCIERGE</span>
                                 <span className="w-1 h-1 bg-white/20 rounded-full"></span>
                                 <span className="text-[9px] text-green-500 font-bold uppercase">Online</span>
                             </div>
                         </div>
                     </div>
-                    {step === 'CHECKOUT' && (
-                        <button onClick={() => setStep('CONFIRM')} className="text-white/50 hover:text-white transition-colors">
-                            <span className="material-symbols-outlined">close</span>
-                        </button>
-                    )}
+                    <div className="flex items-center gap-4">
+                        {userAppointments.length > 0 && (
+                            <button
+                                onClick={() => setShowMyAppointments(true)}
+                                className="size-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-primary animate-pulse"
+                            >
+                                <span className="material-symbols-outlined text-[20px]">calendar_month</span>
+                            </button>
+                        )}
+                        {step === 'CHECKOUT' && (
+                            <button onClick={() => setStep('CONFIRM')} className="text-white/50 hover:text-white transition-colors">
+                                <span className="material-symbols-outlined">close</span>
+                            </button>
+                        )}
+                    </div>
                 </div>
+
+                {/* MyAppointments Drawer Compact */}
+                {showMyAppointments && (
+                    <div className="absolute inset-0 z-[60] flex items-end">
+                        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowMyAppointments(false)}></div>
+                        <div className="w-full bg-[#1c1c1f] rounded-t-[40px] border-t border-white/10 p-8 shadow-2xl relative z-70 animate-fade-in-up">
+                            <div className="flex items-center justify-between mb-8">
+                                <h3 className="font-display font-black italic text-white text-xl uppercase tracking-widest text-primary">Meus Agendamentos</h3>
+                                <button onClick={() => setShowMyAppointments(false)} className="size-10 rounded-full bg-white/5 flex items-center justify-center text-slate-500">
+                                    <span className="material-symbols-outlined">close</span>
+                                </button>
+                            </div>
+                            <div className="space-y-4 max-h-[50vh] overflow-y-auto no-scrollbar pb-10">
+                                {userAppointments.map(appt => (
+                                    <div key={appt.id} className="bg-white/5 border border-white/5 rounded-3xl p-5 flex items-center justify-between group">
+                                        <div className="space-y-1">
+                                            <p className="text-[10px] font-black text-primary uppercase tracking-widest">{appt.date} • {appt.time}</p>
+                                            <p className="text-sm font-bold text-white uppercase">{appt.service_names}</p>
+                                            <p className="text-[9px] text-slate-500 font-bold uppercase tracking-widest italic">{appt.status === 'confirmed' ? '✅ Confirmado' : '⏳ Aguardando'}</p>
+                                        </div>
+                                        <div className="size-12 rounded-2xl bg-white/5 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+                                            <span className="material-symbols-outlined">check_circle</span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {/* Checkout Overlay */}
                 {step === 'CHECKOUT' && salon && (
@@ -699,13 +755,16 @@ const QuickSchedule: React.FC = () => {
                 )}
 
                 {/* Chat Area */}
-                <div className="flex-1 overflow-y-auto p-5 space-y-5 scrollbar-hide bg-[#121214]">
+                <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5 scrollbar-hide bg-[#121214]">
                     {messages.map(msg => (
                         <div key={msg.id} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in-up`}>
-                            <div className={`max-w-[85%] px-5 py-4 rounded-[24px] text-sm leading-relaxed shadow-xl ${msg.sender === 'bot'
+                            <div className={`max-w-[90%] sm:max-w-[85%] px-5 py-4 rounded-[24px] leading-relaxed shadow-xl ${msg.sender === 'bot'
                                 ? 'bg-[#1c1c1f] text-slate-100 rounded-tl-sm border border-[#c1a571]/20 shadow-[#c1a571]/5'
                                 : `text-black font-bold rounded-tr-sm`
-                                }`} style={msg.sender === 'user' ? { background: `linear-gradient(135deg, ${auraGold} 0%, ${auraGoldDark} 100%)` } : {}}>
+                                }`} style={{
+                                    ...(msg.sender === 'user' ? { background: `linear-gradient(135deg, ${auraGold} 0%, ${auraGoldDark} 100%)` } : {}),
+                                    fontSize: 'var(--step-0)'
+                                }}>
                                 {typeof msg.text === 'string'
                                     ? (msg.sender === 'bot' ? <TypewriterText text={msg.text} /> : renderText(msg.text))
                                     : msg.text}
@@ -756,13 +815,13 @@ const QuickSchedule: React.FC = () => {
                                 {...proDrag}
                                 className="mt-4 flex overflow-x-auto gap-5 pb-4 scrollbar-hide px-1 cursor-grab active:cursor-grabbing select-none"
                             >
-                                {professionals.filter(p => !selectedPro || p.id === selectedPro.id).map(pro => (
-                                    <div key={pro.id} onClick={() => handleProSelect(pro)} className="shrink-0 flex flex-col items-center gap-3 cursor-pointer active:scale-95 transition-transform p-1">
+                                {professionals.map(pro => (
+                                    <div key={pro.id} onClick={() => setSelectedPro(pro)} className="shrink-0 flex flex-col items-center gap-3 cursor-pointer active:scale-95 transition-transform p-1">
                                         <div className={`size-20 rounded-[28px] p-1 border-2 transition-all ${selectedPro?.id === pro.id ? 'shadow-xl' : 'border-white/5'}`} style={{ borderColor: selectedPro?.id === pro.id ? auraGold : 'transparent' }}>
                                             <img src={pro.image || `https://api.dicebear.com/7.x/initials/svg?seed=${pro.name}`} className="w-full h-full rounded-[22px] object-cover" />
                                         </div>
                                         <div className="text-center">
-                                            <p className="text-[10px] font-black text-white uppercase tracking-widest">{pro.name.split(' ')[0]}</p>
+                                            <p className={`text-[10px] font-black uppercase tracking-widest transition-colors ${selectedPro?.id === pro.id ? 'text-primary' : 'text-white'}`}>{pro.name.split(' ')[0]}</p>
                                             <p className="text-[7px] font-bold text-slate-500 uppercase tracking-tighter mt-1">{pro.role}</p>
                                         </div>
                                     </div>
@@ -803,8 +862,8 @@ const QuickSchedule: React.FC = () => {
                                         return (
                                             <button
                                                 key={d.dateStr}
-                                                onClick={() => handleDateSelect(d.dateStr, d.label)}
-                                                className={`shrink-0 flex flex-col items-center justify-center w-[72px] h-[88px] rounded-[24px] transition-all borderActive active:scale-95 ${isHighlight
+                                                onClick={() => setSelectedDate(d.dateStr)}
+                                                className={`shrink-0 flex flex-col items-center justify-center w-[72px] h-[88px] rounded-[24px] transition-all borderActive active:scale-95 ${isSelected
                                                     ? 'text-black shadow-lg shadow-[#c1a571]/20 scale-105'
                                                     : 'bg-[#121214] border border-white/10 text-slate-500 hover:border-[#c1a571]/50 hover:text-white'
                                                     }`}
@@ -829,9 +888,9 @@ const QuickSchedule: React.FC = () => {
                         )}
 
                         {showElements && step === 'TIME' && (
-                            <div className="mt-4 grid grid-cols-4 gap-3 px-1">
+                            <div className="mt-4 grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-3 px-1">
                                 {availableSlots.map(slot => (
-                                    <button key={slot} onClick={() => handleTimeSelect(slot)} className="py-3.5 bg-[#1c1c1f] border border-white/5 rounded-2xl text-[10px] font-black text-slate-400 hover:text-black hover:bg-[#ecd3a5] transition-all active:scale-95 uppercase tracking-widest">
+                                    <button key={slot} onClick={() => setSelectedTime(slot)} className={`py-3.5 border rounded-2xl text-[10px] font-black transition-all active:scale-95 uppercase tracking-widest text-center ${selectedTime === slot ? 'gold-gradient text-black' : 'bg-[#1c1c1f] border-white/5 text-slate-400 hover:text-white'}`}>
                                         {slot}
                                     </button>
                                 ))}
@@ -866,10 +925,48 @@ const QuickSchedule: React.FC = () => {
                             <span className="material-symbols-outlined text-sm">arrow_forward</span>
                         </button>
                     )}
-                    {showElements && (step === 'TIME' || step === 'CONFIRM') && (
-                        <button onClick={finalize} className="w-full bg-emerald-500 text-white font-black py-4 rounded-2xl shadow-xl uppercase text-xs tracking-[0.2em] active:scale-95 transition-all">
-                            CONFIRMAR AGENDAMENTO
-                        </button>
+                    {showElements && step === 'PROFESSIONAL' && (
+                        <div className="flex gap-3">
+                            <button onClick={() => setStep('SERVICES')} className="size-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-500 hover:text-white transition-all">
+                                <span className="material-symbols-outlined">undo</span>
+                            </button>
+                            <button onClick={confirmPro} disabled={!selectedPro} className="flex-1 text-black font-black py-4 rounded-2xl shadow-xl uppercase text-xs tracking-[0.2em] disabled:opacity-30 active:scale-95 transition-all flex items-center justify-center gap-2" style={{ background: `linear-gradient(135deg, ${auraGold} 0%, ${auraGoldDark} 100%)` }}>
+                                ESCOLHER PROFISSIONAL
+                                <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                            </button>
+                        </div>
+                    )}
+                    {showElements && step === 'DATE' && (
+                        <div className="flex gap-3">
+                            <button onClick={() => setStep('PROFESSIONAL')} className="size-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-500 hover:text-white transition-all">
+                                <span className="material-symbols-outlined">undo</span>
+                            </button>
+                            <button onClick={confirmDate} disabled={!selectedDate} className="flex-1 text-black font-black py-4 rounded-2xl shadow-xl uppercase text-xs tracking-[0.2em] disabled:opacity-30 active:scale-95 transition-all flex items-center justify-center gap-2" style={{ background: `linear-gradient(135deg, ${auraGold} 0%, ${auraGoldDark} 100%)` }}>
+                                ESCOLHER DATA
+                                <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                            </button>
+                        </div>
+                    )}
+                    {showElements && step === 'TIME' && (
+                        <div className="flex gap-3">
+                            <button onClick={() => setStep('DATE')} className="size-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-500 hover:text-white transition-all">
+                                <span className="material-symbols-outlined">undo</span>
+                            </button>
+                            <button onClick={confirmTime} disabled={!selectedTime} className="flex-1 text-black font-black py-4 rounded-2xl shadow-xl uppercase text-xs tracking-[0.2em] disabled:opacity-30 active:scale-95 transition-all flex items-center justify-center gap-2" style={{ background: `linear-gradient(135deg, ${auraGold} 0%, ${auraGoldDark} 100%)` }}>
+                                REVISAR AGENDAMENTO
+                                <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                            </button>
+                        </div>
+                    )}
+                    {showElements && step === 'CONFIRM' && (
+                        <div className="flex gap-3">
+                            <button onClick={() => setStep('TIME')} className="size-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-500 hover:text-white transition-all">
+                                <span className="material-symbols-outlined">undo</span>
+                            </button>
+                            <button onClick={finalize} className="flex-1 bg-emerald-500 text-white font-black py-4 rounded-2xl shadow-xl uppercase text-xs tracking-[0.2em] active:scale-95 transition-all">
+                                FINALIZAR AGORA
+                            </button>
+                        </div>
                     )}
                     {['PHONE', 'AUTH_CHECK', 'PASSWORD', 'REGISTER_NAME', 'REGISTER_EMAIL', 'REGISTER_PASSWORD'].includes(step) && (
                         <div className="flex gap-3 relative">
@@ -887,10 +984,10 @@ const QuickSchedule: React.FC = () => {
                             </button>
                         </div>
                     )}
-                    {['WELCOME', 'LOADING', 'PROFESSIONAL', 'DATE', 'TIME', 'SUCCESS'].includes(step) && <div className="h-4 w-full flex items-center justify-center"><div className="w-12 h-1 bg-white/5 rounded-full"></div></div>}
+                    {['WELCOME', 'LOADING', 'SUCCESS'].includes(step) && <div className="h-4 w-full flex items-center justify-center"><div className="w-12 h-1 bg-white/5 rounded-full"></div></div>}
                 </div>
             </div>
-        </div >
+        </div>
     );
 };
 export default QuickSchedule;

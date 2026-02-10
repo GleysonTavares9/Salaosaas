@@ -179,48 +179,63 @@ const SalonPage: React.FC<SalonPageProps> = ({ salons, role, setBookingDraft }) 
   };
 
   return (
-    <div className="flex-1 flex flex-col h-full relative overflow-hidden">
+    <div className="flex-1 flex flex-col h-full relative overflow-hidden bg-background-dark">
       <div className="flex-1 overflow-y-auto no-scrollbar scroll-smooth">
-        <div className="relative h-[300px] w-full shrink-0">
-          <img src={salon.banner_url} className="absolute inset-0 w-full h-full object-cover grayscale opacity-30" alt="Banner" />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-background-dark/30 pointer-events-none"></div>
+        {/* Banner e Header Section */}
+        <section className="relative h-[300px] lg:h-[400px] w-full shrink-0 flex items-center justify-center overflow-hidden">
+          <img src={salon.banner_url} className="absolute inset-0 w-full h-full object-cover grayscale opacity-30 scale-110" alt="Banner" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-background-dark/20 to-background-dark pointer-events-none"></div>
 
-          <header className="relative z-10 p-6 pt-[calc(env(safe-area-inset-top)+2rem)] flex items-center justify-between">
-            <button onClick={() => navigate(-1)} className="size-12 flex items-center justify-center rounded-2xl bg-black/30 backdrop-blur-md border border-white/10 text-white active:scale-95 transition-all">
-              <span className="material-symbols-outlined text-xl">arrow_back</span>
-            </button>
-            <h2 className="absolute left-1/2 -translate-x-1/2 text-white font-display font-black text-xs italic tracking-[0.3em] uppercase opacity-90">Detalhes da Unidade</h2>
-            <div className="size-12"></div>
+          {/* Header Superior */}
+          <header className="absolute top-0 left-0 right-0 z-20 p-6 pt-[calc(env(safe-area-inset-top)+2rem)]">
+            <div className="max-w-[1200px] mx-auto w-full flex items-center justify-between">
+              <button onClick={() => navigate(-1)} className="size-12 flex items-center justify-center rounded-2xl bg-black/30 backdrop-blur-md border border-white/10 text-white active:scale-95 transition-all">
+                <span className="material-symbols-outlined text-xl">arrow_back</span>
+              </button>
+              <h2 className="font-display font-black text-white italic tracking-[0.4em] uppercase opacity-90" style={{ fontSize: 'var(--step-0)', transform: 'scale(0.8)' }}>Detalhes da Unidade</h2>
+              <div className="size-12"></div>
+            </div>
           </header>
 
-          <div className="absolute bottom-6 left-6 right-6 z-10">
-            <div className="flex items-center gap-4 mb-3">
-              <img src={salon.logo_url} className="size-14 rounded-2xl border-2 border-background-dark/20 shadow-xl object-cover" alt="Logo" />
-              <div className="flex-1 min-w-0">
-                <h1 className="text-white text-xl font-display font-black leading-tight italic truncate">{salon.nome}</h1>
-                <div className="flex items-center gap-2 mt-0.5">
-                  <span className="text-primary font-black text-[8px] uppercase tracking-widest">{salon.segmento}</span>
-                  <div className="flex gap-2 items-center pl-2 border-l border-white/20">
-                    <span className="text-white text-[8px] font-black tracking-widest">{dynamicRating.toFixed(1)}</span>
-                    <PreciseRatingStars rating={dynamicRating} size="text-[10px]" className="gap-0.5" />
+          {/* Info Principal do Salão */}
+          <div className="relative z-10 w-full max-w-[1200px] px-6 mt-12 lg:mt-20">
+            <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 py-8">
+              <div className="flex items-center gap-6">
+                <div className="relative shrink-0">
+                  <img src={salon.logo_url} className="size-20 lg:size-24 rounded-[32px] border-2 border-primary/20 shadow-2xl object-cover" alt="Logo" />
+                  <div className="absolute inset-0 rounded-[32px] ring-1 ring-white/10 ring-inset"></div>
+                </div>
+                <div className="min-w-0">
+                  <h1 className="text-white font-display font-black italic tracking-tight leading-[0.9] mb-4" style={{ fontSize: 'var(--step-4)' }}>{salon.nome}</h1>
+                  <div className="flex flex-wrap items-center gap-4">
+                    <span className="text-primary font-black uppercase tracking-[0.2em] bg-primary/10 border border-primary/20 px-3 py-1 rounded-full" style={{ fontSize: 'var(--step-0)', transform: 'scale(0.8)', transformOrigin: 'left' }}>{salon.segmento}</span>
+                    <div className="flex items-center gap-3 pl-4 border-l border-white/10">
+                      <span className="text-white font-black tracking-widest" style={{ fontSize: 'var(--step-1)' }}>{dynamicRating.toFixed(1)}</span>
+                      <PreciseRatingStars rating={dynamicRating} size="text-[12px]" className="gap-1" />
+                      <span className="text-slate-500 font-bold uppercase tracking-widest ml-1" style={{ fontSize: 'var(--step-0)', transform: 'scale(0.7)' }}>({dynamicReviewsCount} Reviews)</span>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-            <p className="text-slate-400 text-[10px] italic opacity-60 line-clamp-2">"{salon.descricao}"</p>
-          </div>
-        </div>
 
-        <nav className="sticky top-0 z-[60] bg-background-dark/40 backdrop-blur-xl border-b border-white/5 overflow-x-auto no-scrollbar">
-          <div className="flex p-4 gap-2 min-w-max">
+              <div className="max-w-[400px]">
+                <p className="text-slate-400 font-medium italic opacity-70 leading-relaxed" style={{ fontSize: 'var(--step-0)' }}>"{salon.descricao}"</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <nav className="sticky top-0 z-[60] bg-background-dark/80 backdrop-blur-2xl border-b border-white/5 overflow-x-auto no-scrollbar">
+          <div className="max-w-[1200px] mx-auto w-full flex p-4 lg:py-6 gap-3 lg:gap-6 min-w-max">
             {['services', 'portfolio', 'reviews', 'info'].map(tab => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab as TabType)}
-                className={`py-3 px-5 text-[9px] font-black uppercase tracking-widest rounded-2xl transition-all outline-none whitespace-nowrap ${activeTab === tab
-                  ? 'gold-gradient text-background-dark shadow-lg scale-100'
-                  : 'bg-white/5 text-slate-500 hover:text-white border border-white/5'
+                className={`py-3 px-6 lg:py-4 lg:px-8 font-black uppercase tracking-[0.3em] rounded-[20px] lg:rounded-[24px] transition-all outline-none whitespace-nowrap shadow-xl border ${activeTab === tab
+                  ? 'gold-gradient text-background-dark border-transparent scale-100'
+                  : 'bg-white/5 text-slate-500 hover:text-white border-white/5 hover:bg-white/10'
                   }`}
+                style={{ fontSize: 'var(--step-0)', transform: 'scale(0.8)' }}
               >
                 {tab === 'services' ? 'Rituais' : tab === 'portfolio' ? 'Portfólio' : tab === 'reviews' ? 'Avaliações' : 'Local'}
               </button>
@@ -228,106 +243,127 @@ const SalonPage: React.FC<SalonPageProps> = ({ salons, role, setBookingDraft }) 
           </div>
         </nav>
 
-        <main className="px-6 py-6 pb-48">
+        <main className="max-w-[1200px] mx-auto w-full px-6 py-10 pb-48">
           {activeTab === 'reviews' && (
-            <div className="space-y-6">
-              <div className="bg-surface-dark/40 border border-white/5 rounded-3xl p-6 flex items-center justify-between">
-                <div>
-                  <div className="flex items-baseline gap-2">
-                    <h3 className="text-4xl font-display font-black text-white italic">{dynamicRating.toFixed(1)}</h3>
-                    <span className="text-[10px] font-bold text-slate-600">/ 5.0</span>
+            <div className="grid lg:grid-cols-12 gap-8 lg:items-start animate-fade-in">
+              <div className="lg:col-span-4 space-y-6 lg:sticky lg:top-32">
+                <div className="bg-surface-dark/40 border border-white/5 rounded-[40px] p-8 shadow-2xl backdrop-blur-md">
+                  <div className="text-center">
+                    <div className="flex items-baseline justify-center gap-2 mb-2">
+                      <h3 className="text-6xl font-display font-black text-white italic tracking-tighter">{dynamicRating.toFixed(1)}</h3>
+                      <span className="text-xs font-bold text-slate-600 uppercase tracking-widest">/ 5.0</span>
+                    </div>
+                    <div className="flex justify-center">
+                      <PreciseRatingStars rating={dynamicRating} size="text-lg" className="gap-1.5" />
+                    </div>
+                    <p className="text-[10px] text-slate-500 font-black uppercase tracking-[0.3em] mt-6 leading-relaxed">Sinfonia de {dynamicReviewsCount} Experiências</p>
                   </div>
-                  <PreciseRatingStars rating={dynamicRating} size="text-sm" className="gap-1 mt-2" />
-                  <p className="text-[8px] text-slate-500 font-black uppercase tracking-widest mt-3">Baseado em {dynamicReviewsCount} avaliações reais</p>
+
+                  <div className="mt-10">
+                    <button onClick={() => setShowReviewForm(true)} className="w-full gold-gradient text-background-dark py-6 rounded-[32px] font-black uppercase tracking-[0.3em] shadow-[0_20px_40px_rgba(193,165,113,0.2)] active:scale-95 transition-all flex items-center justify-center gap-3" style={{ fontSize: 'var(--step-0)', transform: 'scale(0.8)' }}>
+                      <span className="material-symbols-outlined font-black">add_comment</span>
+                      Avaliar Aura
+                    </button>
+                  </div>
                 </div>
-                <button onClick={() => setShowReviewForm(true)} className="size-14 rounded-2xl gold-gradient text-background-dark flex flex-col items-center justify-center shadow-xl active:scale-95 transition-all">
-                  <span className="material-symbols-outlined text-xl">add_comment</span>
-                  <span className="text-[6px] font-black uppercase mt-1">Avaliar</span>
-                </button>
+
+                {showReviewForm && (
+                  <div className="bg-surface-dark border border-primary/30 rounded-[40px] p-8 animate-slide-up space-y-8 shadow-2xl backdrop-blur-xl">
+                    <div className="flex justify-between items-center">
+                      <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-primary">Sua Experiência</h4>
+                      <button onClick={() => setShowReviewForm(false)} className="text-slate-500 hover:text-white transition-colors"><span className="material-symbols-outlined">close</span></button>
+                    </div>
+                    <div className="flex justify-center gap-3">
+                      {[1, 2, 3, 4, 5].map(star => (
+                        <button key={star} onClick={() => setNewRating(star)} className="hover:scale-110 transition-transform">
+                          <span className={`material-symbols-outlined text-4xl ${star <= newRating ? 'text-primary fill-1 drop-shadow-[0_0_15px_rgba(193,165,113,0.5)]' : 'text-white/10'}`}>star</span>
+                        </button>
+                      ))}
+                    </div>
+                    <textarea
+                      value={newComment}
+                      onChange={(e) => setNewComment(e.target.value)}
+                      placeholder="Descreva seu ritual..."
+                      className="w-full bg-black/40 border border-white/5 rounded-[24px] p-6 text-sm text-white outline-none h-40 focus:border-primary/30 transition-all placeholder:text-slate-700"
+                    />
+                    <button onClick={handlePublicReview} disabled={isSubmittingReview} className="w-full bg-primary text-background-dark py-6 rounded-[32px] text-[10px] font-black uppercase tracking-[0.3em] shadow-xl hover:shadow-primary/20 transition-all">
+                      {isSubmittingReview ? 'Divulgando...' : 'Publicar Agora'}
+                    </button>
+                  </div>
+                )}
               </div>
 
-              {showReviewForm && (
-                <div className="bg-surface-dark border border-primary/30 rounded-[32px] p-6 animate-slide-up space-y-6">
-                  <div className="flex justify-between items-center text-white">
-                    <h4 className="text-[10px] font-black uppercase tracking-widest">Sua Avaliação</h4>
-                    <button onClick={() => setShowReviewForm(false)}><span className="material-symbols-outlined">close</span></button>
-                  </div>
-                  <div className="flex justify-center gap-2">
-                    {[1, 2, 3, 4, 5].map(star => (
-                      <button key={star} onClick={() => setNewRating(star)}>
-                        <span className={`material-symbols-outlined text-3xl ${star <= newRating ? 'text-primary fill-1' : 'text-white/10'}`}>star</span>
-                      </button>
-                    ))}
-                  </div>
-                  <textarea value={newComment} onChange={(e) => setNewComment(e.target.value)} placeholder="O que achou?" className="w-full bg-black/20 border border-white/5 rounded-2xl p-4 text-xs text-white outline-none h-24" />
-                  <button onClick={handlePublicReview} disabled={isSubmittingReview} className="w-full bg-primary text-background-dark py-4 rounded-xl text-[9px] font-black uppercase tracking-widest">{isSubmittingReview ? 'Enviando...' : 'Publicar'}</button>
-                </div>
-              )}
-
-              <div className="space-y-4">
+              <div className="lg:col-span-8 space-y-6">
                 {salonReviews.length > 0 ? (
-                  salonReviews.map((rev: any) => (
-                    <div key={rev.id} className="bg-surface-dark/20 border border-white/5 rounded-3xl p-5 space-y-3 relative group">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <img src={rev.clientAvatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(rev.clientName)}&background=c1a571&color=0c0d10&bold=true`} className="size-10 rounded-full border border-white/10" alt="Avatar" />
-                          <div>
-                            <h4 className="text-[10px] font-black text-white uppercase tracking-widest">{rev.clientName}</h4>
-                            <p className="text-[7px] text-slate-600 font-bold">{new Date(rev.created_at).toLocaleDateString('pt-BR')}</p>
+                  <div className="grid sm:grid-cols-2 gap-6">
+                    {salonReviews.map((rev: any) => (
+                      <div key={rev.id} className="bg-[#121417]/40 border border-white/5 rounded-[40px] p-8 space-y-6 shadow-2xl backdrop-blur-md hover:border-primary/20 transition-all group">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-4">
+                            <div className="relative">
+                              <img src={rev.clientAvatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(rev.clientName)}&background=c1a571&color=0c0d10&bold=true`} className="size-12 rounded-2xl border border-white/10 object-cover" alt="Avatar" />
+                              <div className="absolute inset-0 rounded-2xl ring-1 ring-white/10 ring-inset"></div>
+                            </div>
+                            <div>
+                              <h4 className="font-display font-black text-white italic uppercase tracking-widest" style={{ fontSize: 'var(--step-0)' }}>{rev.clientName}</h4>
+                              <p className="text-[8px] text-slate-600 font-bold uppercase tracking-widest mt-0.5">{new Date(rev.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })}</p>
+                            </div>
+                          </div>
+                          <div className="flex gap-0.5">
+                            {[1, 2, 3, 4, 5].map(star => (
+                              <span key={star} className={`material-symbols-outlined text-[10px] ${star <= rev.rating ? 'text-primary fill-1' : 'text-white/5'}`}>star</span>
+                            ))}
                           </div>
                         </div>
-                        <div className="flex gap-0.5">
-                          {[1, 2, 3, 4, 5].map(star => (
-                            <span key={star} className={`material-symbols-outlined text-[10px] ${star <= rev.rating ? 'text-primary fill-1' : 'text-white/5'}`}>star</span>
-                          ))}
-                        </div>
+                        <p className="text-slate-400 font-medium italic leading-relaxed" style={{ fontSize: 'var(--step-0)' }}>"{rev.comment}"</p>
                       </div>
-                      <p className="text-[11px] text-slate-300 italic">"{rev.comment}"</p>
-                    </div>
-                  ))
+                    ))}
+                  </div>
                 ) : (
-                  <div className="py-20 text-center opacity-30 flex flex-col items-center">
-                    <span className="material-symbols-outlined text-6xl mb-4 text-white/10">reviews</span>
-                    <p className="text-[10px] font-black uppercase tracking-widest text-white/20">Ainda não há comentários detalhados</p>
+                  <div className="bg-surface-dark/20 border border-white/5 rounded-[40px] py-32 text-center flex flex-col items-center">
+                    <div className="size-20 rounded-full bg-white/5 flex items-center justify-center mb-8 border border-white/10">
+                      <span className="material-symbols-outlined text-4xl text-white/20">reviews</span>
+                    </div>
+                    <p className="text-[10px] font-black uppercase tracking-[0.4em] text-white/20 max-w-[200px] leading-relaxed">Inicie a música das avaliações detalhadas</p>
                   </div>
                 )}
               </div>
             </div>
           )}
           {activeTab === 'services' && (
-            <div className="flex flex-col gap-4 -mx-6">
+            <div className="grid lg:grid-cols-2 gap-6 animate-fade-in">
               {salonServices.map(service => {
                 const isSelected = selectedServices.some(s => s.id === service.id);
                 return (
                   <button
                     key={service.id}
                     onClick={() => toggleService(service)}
-                    className={`bg-[#121417]/60 border ${isSelected ? 'border-primary' : 'border-white/5'
-                      } p-5 flex items-center gap-6 shadow-2xl backdrop-blur-md group active:scale-[0.98] transition-all relative overflow-hidden text-left w-full`}
+                    className={`bg-[#121417]/60 border-2 ${isSelected ? 'border-primary ring-4 ring-primary/10' : 'border-white/5'
+                      } p-6 rounded-[40px] flex items-center gap-6 shadow-2xl backdrop-blur-md group active:scale-[0.98] transition-all relative overflow-hidden text-left w-full hover:bg-[#1a1d21]/80 hover:border-white/10`}
                   >
                     {/* Imagem do Ritual */}
                     <div className="relative shrink-0">
-                      <img src={service.image} className="size-20 rounded-2xl object-cover shadow-2xl" alt={service.name} />
-                      <div className="absolute inset-0 rounded-2xl ring-1 ring-white/10 ring-inset"></div>
+                      <img src={service.image} className="size-20 lg:size-24 rounded-[24px] object-cover shadow-2xl group-hover:scale-105 transition-transform" alt={service.name} />
+                      <div className="absolute inset-0 rounded-[24px] ring-1 ring-white/10 ring-inset"></div>
                     </div>
 
                     {/* Informações Centrais */}
                     <div className="flex-1 min-w-0 py-1">
-                      <h4 className="text-white font-black text-sm italic font-display uppercase tracking-widest leading-snug line-clamp-2">{service.name}</h4>
-                      <div className="flex items-center gap-2 mt-1.5 opacity-40">
-                        <span className="text-[7px] text-white font-black uppercase tracking-widest">{service.duration_min} MIN</span>
+                      <h4 className="text-white font-black italic font-display uppercase tracking-widest leading-tight line-clamp-2 mb-2" style={{ fontSize: 'var(--step-0)' }}>{service.name}</h4>
+                      <div className="flex items-center gap-2 opacity-40">
+                        <span className="text-[8px] text-white font-black uppercase tracking-widest">{service.duration_min} MIN</span>
                         <span className="text-white">•</span>
-                        <span className="text-[7px] text-white font-black uppercase tracking-widest">SERVIÇO</span>
+                        <span className="text-[8px] text-white font-black uppercase tracking-widest">RITUAL</span>
                       </div>
-                      <div className="mt-3">
-                        <span className="text-primary font-display font-black text-xl italic tracking-tight">R$ {service.price.toFixed(2)}</span>
+                      <div className="mt-4">
+                        <span className="text-primary font-display font-black italic tracking-tight" style={{ fontSize: 'var(--step-2)' }}>R$ {service.price.toFixed(2)}</span>
                       </div>
                     </div>
 
-                    {/* Botão de Seleção (Checkmark) */}
-                    <div className={`size-10 rounded-full flex items-center justify-center transition-all ${isSelected ? 'bg-primary text-background-dark' : 'bg-white/5 text-white/10 border border-white/10'
+                    {/* Botão de Seleção (Indicador Premium) */}
+                    <div className={`size-12 lg:size-14 rounded-full flex items-center justify-center transition-all ${isSelected ? 'bg-primary text-background-dark shadow-[0_0_20px_rgba(193,165,113,0.4)]' : 'bg-white/5 text-white/10 border border-white/5'
                       }`}>
-                      <span className="material-symbols-outlined text-xl font-black">{isSelected ? 'check' : ''}</span>
+                      <span className="material-symbols-outlined text-2xl font-black">{isSelected ? 'check' : 'add'}</span>
                     </div>
                   </button>
                 );
@@ -336,27 +372,31 @@ const SalonPage: React.FC<SalonPageProps> = ({ salons, role, setBookingDraft }) 
           )}
 
           {activeTab === 'portfolio' && (
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 animate-fade-in">
               {salonGallery.length > 0 ? (
                 salonGallery.map((url, idx) => (
-                  <div key={idx} className="aspect-square rounded-2xl overflow-hidden border border-white/5 shadow-xl">
-                    <img src={url} className="w-full h-full object-cover hover:scale-110 transition-transform duration-500" alt="Portfolio" />
+                  <div key={idx} className="aspect-square rounded-[32px] overflow-hidden border-2 border-white/5 shadow-2xl group relative">
+                    <img src={url} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt="Portfolio" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-6">
+                      <span className="text-[8px] font-black text-white uppercase tracking-[0.3em]">Ambiente Original</span>
+                    </div>
                   </div>
                 ))
               ) : (
-                <div className="col-span-2 py-20 text-center opacity-20">
-                  <span className="material-symbols-outlined text-6xl mb-4 text-white">grid_view</span>
-                  <p className="text-[10px] font-black uppercase tracking-[0.3em]">Galeria em breve</p>
+                <div className="col-span-full py-40 text-center flex flex-col items-center justify-center">
+                  <div className="size-20 rounded-full bg-white/5 flex items-center justify-center mb-8 border border-white/10">
+                    <span className="material-symbols-outlined text-4xl text-white/20">grid_view</span>
+                  </div>
+                  <p className="text-[10px] font-black uppercase tracking-[0.4em] text-white/20">Galeria de Arte em Construção</p>
                 </div>
               )}
             </div>
-          )
-          }
-          {
-            activeTab === 'info' && (
-              <div className="space-y-8 animate-fade-in px-1 flex flex-col items-center">
-                {/* Card Único Premium Centralizado */}
-                <div className="bg-surface-dark/40 border border-white/5 rounded-[40px] p-8 space-y-12 shadow-2xl backdrop-blur-sm w-full flex flex-col items-center text-center">
+          )}
+          {activeTab === 'info' && (
+            <div className="grid lg:grid-cols-12 gap-10 animate-fade-in lg:items-start">
+              {/* Coluna Central com Infos principais */}
+              <div className="lg:col-span-8 space-y-8">
+                <div className="bg-surface-dark/40 border border-white/5 rounded-[48px] p-10 lg:p-16 shadow-2xl backdrop-blur-sm grid sm:grid-cols-2 gap-12 lg:gap-20">
 
                   {/* Endereço Centralizado */}
                   <button
@@ -364,14 +404,15 @@ const SalonPage: React.FC<SalonPageProps> = ({ salons, role, setBookingDraft }) 
                       const searchquery = `${salon.nome} ${salon.endereco} ${salon.cidade}`;
                       window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(searchquery)}`, '_blank');
                     }}
-                    className="w-full flex flex-col items-center group outline-none"
+                    className="flex flex-col items-center group outline-none"
                   >
-                    <div className="size-16 rounded-[24px] bg-white/5 border border-white/10 flex items-center justify-center shrink-0 group-active:scale-95 transition-all mb-6 shadow-xl">
-                      <span className="material-symbols-outlined text-primary text-3xl">location_on</span>
+                    <div className="size-20 lg:size-24 rounded-[32px] bg-white/5 border border-white/10 flex items-center justify-center shrink-0 group-hover:border-primary/30 group-active:scale-95 transition-all mb-8 shadow-2xl relative overflow-hidden">
+                      <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                      <span className="material-symbols-outlined text-primary text-4xl relative z-10">location_on</span>
                     </div>
-                    <div className="flex flex-col items-center">
-                      <h4 className="text-[11px] font-black text-white uppercase tracking-[0.4em] mb-2">Endereço</h4>
-                      <p className="text-sm text-slate-400 font-medium leading-relaxed max-w-[280px]">{salon.endereco}, {salon.cidade}</p>
+                    <div className="flex flex-col items-center text-center">
+                      <h4 className="text-[11px] font-black text-white uppercase tracking-[0.4em] mb-4">Localização</h4>
+                      <p className="text-base text-slate-400 font-medium leading-[1.8] max-w-[280px]">{salon.endereco}, {salon.cidade}</p>
                     </div>
                   </button>
 
@@ -382,117 +423,31 @@ const SalonPage: React.FC<SalonPageProps> = ({ salons, role, setBookingDraft }) 
                       const message = encodeURIComponent(`Olá ${salon.nome}, vi seu salão no App Aura e gostaria de tirar uma dúvida.`);
                       if (phone) window.open(`https://wa.me/55${phone}?text=${message}`, '_blank');
                     }}
-                    className="w-full flex flex-col items-center group outline-none"
+                    className="flex flex-col items-center group outline-none"
                   >
-                    <div className="size-16 rounded-[24px] bg-white/5 border border-white/10 flex items-center justify-center shrink-0 group-active:scale-95 transition-all mb-6 shadow-xl">
-                      <WhatsAppIcon className="size-8 text-primary" />
+                    <div className="size-20 lg:size-24 rounded-[32px] bg-white/5 border border-white/10 flex items-center justify-center shrink-0 group-hover:border-primary/30 group-active:scale-95 transition-all mb-8 shadow-2xl relative overflow-hidden">
+                      <div className="absolute inset-0 bg-emerald-500/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                      <WhatsAppIcon className="size-10 text-primary relative z-10" />
                     </div>
-                    <div className="flex flex-col items-center space-y-4">
-                      <h4 className="text-[11px] font-black text-white uppercase tracking-[0.4em] mb-1">Contato WhatsApp</h4>
-                      <p className="text-2xl font-display font-black text-white italic tracking-tighter">{salon.telefone || '(31) 99124-1598'}</p>
-                      <div className="bg-primary/10 border border-primary/20 px-6 py-2.5 rounded-full shadow-lg animate-pulse-slow">
-                        <span className="text-[9px] font-black text-primary uppercase tracking-[0.2em]">
-                          TOQUE AQUI PARA INICIAR UMA CONVERSA
+                    <div className="flex flex-col items-center text-center space-y-6">
+                      <h4 className="text-[11px] font-black text-white uppercase tracking-[0.4em] mb-2">Concierge Digital</h4>
+                      <p className="text-3xl font-display font-black text-white italic tracking-tighter">{salon.telefone || '(31) 99124-1598'}</p>
+                      <div className="bg-primary/10 border border-primary/20 px-8 py-3 rounded-full shadow-lg animate-pulse-slow">
+                        <span className="text-[10px] font-black text-primary uppercase tracking-[0.3em]">
+                          Canais Abertos
                         </span>
                       </div>
                     </div>
                   </button>
-
-                  {/* Horário e Grade */}
-                  <div className="w-full flex flex-col items-center">
-                    <div className="size-16 rounded-[24px] bg-white/5 border border-white/10 flex items-center justify-center shrink-0 mb-6 shadow-xl">
-                      <span className="material-symbols-outlined text-primary text-3xl">schedule</span>
-                    </div>
-                    <div className="w-full flex flex-col items-center">
-                      <h4 className="text-[11px] font-black text-white uppercase tracking-[0.4em] mb-2">Horário Comercial</h4>
-                      <p className="text-sm text-slate-400 font-medium mb-8">
-                        {(() => {
-                          const getSchedule = (dayKey: string) => {
-                            if (!salon.horario_funcionamento) return null;
-                            const h = salon.horario_funcionamento as any;
-                            const keyMaps: { [key: string]: string[] } = {
-                              'monday': ['monday', 'segunda', 'segunda-feira'],
-                              'tuesday': ['tuesday', 'terca', 'terça', 'terça-feira'],
-                              'wednesday': ['wednesday', 'quarta', 'quarta-feira'],
-                              'thursday': ['thursday', 'quinta', 'quinta-feira'],
-                              'friday': ['friday', 'sexta', 'sexta-feira'],
-                              'saturday': ['saturday', 'sabado', 'sábado'],
-                              'sunday': ['sunday', 'domingo']
-                            };
-                            const possibleKeys = keyMaps[dayKey] || [dayKey];
-                            for (const k of possibleKeys) {
-                              if (h[k]) return h[k];
-                            }
-                            return null;
-                          };
-
-                          const todayIndex = new Date().getDay();
-                          const enDays: { [key: number]: string } = { 0: 'sunday', 1: 'monday', 2: 'tuesday', 3: 'wednesday', 4: 'thursday', 5: 'friday', 6: 'saturday' };
-                          const schedule = getSchedule(enDays[todayIndex]);
-
-                          if (!schedule || schedule.closed) return 'Fechado hoje';
-                          return `Aberto hoje: ${schedule.open} às ${schedule.close}`;
-                        })()}
-                      </p>
-
-                      <div className="space-y-4 border-t border-white/5 pt-8 w-full max-w-[300px] px-2">
-                        {(() => {
-                          const getSchedule = (dayKey: string) => {
-                            if (!salon.horario_funcionamento) return null;
-                            const h = salon.horario_funcionamento as any;
-                            const keyMaps: { [key: string]: string[] } = {
-                              'monday': ['monday', 'segunda', 'segunda-feira'],
-                              'tuesday': ['tuesday', 'terca', 'terça', 'terça-feira'],
-                              'wednesday': ['wednesday', 'quarta', 'quarta-feira'],
-                              'thursday': ['thursday', 'quinta', 'quinta-feira'],
-                              'friday': ['friday', 'sexta', 'sexta-feira'],
-                              'saturday': ['saturday', 'sabado', 'sábado'],
-                              'sunday': ['sunday', 'domingo']
-                            };
-                            const possibleKeys = keyMaps[dayKey] || [dayKey];
-                            for (const k of possibleKeys) {
-                              if (h[k]) return h[k];
-                            }
-                            return null;
-                          };
-
-                          return [
-                            { key: 'monday', label: 'Segunda' },
-                            { key: 'tuesday', label: 'Terça' },
-                            { key: 'wednesday', label: 'Quarta' },
-                            { key: 'thursday', label: 'Quinta' },
-                            { key: 'friday', label: 'Sexta' },
-                            { key: 'saturday', label: 'Sábado' },
-                            { key: 'sunday', label: 'Domingo' }
-                          ].map(day => {
-                            const schedule = getSchedule(day.key);
-                            const today = new Date().toLocaleDateString('pt-BR', { weekday: 'long' }).toLowerCase();
-                            const isToday = today.includes(day.label.toLowerCase());
-
-                            return (
-                              <div key={day.key} className="flex justify-between items-center w-full">
-                                <span className={`text-[10px] font-black uppercase tracking-[0.2em] ${isToday ? 'text-white' : 'text-slate-600'}`}>
-                                  {day.label} {isToday && '•'}
-                                </span>
-                                <span className={`text-[10px] font-black tracking-wider ${!schedule || schedule.closed ? 'text-red-500/40 italic' : 'text-primary'}`}>
-                                  {!schedule || schedule.closed ? 'Fechado' : `${schedule.open} — ${schedule.close}`}
-                                </span>
-                              </div>
-                            );
-                          });
-                        })()}
-                      </div>
-                    </div>
-                  </div>
                 </div>
 
                 {/* Comodidades Estilo Original */}
                 {salon.amenities && salon.amenities.length > 0 && (
-                  <div className="space-y-4 px-2 w-full">
-                    <h3 className="text-[10px] font-black text-slate-600 uppercase tracking-[0.3em] text-center">Comodidades</h3>
-                    <div className="flex flex-wrap gap-2.5 justify-center">
+                  <div className="bg-surface-dark/20 border border-white/5 rounded-[48px] p-10 lg:p-12">
+                    <h3 className="text-[10px] font-black text-slate-600 uppercase tracking-[0.4em] mb-10 text-center">Protocolos & Amenidades</h3>
+                    <div className="flex flex-wrap gap-4 justify-center">
                       {salon.amenities.map((item: string, idx: number) => (
-                        <span key={idx} className="bg-white/5 border border-white/10 px-6 py-3 rounded-2xl text-[9px] font-black text-slate-300 uppercase tracking-widest shadow-md">
+                        <span key={idx} className="bg-white/5 border border-white/5 px-8 py-4 rounded-[20px] text-[10px] font-black text-slate-400 uppercase tracking-widest shadow-lg hover:border-primary/20 hover:text-white transition-all cursor-default">
                           {item}
                         </span>
                       ))}
@@ -500,25 +455,101 @@ const SalonPage: React.FC<SalonPageProps> = ({ salons, role, setBookingDraft }) 
                   </div>
                 )}
               </div>
-            )
-          }
+
+              {/* Sidebar de Horários */}
+              <aside className="lg:col-span-4 space-y-8">
+                <div className="bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20 rounded-[48px] p-10 shadow-2xl backdrop-blur-md">
+                  <div className="flex items-center gap-4 mb-10">
+                    <div className="size-14 rounded-2xl gold-gradient flex items-center justify-center shadow-lg">
+                      <span className="material-symbols-outlined text-background-dark text-2xl font-black">schedule</span>
+                    </div>
+                    <h3 className="text-white font-display font-black italic uppercase tracking-tight" style={{ fontSize: 'var(--step-1)' }}>Horários</h3>
+                  </div>
+
+                  <div className="space-y-5">
+                    {(() => {
+                      const getSchedule = (dayKey: string) => {
+                        if (!salon.horario_funcionamento) return null;
+                        const h = salon.horario_funcionamento as any;
+                        const keyMaps: { [key: string]: string[] } = {
+                          'monday': ['monday', 'segunda', 'segunda-feira'],
+                          'tuesday': ['tuesday', 'terca', 'terça', 'terça-feira'],
+                          'wednesday': ['wednesday', 'quarta', 'quarta-feira'],
+                          'thursday': ['thursday', 'quinta', 'quinta-feira'],
+                          'friday': ['friday', 'sexta', 'sexta-feira'],
+                          'saturday': ['saturday', 'sabado', 'sábado'],
+                          'sunday': ['sunday', 'domingo']
+                        };
+                        const possibleKeys = keyMaps[dayKey] || [dayKey];
+                        for (const k of possibleKeys) {
+                          if (h[k]) return h[k];
+                        }
+                        return null;
+                      };
+
+                      return [
+                        { key: 'monday', label: 'Segunda' },
+                        { key: 'tuesday', label: 'Terça' },
+                        { key: 'wednesday', label: 'Quarta' },
+                        { key: 'thursday', label: 'Quinta' },
+                        { key: 'friday', label: 'Sexta' },
+                        { key: 'saturday', label: 'Sábado' },
+                        { key: 'sunday', label: 'Domingo' }
+                      ].map(day => {
+                        const schedule = getSchedule(day.key);
+                        const today = new Date().toLocaleDateString('pt-BR', { weekday: 'long' }).toLowerCase();
+                        const isToday = today.includes(day.label.toLowerCase());
+
+                        return (
+                          <div key={day.key} className={`flex justify-between items-center p-4 rounded-2xl border transition-all ${isToday ? 'bg-primary/20 border-primary/30 shadow-lg scale-105' : 'bg-black/20 border-white/5'}`}>
+                            <span className={`text-[11px] font-black uppercase tracking-[0.2em] ${isToday ? 'text-white' : 'text-slate-600'}`}>
+                              {day.label}
+                            </span>
+                            <span className={`text-[11px] font-black tracking-wider ${!schedule || schedule.closed ? 'text-red-500/40 italic' : 'text-primary'}`}>
+                              {!schedule || schedule.closed ? 'Fechado' : `${schedule.open} — ${schedule.close}`}
+                            </span>
+                          </div>
+                        );
+                      });
+                    })()}
+                  </div>
+
+                  <div className="mt-10 p-6 bg-background-dark/60 rounded-3xl border border-white/5">
+                    <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest leading-relaxed text-center">
+                      {(() => {
+                        const todayIndex = new Date().getDay();
+                        const enDays: { [key: number]: string } = { 0: 'sunday', 1: 'monday', 2: 'tuesday', 3: 'wednesday', 4: 'thursday', 5: 'friday', 6: 'saturday' };
+                        const getSchedule = (dayKey: string) => {
+                          const h = salon.horario_funcionamento as any;
+                          return h && h[dayKey] ? h[dayKey] : null;
+                        };
+                        const schedule = getSchedule(enDays[todayIndex]);
+                        if (!schedule || schedule.closed) return 'Recarregando Energias: Fechado Hoje';
+                        return `Ciclo de Atendimento: ${schedule.open} às ${schedule.close}`;
+                      })()}
+                    </p>
+                  </div>
+                </div>
+              </aside>
+            </div>
+          )}
         </main >
       </div >
       {/* Footer Fixo com Botão Premium Centralizado */}
       {selectedServices.length > 0 && (
-        <footer className="fixed bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-background-dark via-background-dark/80 to-transparent z-[100] pb-safe flex justify-center animate-slide-up">
+        <footer className="fixed bottom-0 left-0 right-0 p-4 lg:p-6 bg-gradient-to-t from-background-dark via-background-dark/80 to-transparent z-[100] pb-safe flex justify-center animate-slide-up">
           <div className="w-full max-w-[450px]">
             <button
               onClick={startBooking}
-              className="w-full gold-gradient text-background-dark p-6 rounded-[32px] shadow-[0_20px_50px_rgba(193,165,113,0.3)] flex items-center justify-between gap-4 active:scale-95 transition-all"
+              className="w-full gold-gradient text-background-dark p-4 lg:p-6 rounded-[24px] lg:rounded-[32px] shadow-[0_20px_50px_rgba(193,165,113,0.3)] flex items-center justify-between gap-4 active:scale-95 transition-all"
             >
               <div className="text-left">
-                <p className="text-[8px] font-black uppercase tracking-widest opacity-60">{selectedServices.length} {selectedServices.length === 1 ? 'Ritual Selecionado' : 'Rituais Selecionados'}</p>
-                <p className="text-xl font-display font-black italic tracking-tighter">R$ {selectedServices.reduce((acc, s) => acc + s.price, 0).toFixed(2)}</p>
+                <p className="font-black uppercase tracking-widest opacity-60" style={{ fontSize: 'var(--step-0)', transform: 'scale(0.7)', transformOrigin: 'left' }}>{selectedServices.length} {selectedServices.length === 1 ? 'Ritual Selecionado' : 'Rituais Selecionados'}</p>
+                <p className="font-display font-black italic tracking-tighter" style={{ fontSize: 'var(--step-2)' }}>R$ {selectedServices.reduce((acc, s) => acc + s.price, 0).toFixed(2)}</p>
               </div>
               <div className="flex items-center gap-3">
-                <span className="font-black uppercase tracking-widest text-[9px]">ESCOLHER HORÁRIO</span>
-                <span className="material-symbols-outlined text-xl font-black">arrow_forward</span>
+                <span className="font-black uppercase tracking-widest" style={{ fontSize: 'var(--step-0)', transform: 'scale(0.8)' }}>ESCOLHER HORÁRIO</span>
+                <span className="material-symbols-outlined text-lg lg:text-xl font-black">arrow_forward</span>
               </div>
             </button>
           </div>

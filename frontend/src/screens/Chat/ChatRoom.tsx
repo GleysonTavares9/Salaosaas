@@ -167,90 +167,106 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ userId }) => {
   }, [messageText, id, userId, showToast]);
 
   return (
-    <div className="flex-1 min-h-screen flex flex-col overflow-hidden">
-      <header className="sticky top-0 z-50 bg-background-dark/30 backdrop-blur-md px-6 pt-12 pb-6 border-b border-white/5 flex items-center gap-4">
-        <button onClick={() => navigate(-1)} className="size-10 rounded-full border border-white/10 flex items-center justify-center text-white active:scale-95 transition-all">
-          <span className="material-symbols-outlined">arrow_back</span>
-        </button>
-        <div className="flex items-center gap-3">
-          <div className="size-10 rounded-[14px] bg-primary/10 border border-primary/20 flex items-center justify-center text-primary overflow-hidden">
-            {conversation?.participant_image ? (
-              <img src={conversation.participant_image} className="size-full object-cover" alt="" />
-            ) : (
-              <span className="material-symbols-outlined">account_circle</span>
-            )}
+    <div className="flex-1 min-h-screen flex flex-col overflow-hidden bg-background-dark">
+      <header className="sticky top-0 z-50 bg-background-dark/80 backdrop-blur-2xl px-6 pt-12 pb-8 border-b border-white/5">
+        <div className="max-w-[1200px] mx-auto w-full flex items-center justify-between px-2">
+          <div className="flex items-center gap-6">
+            <button onClick={() => navigate(-1)} className="size-12 rounded-2xl bg-black/30 border border-white/10 flex items-center justify-center text-white active:scale-95 transition-all">
+              <span className="material-symbols-outlined text-xl">arrow_back</span>
+            </button>
+            <div className="flex items-center gap-4">
+              <div className="size-14 rounded-[20px] bg-primary/10 border border-primary/20 p-0.5 flex items-center justify-center text-primary overflow-hidden shadow-xl">
+                {conversation?.participant_image ? (
+                  <img src={conversation.participant_image} className="size-full rounded-[18px] object-cover" alt="" />
+                ) : (
+                  <span className="material-symbols-outlined text-3xl">account_circle</span>
+                )}
+              </div>
+              <div className="text-left">
+                <h3 className="text-xl font-display font-black text-white italic tracking-tight uppercase leading-tight">
+                  {conversation?.participant_name || 'Carregando...'}
+                </h3>
+                <div className="flex items-center gap-2 mt-1">
+                  <div className={`size-2 rounded-full ${isLive ? 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)] animate-pulse' : 'bg-rose-500 shadow-[0_0_10px_rgba(244,63,94,0.5)]'}`}></div>
+                  <p className="text-[9px] text-primary font-black uppercase tracking-widest">
+                    {isLive ? 'Canal Sincronizado' : 'Conectando à Aura...'}
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
-          <div>
-            <h3 className="text-sm font-display font-black text-white italic tracking-tight">
-              {conversation?.participant_name || 'Carregando...'}
-            </h3>
-            <p className="text-[9px] text-primary font-black uppercase tracking-widest flex items-center gap-1">
-              <span className={`size-1.5 rounded-full animate-pulse ${isLive ? 'bg-emerald-500' : 'bg-rose-500'}`}></span>
-              {isLive ? 'Conectado Realtime' : 'Reconectando...'}
-            </p>
-          </div>
+          {!isAudioPrimed.current && (
+            <button
+              onClick={primeAudio}
+              className="px-6 py-3 bg-primary/10 border border-primary/20 rounded-full text-[9px] font-black text-primary uppercase tracking-[0.2em] hover:bg-primary hover:text-background-dark transition-all active:scale-95"
+            >
+              Ativar Áudio
+            </button>
+          )}
         </div>
-        {!isAudioPrimed.current && (
-          <button
-            onClick={primeAudio}
-            className="ml-auto px-3 py-1.5 bg-primary/10 border border-primary/20 rounded-lg text-[8px] font-black text-primary uppercase tracking-widest"
-          >
-            Ativar Som
-          </button>
-        )}
       </header>
 
       <main
         ref={scrollRef}
         onClick={primeAudio}
-        className="flex-1 overflow-y-auto p-6 space-y-6 no-scrollbar pb-32"
+        className="flex-1 overflow-y-auto p-6 lg:p-12 space-y-8 no-scrollbar pb-40"
       >
-        <div className="text-center">
-          <span className="text-[8px] font-black text-slate-700 uppercase tracking-[0.4em]">Canal de Atendimento Premium</span>
-        </div>
-
-        {isLoading ? (
-          <div className="py-20 text-center">
-            <div className="size-8 border-2 border-primary/20 border-t-primary rounded-full animate-spin mx-auto"></div>
+        <div className="max-w-[1000px] mx-auto w-full space-y-8">
+          <div className="flex flex-col items-center gap-4 mb-12 opacity-30">
+            <div className="h-0.5 w-12 bg-white/10"></div>
+            <span className="text-[10px] font-black text-white uppercase tracking-[0.5em]">Experiência de Atendimento Elite</span>
+            <div className="h-0.5 w-12 bg-white/10"></div>
           </div>
-        ) : (
-          messages.map((msg) => {
-            const isMe = msg.sender_id === userId;
-            return (
-              <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
-                <div className={`max-w-[85%] px-5 py-4 rounded-[32px] shadow-2xl transition-all ${isMe
-                  ? 'gold-gradient text-background-dark font-black rounded-tr-sm'
-                  : 'bg-surface-dark border border-white/5 text-slate-100 rounded-tl-sm'
-                  }`}>
-                  <p className="text-sm leading-relaxed">{msg.text}</p>
-                  <div className={`flex items-center gap-1.5 mt-2 opacity-40 text-[7px] font-black uppercase tracking-widest ${isMe ? 'text-background-dark' : 'text-slate-400'}`}>
-                    <span>{new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                    {isMe && <span className="material-symbols-outlined text-[10px]">done_all</span>}
+
+          {isLoading ? (
+            <div className="py-20 text-center">
+              <div className="size-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin mx-auto"></div>
+            </div>
+          ) : (
+            messages.map((msg) => {
+              const isMe = msg.sender_id === userId;
+              return (
+                <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'} animate-fade-in`}>
+                  <div className={`max-w-[85%] lg:max-w-[70%] px-6 lg:px-8 py-5 rounded-[40px] shadow-2xl transition-all relative ${isMe
+                    ? 'gold-gradient text-background-dark font-display font-medium rounded-tr-sm'
+                    : 'bg-surface-dark border border-white/5 text-slate-100 rounded-tl-sm'
+                    }`}>
+                    <p className="text-base lg:text-lg leading-relaxed whitespace-pre-wrap">{msg.text}</p>
+                    <div className={`flex items-center gap-2 mt-3 opacity-40 text-[9px] font-black uppercase tracking-widest ${isMe ? 'text-background-dark' : 'text-slate-400'}`}>
+                      <span>{new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                      {isMe && <span className="material-symbols-outlined text-[14px]">done_all</span>}
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
-          })
-        )}
+              );
+            })
+          )}
+        </div>
       </main>
 
-      <footer className="fixed bottom-0 left-0 right-0 p-6 bg-background-dark/40 backdrop-blur-xl border-t border-white/5 max-w-[450px] mx-auto z-50">
-        <form onSubmit={handleSend} className="flex items-center gap-4">
-          <input
-            type="text"
-            value={messageText}
-            onChange={(e) => setMessageText(e.target.value)}
-            onFocus={primeAudio}
-            placeholder="Digite sua mensagem premium..."
-            className="flex-1 bg-surface-dark border border-white/5 rounded-[24px] py-4 px-6 text-sm text-white focus:border-primary/50 outline-none transition-all shadow-inner"
-          />
-          <button
-            type="submit"
-            className="size-12 rounded-2xl gold-gradient flex items-center justify-center text-background-dark shadow-xl active:scale-95 transition-all"
-          >
-            <span className="material-symbols-outlined font-black">send</span>
-          </button>
-        </form>
+      <footer className="fixed bottom-0 left-0 right-0 p-6 lg:p-10 bg-background-dark/80 backdrop-blur-2xl border-t border-white/5 z-50">
+        <div className="max-w-[1000px] mx-auto w-full">
+          <form onSubmit={handleSend} className="flex items-center gap-6">
+            <div className="flex-1 relative group">
+              <input
+                type="text"
+                value={messageText}
+                onChange={(e) => setMessageText(e.target.value)}
+                onFocus={primeAudio}
+                placeholder="Esculpa sua mensagem..."
+                className="w-full bg-surface-dark/40 border border-white/5 rounded-full py-6 px-8 text-base text-white placeholder:text-slate-600 focus:border-primary/40 focus:bg-surface-dark/60 outline-none transition-all shadow-[inset_0_2px_15px_rgba(0,0,0,0.5)]"
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={!messageText.trim()}
+              className="size-16 rounded-full gold-gradient flex items-center justify-center text-background-dark shadow-[0_10px_40px_rgba(193,165,113,0.3)] hover:scale-105 active:scale-95 transition-all disabled:opacity-30 disabled:grayscale disabled:scale-100"
+            >
+              <span className="material-symbols-outlined text-2xl font-black">send</span>
+            </button>
+          </form>
+          <div className="h-[env(safe-area-inset-bottom)]" />
+        </div>
       </footer>
     </div>
   );

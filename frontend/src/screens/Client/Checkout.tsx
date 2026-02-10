@@ -296,418 +296,378 @@ const Checkout: React.FC<CheckoutProps> = ({ bookingDraft, salons, onConfirm, se
   }, []); // Sem dependências = referência fixa
 
 
-  if (!services.length && !products.length && step !== 'success' && step !== 'waiting_pix') {
-    return (
-      <div className="h-full flex flex-col items-center justify-center p-8 text-center bg-background-dark animate-fade-in">
-        <span className="material-symbols-outlined text-6xl text-primary/20 mb-4 scale-150">shopping_bag</span>
-        <h2 className="text-2xl font-display font-black text-white italic mb-6 uppercase tracking-tighter">Sua Sacola está vazia</h2>
-        <button onClick={() => navigate('/products')} className="gold-gradient text-background-dark px-10 py-5 rounded-[24px] font-black uppercase text-[10px] tracking-widest active:scale-95 transition-all shadow-2xl">Explorar Boutique</button>
-      </div>
-    );
-  }
-
   return (
-    <div className="flex-1 flex flex-col h-full bg-background-dark relative overflow-hidden">
-      <header className="px-6 pt-12 pb-6 bg-background-dark/95 backdrop-blur-xl border-b border-white/5 z-50 shrink-0 flex items-center justify-between relative">
-        <button onClick={() => step === 'payment_detail' ? setStep('summary') : navigate(-1)} className="size-12 rounded-2xl bg-black/40 backdrop-blur-md border border-white/10 flex items-center justify-center text-white active:scale-95 transition-all">
-          <span className="material-symbols-outlined text-xl">arrow_back</span>
-        </button>
-        <h1 className="absolute left-1/2 -translate-x-1/2 font-display text-xs font-black text-white italic tracking-[0.3em] uppercase opacity-90">Confirmação</h1>
-        <div className="size-12 flex items-center justify-center text-primary group">
-          <span className="material-symbols-outlined text-xl font-black group-hover:scale-110 transition-transform">verified_user</span>
+    <div className="flex-1 overflow-y-auto h-full no-scrollbar bg-background-dark relative">
+      <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.02] pointer-events-none"></div>
+
+      {step !== 'success' && (
+        <header className="sticky top-0 z-50 bg-background-dark/80 backdrop-blur-3xl px-6 pt-12 pb-10 border-b border-white/5">
+          <div className="max-w-[1400px] mx-auto w-full text-center">
+            <div className="flex items-center justify-between mb-8">
+              <button
+                onClick={() => step === 'payment_detail' ? setStep('summary') : navigate(-1)}
+                className="size-12 rounded-2xl bg-black/40 border border-white/10 flex items-center justify-center text-white active:scale-95 transition-all"
+              >
+                <span className="material-symbols-outlined text-xl">arrow_back</span>
+              </button>
+              <div className="text-center">
+                <h1 className="font-display font-black text-white italic tracking-[0.2em] uppercase leading-none" style={{ fontSize: 'var(--step-1)' }}>
+                  Finalização Elite
+                </h1>
+                <p className="text-[7px] text-primary font-black uppercase tracking-[0.4em] mt-3">{step === 'summary' ? 'Revisão do Ritual' : 'Pagamento Seguro'}</p>
+              </div>
+              <div className="size-12 flex items-center justify-center text-primary">
+                <span className="material-symbols-outlined text-xl">verified_user</span>
+              </div>
+            </div>
+          </div>
+        </header>
+      )}
+
+      {(!services.length && !products.length && step !== 'success' && step !== 'waiting_pix') ? (
+        <div className="h-full flex flex-col items-center justify-center p-8 text-center animate-fade-in relative z-10 py-60">
+          <div className="size-24 rounded-[32px] bg-white/[0.02] border border-white/5 flex items-center justify-center text-slate-700 mb-8">
+            <span className="material-symbols-outlined text-5xl">shopping_bag</span>
+          </div>
+          <h2 className="text-2xl lg:text-3xl font-display font-black text-white italic mb-8 uppercase tracking-tighter">Sua Sacola está vazia</h2>
+          <button
+            onClick={() => navigate('/products')}
+            className="gold-gradient text-background-dark h-20 px-12 rounded-2xl font-black uppercase text-[11px] tracking-[0.4em] active:scale-95 transition-all shadow-gold"
+          >
+            EXPLORAR ACERVO
+          </button>
         </div>
-      </header>
-
-      <main className="flex-1 overflow-y-auto no-scrollbar">
-        {step === 'summary' && (
-          <div className="px-6 pt-6 pb-[500px] space-y-6">
-
-            {/* 1. SERVIÇOS SELECIONADOS */}
-            {services.length > 0 && (
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 mb-2 px-1">
-                  <span className="material-symbols-outlined text-primary text-sm">spa</span>
-                  <p className="text-[9px] font-black text-white uppercase tracking-widest">Rituais Escolhidos</p>
-                </div>
-                {services.map((s: Service) => (
-                  <div key={s.id} className="bg-[#121417]/60 border border-primary/20 rounded-[32px] p-5 flex items-start gap-4 shadow-2xl backdrop-blur-md relative overflow-hidden group">
-                    <div className="relative shrink-0">
-                      <img src={s.image} className="size-16 rounded-2xl object-cover shadow-xl" alt={s.name} />
-                      <div className="absolute inset-0 rounded-2xl ring-1 ring-white/10 ring-inset"></div>
+      ) : (
+        <main className="max-w-[1400px] mx-auto w-full px-6 py-12 lg:py-20 animate-fade-in relative z-10">
+          {step === 'summary' && (
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-20 items-start pb-48">
+              {/* Coluna Principal: Itens Selecionados */}
+              <div className="lg:col-span-7 space-y-16">
+                {/* 1. SERVIÇOS SELECIONADOS */}
+                {services.length > 0 && (
+                  <div className="space-y-10">
+                    <div className="flex items-center gap-6 px-4">
+                      <div className="h-0.5 w-12 bg-primary"></div>
+                      <h2 className="text-[11px] lg:text-xs font-black uppercase tracking-[0.5em] text-primary">Rituais Escolhidos</h2>
                     </div>
-
-                    <div className="flex-1 min-w-0 py-1">
-                      <h4 className="text-white font-black text-sm italic font-display uppercase tracking-widest leading-tight line-clamp-2 mb-2">{s.name}</h4>
-                      <div className="flex items-center gap-2 opacity-40">
-                        <span className="text-[7px] text-white font-black uppercase tracking-widest">{s.duration_min} MIN</span>
-                        <span className="text-white">•</span>
-                        <span className="text-[7px] text-white font-black uppercase tracking-widest">SERVIÇO</span>
-                      </div>
-                      <div className="mt-3">
-                        <span className="text-primary font-display font-black text-xl italic tracking-tight">R$ {s.price.toFixed(2)}</span>
-                      </div>
-                    </div>
-
-                    <button
-                      onClick={() => removeItem(s.id, 'service')}
-                      className="size-10 rounded-full bg-red-500/10 border border-red-500/20 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all active:scale-90 shrink-0"
-                    >
-                      <span className="material-symbols-outlined text-lg">close</span>
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* 2. CARD DE UPSELL (Se não tiver produtos) */}
-            {availableProducts.length > 0 && products.length === 0 && (
-              <div className="relative">
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10 bg-primary px-4 py-1.5 rounded-full shadow-lg animate-bounce">
-                  <span className="text-[7px] text-background-dark font-black uppercase tracking-[0.2em] flex items-center gap-1">
-                    <span className="material-symbols-outlined text-xs">local_fire_department</span>
-                    Oferta Especial
-                  </span>
-                </div>
-
-                <div className="bg-gradient-to-br from-primary/30 via-primary/20 to-primary/10 border-2 border-primary/50 rounded-[32px] p-6 shadow-2xl backdrop-blur-md relative overflow-hidden animate-pulse-slow">
-                  <div className="absolute top-0 right-0 opacity-5">
-                    <span className="material-symbols-outlined text-9xl text-primary">shopping_bag</span>
-                  </div>
-
-                  <div className="relative z-10 space-y-4">
-                    <div className="text-center space-y-2">
-                      <div className="flex items-center justify-center gap-2">
-                        <span className="material-symbols-outlined text-primary text-2xl">auto_awesome</span>
-                        <h3 className="text-white font-display font-black text-lg italic tracking-tight">Complete Seu Ritual</h3>
-                        <span className="material-symbols-outlined text-primary text-2xl">auto_awesome</span>
-                      </div>
-                      <p className="text-slate-300 text-xs font-bold leading-relaxed">Potencialize os resultados com produtos profissionais</p>
-                    </div>
-
-                    <div className="relative">
-                      <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-hide -mx-2 px-2">
-                        {availableProducts.slice(0, 3).map((product, index) => (
-                          <div
-                            key={product.id}
-                            className="min-w-[280px] snap-center bg-background-dark/60 border border-primary/30 rounded-[24px] p-4 flex items-center gap-4 relative"
-                          >
-                            {index === 0 && (
-                              <div className="absolute -top-2 -right-2 bg-primary size-8 rounded-full flex items-center justify-center shadow-lg z-10">
-                                <span className="material-symbols-outlined text-background-dark text-sm font-black">star</span>
-                              </div>
-                            )}
-
-                            <div className="relative shrink-0">
-                              <img src={product.image} className="size-20 rounded-2xl object-cover shadow-2xl" alt={product.name} />
-                              <div className="absolute inset-0 rounded-2xl ring-1 ring-white/10 ring-inset"></div>
+                    <div className="space-y-6">
+                      {services.map((s: Service) => (
+                        <div key={s.id} className="group relative bg-surface-dark/40 rounded-[48px] border border-white/5 p-6 lg:p-8 shadow-[0_30px_80px_rgba(0,0,0,0.4)] transition-all backdrop-blur-3xl overflow-hidden active:scale-[0.99] flex items-center gap-8">
+                          <div className="relative shrink-0">
+                            <div className="size-20 lg:size-24 rounded-[32px] overflow-hidden border-2 border-white/5 shadow-2xl relative">
+                              <img src={s.image} className="size-full object-cover grayscale-[0.2] group-hover:grayscale-0 group-hover:scale-110 transition-all duration-1000" alt={s.name} />
+                              <div className="absolute inset-0 bg-gradient-to-t from-background-dark/40 to-transparent"></div>
                             </div>
-                            <div className="flex-1 min-w-0">
-                              <h4 className="text-white font-black text-sm italic font-display uppercase tracking-widest leading-tight line-clamp-2 mb-1">{product.name}</h4>
-                              <p className="text-[7px] text-slate-500 font-black uppercase tracking-widest mb-2">{product.category}</p>
-                              <div className="flex items-center gap-2">
-                                <span className="text-primary font-display font-black text-xl italic tracking-tight">R$ {product.price.toFixed(2)}</span>
-                              </div>
-                            </div>
-                            <button
-                              onClick={() => addProduct(product)}
-                              className="size-8 rounded-full bg-primary text-background-dark flex items-center justify-center shadow-lg active:scale-90 transition-transform"
-                            >
-                              <span className="material-symbols-outlined text-sm font-black">add</span>
-                            </button>
                           </div>
-                        ))}
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-display text-xl lg:text-2xl font-black text-white italic tracking-tighter uppercase leading-none truncate group-hover:text-primary transition-colors">{s.name}</h4>
+                            <div className="flex items-center gap-4 mt-3">
+                              <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest bg-white/5 px-2.5 py-1.5 rounded-xl border border-white/5">{s.duration_min} MIN</span>
+                              <span className="text-[8px] font-black text-primary uppercase tracking-widest bg-primary/10 px-2.5 py-1.5 rounded-xl border border-primary/10">RITUAL</span>
+                            </div>
+                            <div className="mt-4">
+                              <span className="text-2xl font-display font-black text-white italic tracking-tight">R$ {s.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => removeItem(s.id, 'service')}
+                            className="size-12 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-500 flex items-center justify-center active:scale-90 transition-all shrink-0"
+                          >
+                            <span className="material-symbols-outlined text-xl font-black">close</span>
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* 1.1 PRODUTOS SELECIONADOS */}
+                {products.length > 0 && (
+                  <div className="space-y-10">
+                    <div className="flex items-center gap-6 px-4">
+                      <div className="h-0.5 w-12 bg-slate-800"></div>
+                      <h2 className="text-[11px] lg:text-xs font-black uppercase tracking-[0.5em] text-slate-600">Ativos Adicionados</h2>
+                    </div>
+                    <div className="space-y-6">
+                      {products.map((p: Product) => (
+                        <div key={p.id} className="group relative bg-surface-dark/40 rounded-[48px] border border-white/5 p-6 lg:p-8 shadow-[0_30px_80px_rgba(0,0,0,0.4)] transition-all backdrop-blur-3xl overflow-hidden active:scale-[0.99] flex items-center gap-8">
+                          <div className="relative shrink-0">
+                            <div className="size-20 lg:size-24 rounded-[32px] overflow-hidden border-2 border-white/5 shadow-2xl relative">
+                              <img src={p.image} className="size-full object-cover grayscale-[0.2] group-hover:grayscale-0 group-hover:scale-110 transition-all duration-1000" alt={p.name} />
+                              <div className="absolute inset-0 bg-gradient-to-t from-background-dark/40 to-transparent"></div>
+                            </div>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-display text-xl lg:text-2xl font-black text-white italic tracking-tighter uppercase leading-none truncate group-hover:text-primary transition-colors">{p.name}</h4>
+                            <div className="flex items-center gap-4 mt-3">
+                              <span className="text-[8px] font-black text-primary uppercase tracking-widest bg-primary/10 px-2.5 py-1.5 rounded-xl border border-primary/10">BOUTIQUE</span>
+                            </div>
+                            <div className="mt-4">
+                              <span className="text-2xl font-display font-black text-white italic tracking-tight">R$ {p.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => removeItem(p.id, 'product')}
+                            className="size-12 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-500 flex items-center justify-center active:scale-90 transition-all shrink-0"
+                          >
+                            <span className="material-symbols-outlined text-xl font-black">close</span>
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Coluna Lateral: Resumo, Upsell e Checkout */}
+              <div className="lg:col-span-5 space-y-12 lg:sticky lg:top-40">
+                {/* 2. CARD DE UPSELL */}
+                {availableProducts.length > 0 && products.length === 0 && (
+                  <div className="gold-gradient p-[1px] rounded-[48px] shadow-[0_30px_100px_rgba(0,0,0,0.5)] group transition-all hover:scale-[1.01]">
+                    <div className="bg-background-dark/98 backdrop-blur-3xl rounded-[47px] p-8 lg:p-10 relative overflow-hidden">
+                      <div className="absolute top-0 -left-1/2 w-full h-full bg-gradient-to-r from-transparent via-primary/10 to-transparent skew-x-[-25deg] group-hover:left-[120%] transition-all duration-1500 ease-in-out"></div>
+                      <div className="relative z-10 space-y-8">
+                        <div className="text-center">
+                          <span className="bg-primary/20 text-primary border border-primary/30 px-5 py-2 rounded-full text-[9px] font-black uppercase tracking-[0.5em]">Oferta Especial</span>
+                          <h3 className="text-2xl font-display font-black text-white italic uppercase tracking-tighter mt-6">Complete o Ritual</h3>
+                          <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-2">{availableProducts[0]?.name.split(' ')[0]} Select</p>
+                        </div>
+
+                        <div className="space-y-4">
+                          {availableProducts.slice(0, 2).map((product) => (
+                            <div key={product.id} className="bg-surface-dark border border-white/5 rounded-[32px] p-4 flex items-center gap-6 group/item hover:border-primary/40 transition-all">
+                              <div className="size-16 rounded-2xl overflow-hidden border border-white/10 shrink-0">
+                                <img src={product.image} className="size-full object-cover grayscale-[0.3] group-hover/item:grayscale-0 transition-all" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <h4 className="text-sm font-black text-white uppercase tracking-widest truncate">{product.name}</h4>
+                                <span className="text-primary font-display font-black text-lg italic mt-1 block">R$ {product.price.toFixed(2)}</span>
+                              </div>
+                              <button onClick={() => addProduct(product)} className="size-10 rounded-2xl gold-gradient text-background-dark flex items-center justify-center shadow-gold group-hover/item:scale-110 transition-all">
+                                <span className="material-symbols-outlined font-black">add</span>
+                              </button>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              </div>
-            )}
+                )}
 
-            {/* 3. PRODUTOS DISPONÍVEIS E SELECIONADOS */}
-            {availableProducts.length > 0 && (
-              <div className="space-y-4">
-                <div className="flex items-center justify-between px-1">
-                  <h3 className="text-[10px] font-black text-primary uppercase tracking-[0.3em]">
-                    {products.length > 0 ? 'Produtos Adicionados' : 'Produtos Disponíveis'}
-                  </h3>
-                </div>
-
-                {/* Lista de Produtos Selecionados */}
-                {products.map((p: Product) => (
-                  <div key={p.id} className="bg-[#121417]/60 border border-primary/20 rounded-[32px] p-5 flex items-start gap-4 shadow-2xl backdrop-blur-md relative overflow-hidden group">
-                    <div className="absolute top-3 right-14 bg-emerald-500/20 border border-emerald-500/30 px-2 py-1 rounded-lg">
-                      <span className="text-[6px] text-emerald-400 font-black uppercase tracking-widest">Adicionado</span>
-                    </div>
-                    <div className="relative shrink-0">
-                      <img src={p.image} className="size-16 rounded-2xl object-cover shadow-xl" alt={p.name} />
-                      <div className="absolute inset-0 rounded-2xl ring-1 ring-white/10 ring-inset"></div>
-                    </div>
-                    <div className="flex-1 min-w-0 py-1">
-                      <h4 className="text-white font-black text-sm italic font-display uppercase tracking-widest leading-tight line-clamp-2 mb-2">{p.name}</h4>
-                      <span className="text-primary font-display font-black text-xl italic tracking-tight">R$ {p.price.toFixed(2)}</span>
-                    </div>
-                    <button
-                      onClick={() => removeItem(p.id, 'product')}
-                      className="size-10 rounded-full bg-red-500/10 border border-red-500/20 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all active:scale-90 shrink-0"
-                    >
-                      <span className="material-symbols-outlined text-lg">close</span>
-                    </button>
+                {/* Resumo Consolidado */}
+                <div className="bg-surface-dark border border-white/5 rounded-[56px] p-10 shadow-3xl space-y-10 relative overflow-hidden">
+                  <div className="absolute top-0 right-0 p-8 opacity-5">
+                    <span className="material-symbols-outlined text-8xl text-white">receipt_long</span>
                   </div>
-                ))}
 
-                {/* Lista de Outros Produtos Disponíveis */}
-                {availableProducts
-                  .filter(p => !products.some((selected: Product) => selected.id === p.id))
-                  .map((p: Product) => (
-                    <div key={p.id} className="bg-[#121417]/60 border border-white/5 rounded-[32px] p-5 flex items-start gap-4 shadow-2xl backdrop-blur-md relative overflow-hidden group hover:border-primary/20 transition-all">
-                      <div className="relative shrink-0">
-                        <img src={p.image} className="size-16 rounded-2xl object-cover shadow-xl group-hover:scale-105 transition-transform" alt={p.name} />
-                        <div className="absolute inset-0 rounded-2xl ring-1 ring-white/10 ring-inset"></div>
+                  <div className="relative z-10 space-y-10">
+                    <div className="flex items-center gap-6">
+                      <div className="size-16 rounded-[24px] gold-gradient flex items-center justify-center text-background-dark shadow-gold">
+                        <span className="material-symbols-outlined text-3xl font-black">checklist</span>
                       </div>
-                      <div className="flex-1 min-w-0 py-1">
-                        <h4 className="text-white font-black text-sm italic font-display uppercase tracking-widest leading-tight line-clamp-2 mb-2">{p.name}</h4>
-                        <span className="text-primary font-display font-black text-xl italic tracking-tight">R$ {p.price.toFixed(2)}</span>
+                      <div>
+                        <p className="text-[10px] text-slate-500 font-black uppercase tracking-[0.5em]">SÍNTESE DA RESERVA</p>
+                        <h3 className="text-2xl font-display font-black text-white italic uppercase tracking-tighter">Manifesto Aura</h3>
                       </div>
-                      <button
-                        onClick={() => addProduct(p)}
-                        className="size-10 rounded-full bg-primary/10 border border-primary/20 text-primary flex items-center justify-center hover:bg-primary hover:text-background-dark transition-all active:scale-90 shrink-0 group-hover:scale-110"
-                      >
-                        <span className="material-symbols-outlined text-lg font-black">add</span>
-                      </button>
                     </div>
-                  ))
-                }
-              </div>
-            )}
 
-            {/* 4. CARD DE RESUMO COMPLETO */}
-            <section className="bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20 rounded-[40px] p-6 space-y-5 shadow-2xl backdrop-blur-md relative overflow-hidden">
-              <div className="absolute top-0 right-0 opacity-5 pointer-events-none">
-                <span className="material-symbols-outlined text-9xl text-primary">receipt_long</span>
-              </div>
-
-              <div className="relative z-10">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="size-10 rounded-xl gold-gradient flex items-center justify-center shadow-lg">
-                    <span className="material-symbols-outlined text-background-dark text-lg font-black">checklist</span>
-                  </div>
-                  <h3 className="text-white font-display font-black text-base italic uppercase tracking-tight">Resumo da Reserva</h3>
-                </div>
-
-                {/* Detalhes do Agendamento */}
-                {(bookingDraft.date || bookingDraft.time || bookingDraft.professionalName) && (
-                  <div className="bg-background-dark/60 border border-primary/30 rounded-[24px] p-5 mb-5">
-                    <p className="text-[8px] font-black text-primary uppercase tracking-widest mb-3">Detalhes do Agendamento</p>
-                    <div className="space-y-3">
+                    <div className="space-y-6">
                       {bookingDraft.date && (
-                        <div className="flex items-center gap-3">
-                          <span className="material-symbols-outlined text-primary text-lg">calendar_today</span>
+                        <div className="bg-background-dark/40 border border-white/5 p-6 rounded-[32px] flex items-center gap-6 group hover:border-primary/20 transition-all">
+                          <span className="material-symbols-outlined text-primary text-2xl">calendar_today</span>
                           <div>
-                            <p className="text-[7px] text-slate-500 font-black uppercase tracking-widest">Data</p>
-                            <p className="text-white text-xs font-bold">{new Date(bookingDraft.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
+                            <p className="text-[8px] text-slate-600 font-black uppercase tracking-widest mb-1">DATA DO RITUAL</p>
+                            <p className="text-sm font-black text-white uppercase tracking-widest">{new Date(bookingDraft.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long' })}</p>
                           </div>
                         </div>
                       )}
                       {bookingDraft.time && (
-                        <div className="flex items-center gap-3">
-                          <span className="material-symbols-outlined text-primary text-lg">schedule</span>
+                        <div className="bg-background-dark/40 border border-white/5 p-6 rounded-[32px] flex items-center gap-6 group hover:border-primary/20 transition-all">
+                          <span className="material-symbols-outlined text-primary text-2xl">schedule</span>
                           <div>
-                            <p className="text-[7px] text-slate-500 font-black uppercase tracking-widest">Horário</p>
-                            <p className="text-white text-xs font-bold">{bookingDraft.time}</p>
+                            <p className="text-[8px] text-slate-600 font-black uppercase tracking-widest mb-1">HORÁRIO MARCADO</p>
+                            <p className="text-sm font-black text-white uppercase tracking-widest">{bookingDraft.time}</p>
                           </div>
                         </div>
                       )}
                       {bookingDraft.professionalName && (
-                        <div className="flex items-center gap-3">
-                          <span className="material-symbols-outlined text-primary text-lg">person</span>
+                        <div className="bg-background-dark/40 border border-white/5 p-6 rounded-[32px] flex items-center gap-6 group hover:border-primary/20 transition-all">
+                          <span className="material-symbols-outlined text-primary text-2xl">person</span>
                           <div>
-                            <p className="text-[7px] text-slate-500 font-black uppercase tracking-widest">Profissional</p>
-                            <p className="text-white text-xs font-bold">{bookingDraft.professionalName}</p>
+                            <p className="text-[8px] text-slate-600 font-black uppercase tracking-widest mb-1">ARTISTA RESPONSÁVEL</p>
+                            <p className="text-sm font-black text-white uppercase tracking-widest">{bookingDraft.professionalName}</p>
                           </div>
                         </div>
                       )}
                     </div>
-                  </div>
-                )}
 
-                {/* Resumo de Itens (Totais) */}
-                <div className="space-y-2 pt-2">
-                  <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-1 px-1">Itens Adicionados</p>
-                  <div className="flex justify-between items-center text-[10px] text-slate-400 bg-background-dark/40 p-3 rounded-xl border border-white/5">
-                    <span>{services.length} Serviço(s)</span>
-                  </div>
-                  <div className="flex justify-between items-center text-[10px] text-slate-400 bg-background-dark/40 p-3 rounded-xl border border-white/5">
-                    <span>{products.length} Produto(s)</span>
+                    <div className="pt-10 border-t border-white/5 space-y-6">
+                      <div className="flex justify-between items-center text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">
+                        <span>Rituais & Ativos</span>
+                        <span className="text-white">R$ {subtotal.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between items-center text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">
+                        <span>Taxa Concierge (5%)</span>
+                        <span className="text-white">R$ {tax.toFixed(2)}</span>
+                      </div>
+                      {promoDiscount > 0 && (
+                        <div className="flex justify-between items-center text-[10px] font-black text-emerald-400 uppercase tracking-widest px-2 group">
+                          <span className="flex items-center gap-2">PLATINUM DISCOUNT <span className="material-symbols-outlined text-[14px]">auto_awesome</span></span>
+                          <span>- R$ {calculatedDiscount.toFixed(2)}</span>
+                        </div>
+                      )}
+                      <div className="pt-8 flex justify-between items-center px-2">
+                        <span className="text-[11px] font-black text-primary uppercase tracking-[0.5em]">INVESTIMENTO TOTAL</span>
+                        <span className="text-4xl font-display font-black text-white italic tracking-tighter">R$ {total.toFixed(2)}</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </section>
 
-            {/* 5. TOTAIS E PAGAMENTO */}
-            <section className="bg-surface-dark/40 rounded-[40px] p-8 border border-white/5 space-y-4 shadow-inner relative">
-              <div className="flex justify-between items-center text-[10px] font-black text-slate-500 uppercase tracking-widest">
-                <span>Subtotal</span>
-                <span className="text-white">R$ {subtotal.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between items-center text-[10px] font-black text-slate-500 uppercase tracking-widest">
-                <span>Taxa Concierge (5%)</span>
-                <span className="text-white">R$ {tax.toFixed(2)}</span>
-              </div>
-              {promoDiscount > 0 && (
-                <div className="flex justify-between items-center text-[10px] font-black text-emerald-400 uppercase tracking-widest animate-pulse">
-                  <span>Desconto Aura ({promoDiscount}%) ✨</span>
-                  <span>- R$ {calculatedDiscount.toFixed(2)}</span>
-                </div>
-              )}
-              <div className="pt-6 border-t border-white/5 flex justify-between items-center">
-                <span className="text-xs font-black text-primary uppercase tracking-[0.3em]">Total Investido</span>
-                <span className="text-3xl font-display font-black text-white italic tracking-tighter">R$ {total.toFixed(2)}</span>
-              </div>
-            </section>
-
-            <section className="space-y-4">
-              <div className="bg-primary/5 border border-white/5 p-6 rounded-[32px] flex items-center gap-5 backdrop-blur-sm">
-                <div className="size-12 rounded-2xl bg-primary/10 border border-primary/20 text-primary flex items-center justify-center shrink-0">
-                  <span className="material-symbols-outlined font-black">shield_with_heart</span>
-                </div>
-                <div className="flex-1">
-                  <p className="text-[9px] font-black text-white uppercase tracking-[0.2em] mb-1">Compromisso Aura</p>
-                  <p className="text-[8px] text-slate-500 font-bold uppercase tracking-widest leading-relaxed">Sua reserva é garantida com os mais altos padrões de segurança.</p>
-                </div>
-              </div>
-            </section>
-          </div>
-        )}
-
-        {step === 'payment_detail' && (
-          <div className="animate-fade-in space-y-8 pb-32">
-            <div className="bg-surface-dark/40 border border-white/5 rounded-[40px] overflow-hidden shadow-2xl relative">
-              <div className="p-4 min-h-[450px]">
-                {mpReady && total > 0 ? (
-                  <MPPaymentWrapper
-                    total={total}
-                    handleFinalConfirm={stableSubmit}
-                  />
-                ) : (
-                  <div className="flex flex-col items-center justify-center space-y-4 py-12">
-                    <div className="size-12 border-4 border-[#c1a571]/20 border-t-[#c1a571] rounded-full animate-spin"></div>
-                    <p className="text-[10px] text-[#c1a571] font-black uppercase tracking-widest animate-pulse">Iniciando Checkout Seguro...</p>
+                <div className="bg-primary/5 border border-primary/10 p-8 rounded-[40px] flex items-center gap-6 backdrop-blur-3xl group">
+                  <div className="size-16 rounded-2xl bg-primary/10 border border-primary/20 text-primary flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                    <span className="material-symbols-outlined text-3xl font-black">shield_with_heart</span>
                   </div>
-                )}
+                  <div>
+                    <p className="text-[10px] font-black text-white uppercase tracking-widest mb-2">Protocolo de Confiança</p>
+                    <p className="text-[9px] text-slate-500 font-bold uppercase tracking-widest leading-relaxed">Sua experiência é monitorada e assegurada pelos padrões Aura Signature.</p>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {step === 'waiting_pix' && (
-          <CheckoutPixView
-            lastOrder={lastOrder}
-            bookingDraft={bookingDraft}
-            total={total}
-            activeSalon={activeSalon}
-            userId={userId}
-            onSuccess={(newAppt: any) => {
-              onConfirm(newAppt);
-              setStep('success');
-              setBookingDraft({ services: [], products: [] });
-            }}
-            onBack={() => setStep('payment_detail')}
-            isProcessing={isProcessing}
-            setIsProcessing={setIsProcessing}
-          />
-        )}
-      </main>
+          {step === 'payment_detail' && (
+            <div className="max-w-[800px] mx-auto w-full animate-fade-in space-y-12">
+              <div className="bg-surface-dark border border-white/5 rounded-[56px] overflow-hidden shadow-3xl p-10">
+                <header className="mb-10 text-center">
+                  <p className="text-[10px] text-primary font-black uppercase tracking-[0.5em] mb-4">MÉTODO DE PAGAMENTO</p>
+                  <h2 className="text-3xl font-display font-black text-white italic tracking-tighter uppercase">Ambiente Criptografado</h2>
+                </header>
 
+                <div className="min-h-[450px]">
+                  {mpReady && total > 0 ? (
+                    <MPPaymentWrapper
+                      total={total}
+                      handleFinalConfirm={stableSubmit}
+                    />
+                  ) : (
+                    <div className="flex flex-col items-center justify-center py-20 gap-8">
+                      <div className="size-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+                      <p className="text-[11px] text-primary font-black uppercase tracking-[0.5em] animate-pulse">Iniciando Gateway Elite...</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
 
+          {step === 'waiting_pix' && (
+            <div className="max-w-[800px] mx-auto w-full">
+              <CheckoutPixView
+                lastOrder={lastOrder}
+                bookingDraft={bookingDraft}
+                total={total}
+                activeSalon={activeSalon}
+                userId={userId}
+                onSuccess={(newAppt: any) => {
+                  onConfirm(newAppt);
+                  setStep('success');
+                  setBookingDraft({ services: [], products: [] });
+                }}
+                onBack={() => setStep('payment_detail')}
+                isProcessing={isProcessing}
+                setIsProcessing={setIsProcessing}
+              />
+            </div>
+          )}
+        </main>
+      )}
 
       {step === 'success' && (
-        <div className="absolute inset-0 z-[99999] bg-background-dark flex flex-col items-center justify-center p-8 text-center overflow-hidden">
-          {/* Background Glow Effect */}
-          <div className="absolute inset-0 bg-gradient-radial from-[#D4AF37]/5 via-transparent to-transparent opacity-50 pointer-events-none"></div>
+        <div className="fixed inset-0 z-[200] bg-background-dark flex flex-col items-center justify-center p-10 text-center overflow-hidden animate-fade-in">
+          <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] pointer-events-none"></div>
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-gradient-radial from-primary/10 via-transparent to-transparent opacity-50"></div>
 
-          {/* Ícone de Sucesso Animado - Estilo Neon Brilhando */}
-          <div className="relative mb-12 pt-6">
-            <span
-              className="material-symbols-outlined text-[#c1a571] drop-shadow-[0_0_35px_rgba(236,211,165,0.9)] relative z-10 animate-pulse"
-              style={{ fontSize: '180px', fontVariationSettings: "'FILL' 0, 'wght' 300" }}
-            >
-              verified
-            </span>
-          </div>
-          <h2 className="text-5xl font-display font-black text-white italic mb-4 uppercase tracking-tighter leading-[0.9] animate-slide-up">Sua Aura <br /> Brilha!</h2>
-          <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.4em] mb-12 max-w-[280px] leading-relaxed">Reserva confirmada em<br /><span className="text-white">{lastOrder?.salonName || bookingDraft.salonName}</span>.</p>
+          <div className="relative z-10 space-y-12 max-w-2xl px-6">
+            <div className="relative flex justify-center">
+              <div className="absolute inset-0 bg-primary/20 blur-[100px] rounded-full"></div>
+              <span
+                className="material-symbols-outlined text-primary drop-shadow-[0_0_50px_rgba(193,165,113,0.5)] relative z-20 animate-pulse-slow"
+                style={{ fontSize: '180px', fontVariationSettings: "'FILL' 1, 'wght' 200" }}
+              >
+                verified
+              </span>
+            </div>
 
-          <div className="w-full space-y-5 px-4 max-w-sm relative z-10">
-            <button
-              onClick={handleWhatsAppConfirmation}
-              className="w-full gold-gradient text-[#202020] py-6 rounded-[32px] font-black uppercase text-[11px] tracking-[0.4em] flex items-center justify-center gap-3 shadow-[0_20px_40px_rgba(193,165,113,0.3)] active:scale-95 transition-all cursor-pointer relative z-20"
-            >
-              <WhatsAppIcon className="size-7" /> NOTIFICAR ESTABELECIMENTO
-            </button>
-            <button
-              onClick={() => navigate('/my-appointments')}
-              className="w-full bg-white/5 border border-white/10 text-white/60 py-6 rounded-[32px] font-black uppercase text-[10px] tracking-[0.3em] hover:bg-white/10 active:scale-95 transition-all shadow-lg cursor-pointer relative z-20"
-            >
-              MEUS AGENDAMENTOS
-            </button>
-            <button
-              onClick={() => navigate('/explore')}
-              className="w-full text-slate-700 font-black uppercase text-[9px] tracking-[0.4em] py-4 active:opacity-50 transition-opacity cursor-pointer relative z-20"
-            >
-              Voltar para o Início
-            </button>
+            <div className="space-y-6">
+              <h2 className="text-5xl lg:text-7xl font-display font-black text-white italic uppercase tracking-tighter leading-[0.8] animate-slide-up">Reserva <br /> Confirmada</h2>
+              <p className="text-[11px] lg:text-xs text-slate-500 font-black uppercase tracking-[0.5em] leading-loose max-w-sm mx-auto">
+                Seu ritual em <span className="text-white">{lastOrder?.salonName || bookingDraft.salonName}</span> está garantido na agenda.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-10">
+              <button
+                onClick={handleWhatsAppConfirmation}
+                className="w-full gold-gradient text-background-dark h-20 rounded-2xl font-black uppercase text-[11px] tracking-[0.4em] flex items-center justify-center gap-4 shadow-gold active:scale-95 transition-all group"
+              >
+                <WhatsAppIcon className="size-6 group-hover:scale-110 transition-transform" /> NOTIFICAR ARTISTA
+              </button>
+              <button
+                onClick={() => navigate('/my-appointments')}
+                className="w-full bg-white/5 border border-white/10 text-white h-20 rounded-2xl font-black uppercase text-[11px] tracking-[0.3em] hover:bg-white/10 active:scale-95 transition-all"
+              >
+                MEUS RITUAIS
+              </button>
+              <button
+                onClick={() => navigate('/explore')}
+                className="col-span-1 sm:col-span-2 text-slate-700 font-black uppercase text-[10px] tracking-[0.5em] py-6 active:opacity-50 transition-opacity"
+              >
+                VOLTAR PARA O ACERVO
+              </button>
+            </div>
           </div>
         </div>
       )}
 
       {step !== 'success' && (
-        <footer className="fixed bottom-0 left-0 right-0 z-50 flex justify-center pointer-events-none p-4 md:p-8 pb-[calc(1rem+var(--sab))]">
-          <div className="w-full max-w-md bg-background-dark/95 backdrop-blur-2xl border border-white/10 p-6 pt-8 rounded-[32px] shadow-2xl pointer-events-auto">
-            <div className="flex justify-between items-end mb-6 px-4">
-              <div className="text-left">
-                <p className="text-[8px] font-black text-slate-600 uppercase tracking-widest mb-1.5">Investimento Total</p>
-                <p className="text-4xl font-display font-black text-white italic tracking-tighter">R$ {total.toFixed(2)}</p>
-              </div>
-              <div className="flex flex-col items-end gap-2">
-                <span className="text-white bg-green-500/20 border border-green-500/30 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 shadow-[0_0_15px_rgba(34,197,94,0.1)]">
-                  Secured <span className="material-symbols-outlined text-sm">verified_user</span>
-                </span>
-
-              </div>
+        <footer className="fixed bottom-12 left-1/2 -translate-x-1/2 z-[100] w-full max-w-2xl px-6 animate-fade-in">
+          <div className="bg-surface-dark/95 backdrop-blur-3xl border border-white/10 p-8 rounded-[40px] shadow-[0_50px_100px_rgba(0,0,0,0.8)] flex flex-col sm:flex-row items-center justify-between gap-8">
+            <div className="text-center sm:text-left">
+              <p className="text-[9px] font-black text-slate-600 uppercase tracking-[0.5em] mb-2 leading-none">TOTAL DO INVESTIMENTO</p>
+              <p className="text-4xl font-display font-black text-white italic tracking-tighter">R$ {total.toFixed(2)}</p>
             </div>
-            {/* Botão Finalizar - Oculto durante o checkout MP */}
-            {(!mpReady || step !== 'payment_detail') && (
-              <button
-                onClick={() => {
-                  if (step === 'summary') {
-                    // SE o salão permite pagar no local, finalizamos direto (fluxo mais rápido esperado)
-                    // OU se não tem MP habilitado de qualquer forma.
-                    if (activeSalon?.paga_no_local || !isMpEnabled) {
-                      handleFinalConfirm();
-                    } else {
-                      // Se o salão OBRIGA pagamento online (paga_no_local = false) E tem MP
-                      setStep('payment_detail');
-                    }
+
+            <button
+              onClick={() => {
+                if (step === 'summary') {
+                  if (activeSalon?.paga_no_local || !isMpEnabled) {
+                    handleFinalConfirm();
                   } else {
-                    // No passo payment_detail, o botão finaliza (usado no modo simulação ou fallback)
-                    if (!mpReady) {
-                      handleFinalConfirm();
-                    }
+                    setStep('payment_detail');
                   }
-                }}
-                disabled={isProcessing}
-                className={`w-full gold-gradient text-background-dark font-black py-7 rounded-[36px] shadow-[0_30px_70px_rgba(193,165,113,0.3)] uppercase tracking-[0.4em] text-[12px] flex items-center justify-center gap-4 active:scale-95 transition-all border border-white/20`}
-              >
-                {isProcessing ? <div className="size-7 border-3 border-background-dark/20 border-t-background-dark rounded-full animate-spin"></div> : (
-                  <>
+                } else {
+                  if (!mpReady) handleFinalConfirm();
+                }
+              }}
+              disabled={isProcessing}
+              className="w-full sm:w-auto gold-gradient text-background-dark h-20 px-12 rounded-[28px] font-black uppercase text-[11px] tracking-[0.4em] flex items-center justify-center gap-6 shadow-gold active:scale-95 transition-all group overflow-hidden relative"
+            >
+              <div className="absolute inset-0 bg-white/10 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+              {isProcessing ? (
+                <div className="size-7 border-3 border-background-dark/20 border-t-background-dark rounded-full animate-spin"></div>
+              ) : (
+                <>
+                  <span className="relative z-10">
                     {step === 'summary' ? (
-                      (activeSalon?.paga_no_local || !isMpEnabled) ? 'FINALIZAR RESERVA' : 'ESCOLHER FORMA DE PAGAMENTO'
-                    ) : 'FINALIZAR RESERVA'}
-                    <span className="material-symbols-outlined font-black">arrow_forward</span>
-                  </>
-                )}
-              </button>
-            )}
+                      (activeSalon?.paga_no_local || !isMpEnabled) ? 'FINALIZAR RITUAL' : 'ESCOLHER PAGAMENTO'
+                    ) : 'REALIZAR PAGAMENTO'}
+                  </span>
+                  <span className="material-symbols-outlined text-2xl font-black relative z-10 group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                </>
+              )}
+            </button>
           </div>
         </footer>
       )}

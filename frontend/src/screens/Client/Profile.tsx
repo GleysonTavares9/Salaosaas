@@ -213,88 +213,130 @@ const Profile: React.FC<ProfileProps> = ({ onLogout }) => {
   };
 
   return (
-    <div className="flex-1 h-full overflow-y-auto pb-32 no-scrollbar">
-      {/* ... Header ... */}
-      <header className="p-8 pt-20 flex flex-col items-center gap-6 bg-gradient-to-b from-primary/20 via-primary/5 to-transparent">
-        <div className="relative group">
-          <div className="size-32 rounded-[40px] border-2 border-primary/30 p-1.5 bg-surface-dark shadow-2xl transition-all group-hover:border-primary/60">
-            <div
-              className="size-full rounded-[32px] bg-cover bg-center transition-all shadow-inner relative overflow-hidden"
-              style={{
-                backgroundImage: `url('${userData?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(userData?.name || 'Aura')}&background=c1a571&color=0c0d10&bold=true&size=200`}')`,
-              }}
-            >
-              <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleFileChange}
-                className="hidden"
-                accept="image/*"
-              />
+    <div className="flex-1 h-full overflow-y-auto pb-32 no-scrollbar bg-background-dark">
+      {/* Header Profile */}
+      <header className="relative py-16 lg:py-24 flex flex-col items-center justify-center overflow-hidden">
+        {/* Background Effects */}
+        <div className="absolute inset-0 bg-gradient-to-b from-primary/15 via-background-dark/80 to-background-dark z-0"></div>
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-[800px] h-[300px] bg-primary/5 blur-[120px] rounded-full"></div>
+
+        <div className="relative z-10 flex flex-col items-center gap-8 px-6 w-full max-w-[1200px]">
+          <div className="relative group">
+            <div className="size-32 lg:size-40 rounded-[48px] border-2 border-primary/20 p-2 bg-surface-dark shadow-2xl transition-all group-hover:border-primary/40 group-hover:scale-105 duration-500">
+              <div
+                className="size-full rounded-[40px] bg-cover bg-center transition-all shadow-inner relative overflow-hidden"
+                style={{
+                  backgroundImage: `url('${userData?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(userData?.name || 'Aura')}&background=c1a571&color=0c0d10&bold=true&size=200`}')`,
+                }}
+              >
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleFileChange}
+                  className="hidden"
+                  accept="image/*"
+                />
+                <div className="absolute inset-x-0 bottom-0 h-1/3 bg-black/40 backdrop-blur-md flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer" onClick={handleAvatarClick}>
+                  <span className="material-symbols-outlined text-white text-xl">photo_camera</span>
+                </div>
+              </div>
+            </div>
+            <button onClick={handleAvatarClick} className="absolute -bottom-2 -right-2 size-12 rounded-[20px] bg-primary text-background-dark flex items-center justify-center shadow-2xl active:scale-90 transition-all border-4 border-background-dark z-10 hover:scale-110">
+              <span className="material-symbols-outlined text-xl font-black">{userData?.avatar_url ? 'photo_camera' : 'edit'}</span>
+            </button>
+          </div>
+
+          <div className="text-center space-y-4">
+            <div className="px-5 py-1.5 rounded-full bg-primary/10 border border-primary/20 inline-block">
+              <span className="text-[9px] font-black text-primary uppercase tracking-[0.4em]">
+                {userData?.role === 'admin' ? 'Proprietário' : userData?.role === 'pro' ? (proData?.role || 'Artista') : 'Cliente Vip'}
+              </span>
+            </div>
+
+            <h2 className="text-4xl lg:text-5xl font-display font-black text-white italic tracking-tighter uppercase leading-none">{userData?.name || 'Carregando...'}</h2>
+
+            <div className="flex flex-wrap items-center justify-center gap-6 pt-2">
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-primary text-sm">mail</span>
+                <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest">{userData?.email}</p>
+              </div>
+              {userData?.phone && (
+                <div className="flex items-center gap-2">
+                  <span className="material-symbols-outlined text-primary text-sm">phone_iphone</span>
+                  <p className="text-primary text-[10px] font-black uppercase tracking-widest">{userData.phone}</p>
+                </div>
+              )}
             </div>
           </div>
-          <button onClick={handleAvatarClick} className="absolute -bottom-2 -right-2 size-10 rounded-2xl bg-primary text-background-dark flex items-center justify-center shadow-lg active:scale-90 transition-all border-4 border-background-dark z-10">
-            <span className="material-symbols-outlined text-lg font-black">{userData?.avatar_url ? 'photo_camera' : 'edit'}</span>
-          </button>
-        </div>
-
-        <div className="text-center">
-          <div className="px-3 py-1 rounded-full bg-primary/10 border border-primary/20 inline-block mb-3">
-            <span className="text-[8px] font-black text-primary uppercase tracking-[0.3em]">
-              {userData?.role === 'admin' ? 'Proprietário' : userData?.role === 'pro' ? (proData?.role || 'Artista') : 'Cliente Vip'}
-            </span>
-          </div>
-
-          <h2 className="text-3xl font-display font-black text-white italic tracking-tighter uppercase leading-none">{userData?.name || 'Carregando...'}</h2>
-
-          {userData?.role === 'pro' && proData && (
-            <p className="text-primary text-[10px] font-black uppercase tracking-[0.2em] mt-2 italic">{proData.role}</p>
-          )}
-
-          <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest mt-1.5">{userData?.email}</p>
-          {userData?.phone && <p className="text-primary text-[10px] font-black uppercase tracking-widest mt-1">{userData.phone}</p>}
         </div>
       </header>
 
-      <main className="px-8 py-10 space-y-10 safe-area-bottom pb-32 max-w-[450px] mx-auto animate-fade-in">
-        <div className="space-y-4">
-          <h3 className="text-[10px] font-black text-slate-700 uppercase tracking-[0.4em] ml-2">Preferências Elite</h3>
-          <div className="bg-surface-dark/60 rounded-[40px] border border-white/5 overflow-hidden shadow-2xl">
-            <button onClick={() => setIsEditing(true)} className="w-full p-7 flex justify-between items-center text-white text-sm font-bold border-b border-white/5 hover:bg-white/5 transition-all group">
-              <div className="flex items-center gap-5">
-                <span className="material-symbols-outlined text-primary text-2xl">account_circle</span>
-                <span className="font-display italic text-lg tracking-tight">Editar Perfil</span>
-              </div>
-              <span className="material-symbols-outlined text-slate-700 group-hover:text-primary transition-colors">chevron_right</span>
-            </button>
+      <main className="max-w-[1200px] mx-auto w-full px-6 lg:px-12 py-12 safe-area-bottom pb-32 animate-fade-in">
+        <div className="grid lg:grid-cols-12 gap-10">
+          <div className="lg:col-span-8 space-y-8">
+            <h3 className="text-[10px] font-black text-slate-700 uppercase tracking-[0.4em] ml-2">Preferências Elite</h3>
+            <div className="bg-surface-dark/40 rounded-[48px] border border-white/5 overflow-hidden shadow-2xl backdrop-blur-md">
+              <button onClick={() => setIsEditing(true)} className="w-full p-8 lg:p-10 flex justify-between items-center text-white border-b border-white/5 hover:bg-white/5 transition-all group">
+                <div className="flex items-center gap-6">
+                  <div className="size-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-background-dark transition-all">
+                    <span className="material-symbols-outlined text-2xl">account_circle</span>
+                  </div>
+                  <div className="text-left">
+                    <span className="font-display italic text-xl tracking-tight block">Editar Perfil</span>
+                    <span className="text-[9px] text-slate-500 font-bold uppercase tracking-widest">Sua Identidade Aura</span>
+                  </div>
+                </div>
+                <span className="material-symbols-outlined text-slate-700 group-hover:text-primary transition-colors group-hover:translate-x-2">chevron_right</span>
+              </button>
 
-            <button onClick={() => setIsNotificationsOpen(true)} className="w-full p-7 flex justify-between items-center text-white text-sm font-bold border-b border-white/5 hover:bg-white/5 transition-all group">
-              <div className="flex items-center gap-5">
-                <span className="material-symbols-outlined text-primary text-2xl">notifications</span>
-                <span className="font-display italic text-lg tracking-tight">Central de Notificações</span>
-              </div>
-              <span className="material-symbols-outlined text-slate-700 group-hover:text-primary transition-colors">chevron_right</span>
-            </button>
+              <button onClick={() => setIsNotificationsOpen(true)} className="w-full p-8 lg:p-10 flex justify-between items-center text-white border-b border-white/5 hover:bg-white/5 transition-all group">
+                <div className="flex items-center gap-6">
+                  <div className="size-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-background-dark transition-all">
+                    <span className="material-symbols-outlined text-2xl">notifications</span>
+                  </div>
+                  <div className="text-left">
+                    <span className="font-display italic text-xl tracking-tight block">Central de Notificações</span>
+                    <span className="text-[9px] text-slate-500 font-bold uppercase tracking-widest">Avisos e Lembretes de Ritual</span>
+                  </div>
+                </div>
+                <span className="material-symbols-outlined text-slate-700 group-hover:text-primary transition-colors group-hover:translate-x-2">chevron_right</span>
+              </button>
 
-            <button onClick={() => setIsPrivacyOpen(true)} className="w-full p-7 flex justify-between items-center text-white text-sm font-bold border-b border-white/5 hover:bg-white/5 transition-all group">
-              <div className="flex items-center gap-5">
-                <span className="material-symbols-outlined text-primary text-2xl">security</span>
-                <span className="font-display italic text-lg tracking-tight">Privacidade & Dados</span>
-              </div>
-              <span className="material-symbols-outlined text-slate-700 group-hover:text-primary transition-colors">chevron_right</span>
-            </button>
+              <button onClick={() => setIsPrivacyOpen(true)} className="w-full p-8 lg:p-10 flex justify-between items-center text-white border-b border-white/5 hover:bg-white/5 transition-all group">
+                <div className="flex items-center gap-6">
+                  <div className="size-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-background-dark transition-all">
+                    <span className="material-symbols-outlined text-2xl">security</span>
+                  </div>
+                  <div className="text-left">
+                    <span className="font-display italic text-xl tracking-tight block">Privacidade & Dados</span>
+                    <span className="text-[9px] text-slate-500 font-bold uppercase tracking-widest">Gestão Total de Informação</span>
+                  </div>
+                </div>
+                <span className="material-symbols-outlined text-slate-700 group-hover:text-primary transition-colors group-hover:translate-x-2">chevron_right</span>
+              </button>
+            </div>
           </div>
+
+          <aside className="lg:col-span-4 space-y-8">
+            <h3 className="text-[10px] font-black text-slate-700 uppercase tracking-[0.4em] ml-2">Sessão</h3>
+            <div className="bg-surface-dark/40 rounded-[48px] border border-white/5 p-8 lg:p-10 shadow-2xl backdrop-blur-md">
+              <button
+                onClick={onLogout}
+                className="w-full p-6 flex items-center justify-center gap-4 bg-red-500/10 border border-red-500/20 rounded-[28px] text-red-500 text-[10px] font-black uppercase tracking-[0.4em] hover:bg-red-500 hover:text-white active:scale-95 transition-all shadow-xl"
+              >
+                <span className="material-symbols-outlined text-lg">logout</span>
+                Sair com Segurança
+              </button>
+
+              <div className="mt-10 pt-10 border-t border-white/5 text-center">
+                <p className="text-slate-700 text-[9px] font-black uppercase tracking-[0.4em] leading-relaxed">
+                  Luxe Aura • Premium Experience<br />
+                  Versão 2.4.0 • Excellence Standard
+                </p>
+              </div>
+            </div>
+          </aside>
         </div>
-
-        <button
-          onClick={onLogout}
-          className="w-full mt-4 p-7 flex justify-center items-center gap-3 bg-red-500/10 border border-red-500/20 rounded-[32px] text-red-500 text-[10px] font-black uppercase tracking-[0.4em] active:scale-95 transition-all shadow-xl"
-        >
-          <span className="material-symbols-outlined">logout</span>
-          Desconectar sua Aura
-        </button>
-
-        <p className="text-center text-slate-900 text-[8px] font-black uppercase tracking-[0.8em] pt-8 opacity-40">Luxe Aura • Built for Excellence</p>
       </main>
 
       {/* MODAL EDIT PERFIL */}

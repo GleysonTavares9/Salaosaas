@@ -135,99 +135,121 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({ salonId }) => {
   };
 
   return (
-    <div className="flex-1 overflow-y-auto h-full no-scrollbar">
-      <header className="sticky top-0 z-50 bg-background-dark/60 backdrop-blur-md px-6 pt-12 pb-6 border-b border-white/5 flex flex-col gap-6">
-        <div className="flex items-center justify-between">
-          <button onClick={() => navigate('/pro')} className="size-10 rounded-full border border-white/10 flex items-center justify-center text-white active:scale-95 transition-all">
-            <span className="material-symbols-outlined">arrow_back</span>
-          </button>
-          <div>
-            <h1 className="text-xl font-display font-black text-white italic tracking-tighter uppercase leading-none text-center">Boutique & Estoque</h1>
-            <p className="text-primary text-[8px] font-black uppercase tracking-[0.2em] mt-1 text-center font-black">Gestão da Vitrine de Produtos</p>
-          </div>
-          <div className="size-10"></div>
-        </div>
+    <div className="flex-1 overflow-y-auto h-full no-scrollbar bg-background-dark relative">
+      <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.02] pointer-events-none"></div>
 
-        {/* Search Bar */}
-        <div className="relative group">
-          <span className="material-symbols-outlined absolute left-5 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors text-lg">search</span>
-          <input
-            type="text"
-            placeholder="Buscar produto..."
-            value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-            className="w-full bg-surface-dark/50 border border-white/5 rounded-2xl py-4 pl-14 pr-6 text-white text-[11px] font-bold uppercase tracking-widest outline-none focus:border-primary/50 transition-all shadow-inner"
-          />
-        </div>
-
-        {/* Category Filters */}
-        <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2">
-          {categories.map(cat => (
-            <button
-              key={cat}
-              onClick={() => setActiveCategory(cat)}
-              className={`px-4 py-2 rounded-xl text-[8px] font-black uppercase tracking-widest transition-all whitespace-nowrap border ${activeCategory === cat
-                ? 'bg-primary text-background-dark border-primary shadow-lg shadow-primary/20'
-                : 'bg-white/5 text-slate-500 border-white/5 hover:border-white/10'
-                }`}
-            >
-              {cat}
+      <header className="sticky top-0 z-50 bg-background-dark/80 backdrop-blur-3xl px-6 pt-12 pb-10 border-b border-white/5">
+        <div className="max-w-[1400px] mx-auto w-full">
+          <div className="flex items-center justify-between mb-12">
+            <button onClick={() => navigate('/pro')} className="size-12 rounded-2xl bg-black/40 border border-white/10 flex items-center justify-center text-white active:scale-95 transition-all">
+              <span className="material-symbols-outlined text-xl">arrow_back</span>
             </button>
-          ))}
+            <div className="text-center">
+              <h1 className="font-display font-black text-white italic tracking-[0.2em] uppercase leading-none" style={{ fontSize: 'var(--step-1)' }}>
+                Boutique Elite
+              </h1>
+              <p className="text-[7px] text-primary font-black uppercase tracking-[0.4em] mt-3">Gestão de Ativos & Estoque</p>
+            </div>
+            <div className="size-12 opacity-0 pointer-events-none"></div>
+          </div>
+
+          <div className="space-y-8">
+            {/* Search Bar Refinada */}
+            <div className="relative group max-w-2xl mx-auto">
+              <span className="material-symbols-outlined absolute left-6 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors text-xl">search</span>
+              <input
+                type="text"
+                placeholder="BUSCAR NO ACERVO..."
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                className="w-full bg-surface-dark/40 border border-white/10 rounded-3xl py-6 pl-16 pr-8 text-white text-[11px] font-black uppercase tracking-[0.3em] outline-none focus:border-primary/40 focus:bg-surface-dark/60 transition-all shadow-inner"
+              />
+            </div>
+
+            {/* Category Filters Elite */}
+            <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2">
+              {categories.map(cat => (
+                <button
+                  key={cat}
+                  onClick={() => setActiveCategory(cat)}
+                  className={`px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all whitespace-nowrap border ${activeCategory === cat
+                    ? 'gold-gradient text-background-dark border-transparent shadow-gold-sm scale-105 z-10'
+                    : 'bg-surface-dark/40 text-slate-500 border-white/5 hover:border-white/10'
+                    }`}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       </header>
 
-      <main className="w-full px-6 py-8 space-y-8 pb-40 animate-fade-in lg:px-6">
-        <div className="mb-2">
+      <main className="max-w-[1400px] mx-auto w-full px-6 py-12 lg:py-20 space-y-16 pb-40 animate-fade-in relative z-10">
+        <div className="flex justify-center">
           <button
             onClick={() => setIsAdding(true)}
-            className="w-full bg-white/5 border border-dashed border-white/10 rounded-[40px] py-10 flex flex-col items-center justify-center gap-4 group hover:border-primary/20 hover:bg-white/[0.07] transition-all active:scale-[0.98]"
+            className="w-full max-w-xl group relative p-[2px] rounded-[48px] active:scale-95 transition-all overflow-hidden"
           >
-            <div className="size-14 rounded-full gold-gradient flex items-center justify-center text-background-dark shadow-xl shadow-primary/20 group-hover:scale-110 transition-transform">
-              <span className="material-symbols-outlined text-2xl font-black">add_shopping_cart</span>
+            <div className="absolute inset-0 bg-gradient-to-r from-primary/40 to-primary/10 animate-pulse"></div>
+            <div className="relative bg-background-dark/90 rounded-[46px] py-10 lg:py-14 flex flex-col items-center justify-center gap-6 backdrop-blur-3xl group-hover:bg-background-dark/70 transition-colors">
+              <div className="size-20 rounded-[32px] gold-gradient flex items-center justify-center text-background-dark shadow-gold group-hover:scale-110 transition-all duration-500">
+                <span className="material-symbols-outlined text-4xl font-black">add_shopping_cart</span>
+              </div>
+              <div className="text-center">
+                <span className="text-[11px] font-black text-white uppercase tracking-[0.5em]">Integrar Novo Ativo</span>
+                <p className="text-[7px] text-primary/60 font-black uppercase tracking-[0.3em] mt-3">Eleve o Estoque da Boutique</p>
+              </div>
             </div>
-            <span className="text-[11px] font-black text-white uppercase tracking-[0.4em]">Adicionar Novo Produto</span>
           </button>
         </div>
 
         {isLoading && products.length === 0 ? (
-          <div className="py-20 text-center flex flex-col items-center">
-            <div className="size-8 border-2 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+          <div className="py-40 text-center flex flex-col items-center">
+            <div className="size-12 border-2 border-primary/20 border-t-primary rounded-full animate-spin"></div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-10 lg:gap-14">
             {filteredProducts.map(product => {
               const isLowStock = product.stock < 5;
               return (
-                <div key={product.id} className="bg-surface-dark/60 border border-white/5 rounded-[32px] p-5 flex gap-5 shadow-xl group hover:border-primary/20 transition-all relative overflow-hidden">
+                <div key={product.id} className="group relative bg-surface-dark/40 rounded-[56px] border border-white/5 p-8 lg:p-10 shadow-[0_30px_80px_rgba(0,0,0,0.4)] transition-all hover:border-primary/20 backdrop-blur-3xl overflow-hidden active:scale-[0.99]">
                   {isLowStock && (
-                    <div className="absolute top-0 left-0 w-1.5 h-full bg-red-500 shadow-[2px_0_10px_rgba(239,68,68,0.5)] z-10"></div>
+                    <div className="absolute top-0 left-0 w-2 h-full bg-red-500 shadow-[10px_0_40px_rgba(239,68,68,0.3)] z-10"></div>
                   )}
-                  <div className="size-24 rounded-2xl overflow-hidden border border-white/5 shadow-inner shrink-0 relative bg-background-dark">
-                    <img src={product.image} className="w-full h-full object-cover grayscale-[0.2] group-hover:grayscale-0 transition-all duration-700" alt={product.name} />
-                    <div className="absolute inset-x-0 bottom-0 bg-black/40 backdrop-blur-md py-1">
-                      <p className="text-[7px] text-white font-black text-center uppercase tracking-widest">{product.category}</p>
-                    </div>
-                  </div>
-                  <div className="flex-1 flex flex-col justify-center min-w-0 text-left">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg ${isLowStock ? 'bg-red-500/10 text-red-500 border border-red-500/20' : 'bg-white/5 text-slate-500 border border-white/10'} border`}>
-                        <span className="material-symbols-outlined text-[11px] font-black">{isLowStock ? 'warning' : 'inventory_2'}</span>
-                        <span className="text-[8px] font-black uppercase tracking-tight">QTD: {product.stock}</span>
+
+                  <div className="flex flex-col gap-8">
+                    <div className="relative aspect-square rounded-[40px] overflow-hidden border-2 border-white/5 shadow-2xl bg-black/20">
+                      <img src={product.image} className="size-full object-cover grayscale-[0.3] group-hover:grayscale-0 group-hover:scale-110 transition-all duration-1000" alt={product.name} />
+                      <div className="absolute inset-0 bg-gradient-to-t from-background-dark/80 via-transparent to-transparent"></div>
+                      <div className="absolute bottom-6 left-6 flex items-center gap-3">
+                        <span className="bg-primary/20 backdrop-blur-md border border-primary/30 px-4 py-2 rounded-full text-[8px] font-black text-primary uppercase tracking-widest">{product.category}</span>
                       </div>
                     </div>
-                    <h3 className="text-white font-display font-black text-base italic tracking-tight mb-3 truncate uppercase leading-tight">{product.name}</h3>
-                    <div className="flex items-center justify-between mt-auto">
-                      <div className="flex flex-col">
-                        <span className="text-[7px] font-black text-slate-600 uppercase tracking-widest leading-none mb-1">Preço Sugerido</span>
-                        <span className="text-xl font-display font-black text-primary italic leading-none">R$ {product.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+
+                    <div className="space-y-6">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="min-w-0">
+                          <h4 className="font-display text-2xl lg:text-3xl font-black text-white italic tracking-tighter uppercase leading-none truncate group-hover:text-primary transition-colors">{product.name}</h4>
+                          <div className={`inline-flex items-center gap-2 mt-4 px-3 py-1.5 rounded-xl border ${isLowStock ? 'bg-red-500/10 text-red-500 border-red-500/20' : 'bg-white/5 text-slate-500 border-white/10'}`}>
+                            <span className="material-symbols-outlined text-[14px] font-black">{isLowStock ? 'warning' : 'inventory_2'}</span>
+                            <span className="text-[10px] font-black uppercase tracking-widest">STOCK: {product.stock}</span>
+                          </div>
+                        </div>
                       </div>
-                      <button
-                        onClick={() => handleEdit(product)}
-                        className="size-11 rounded-2xl bg-primary text-background-dark flex items-center justify-center shadow-[0_5px_15px_rgba(193,165,113,0.3)] active:scale-90 transition-all"
-                      >
-                        <span className="material-symbols-outlined text-base font-black">edit_note</span>
-                      </button>
+
+                      <div className="flex items-center justify-between pt-6 border-t border-white/5">
+                        <div className="flex flex-col">
+                          <span className="text-[8px] font-black text-slate-600 uppercase tracking-widest leading-none mb-2">Valor de Venda</span>
+                          <span className="text-3xl font-display font-black text-white italic tracking-tight">R$ {product.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                        </div>
+                        <button
+                          onClick={() => handleEdit(product)}
+                          className="size-14 rounded-2xl bg-primary text-background-dark flex items-center justify-center shadow-gold-sm active:scale-90 transition-all hover:brightness-110"
+                        >
+                          <span className="material-symbols-outlined text-xl font-black">edit_square</span>
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -235,57 +257,113 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({ salonId }) => {
             })}
 
             {filteredProducts.length === 0 && !isAdding && !isLoading && (
-              <div className="py-20 text-center flex flex-col items-center opacity-30">
-                <span className="material-symbols-outlined text-6xl mb-4 text-slate-700">inventory_2</span>
-                <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">
-                  {searchQuery ? 'Nenhum resultado para a busca' : 'Nenhum produto nesta categoria'}
+              <div className="py-40 text-center flex flex-col items-center gap-6 col-span-full">
+                <div className="size-20 rounded-[32px] bg-white/[0.02] border border-white/5 flex items-center justify-center text-slate-700">
+                  <span className="material-symbols-outlined text-4xl">inventory_2</span>
+                </div>
+                <p className="text-[11px] font-black uppercase tracking-[0.5em] text-slate-600">
+                  {searchQuery ? 'Busca sem resultados no acervo' : 'Nenhum item nesta galeria'}
                 </p>
               </div>
             )}
           </div>
         )}
+      </main>
 
-        {/* Overlay de Adicionar/Editar */}
-        {isAdding && (
-          <div className="fixed inset-0 z-[60] bg-background-dark/95 backdrop-blur-xl animate-fade-in flex flex-col items-center overflow-hidden">
-            <div className="flex-1 flex flex-col bg-background-dark max-w-[450px] w-full h-full">
-              <header className="p-8 flex items-center justify-between">
-                <h2 className="text-xl font-display font-black text-white italic tracking-tighter uppercase">
-                  {editingProduct ? 'Editar Produto' : 'Novo Produto'}
+      {/* Modal de Cadastro/Edição de Ativos Refinado */}
+      {isAdding && (
+        <div className="fixed inset-0 z-[120] bg-background-dark/95 backdrop-blur-3xl animate-fade-in flex flex-col items-center overflow-hidden">
+          <div className="flex-1 flex flex-col max-w-[600px] w-full h-full relative">
+            <header className="px-10 pt-16 flex items-center justify-between shrink-0">
+              <div>
+                <h2 className="text-2xl lg:text-3xl font-display font-black text-white italic tracking-tighter uppercase">
+                  {editingProduct ? 'Ajustar Ativo' : 'Integrar Ativo'}
                 </h2>
-                <button
-                  onClick={closeModal}
-                  className="size-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-slate-500"
-                >
-                  <span className="material-symbols-outlined">close</span>
-                </button>
-              </header>
-              <form onSubmit={handleSubmit} className="p-8 flex-1 overflow-y-auto space-y-6 pb-40 min-h-0 text-left">
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Nome do Produto</label>
-                  <input type="text" required value={formProduct.name} onChange={e => setFormProduct({ ...formProduct, name: e.target.value })} className="w-full bg-surface-dark border border-white/5 rounded-2xl p-5 text-white text-sm outline-none focus:border-primary" />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Preço Sugerido (R$)</label>
-                    <input type="number" step="0.01" required value={formProduct.price} onChange={e => setFormProduct({ ...formProduct, price: parseFloat(e.target.value) })} className="w-full bg-surface-dark border border-white/5 rounded-2xl p-5 text-white text-sm outline-none focus:border-primary" />
+                <p className="text-[10px] text-primary font-black uppercase tracking-[0.4em] mt-2 leading-none">Curadoria de Boutique Elite</p>
+              </div>
+              <button
+                onClick={closeModal}
+                className="size-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-500 hover:text-white transition-all"
+              >
+                <span className="material-symbols-outlined font-black">close</span>
+              </button>
+            </header>
+
+            <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-10 space-y-12 pb-60 no-scrollbar min-h-0 text-left">
+              <div className="flex flex-col items-center gap-6">
+                <div className="relative group shrink-0">
+                  <div className="size-44 rounded-[50px] bg-cover bg-center border-2 border-dashed border-white/10 shadow-2xl overflow-hidden bg-surface-dark flex items-center justify-center relative" style={{ backgroundImage: formProduct.image ? `url('${formProduct.image}')` : 'none' }}>
+                    {!formProduct.image && <span className="material-symbols-outlined text-slate-700 text-6xl">shopping_bag</span>}
+                    <label htmlFor="prod-image" className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer z-10">
+                      <span className="material-symbols-outlined text-white text-3xl font-black">add_a_photo</span>
+                    </label>
                   </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Qtd em Estoque</label>
-                    <input type="number" required value={formProduct.stock} onChange={e => setFormProduct({ ...formProduct, stock: parseInt(e.target.value) })} className="w-full bg-surface-dark border border-white/5 rounded-2xl p-5 text-white text-sm outline-none focus:border-primary" />
+                  <input
+                    type="file"
+                    id="prod-image"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        try {
+                          setIsLoading(true);
+                          const publicUrl = await api.storage.upload(file);
+                          setFormProduct({ ...formProduct, image: publicUrl });
+                          showToast("Imagem capturada!", "success");
+                        } catch (err: any) {
+                          showToast("Falha no upload!", "error");
+                        } finally {
+                          setIsLoading(false);
+                        }
+                      }
+                    }}
+                  />
+                </div>
+                <p className="text-[10px] font-black text-primary uppercase tracking-[0.4em]">Visualização do Ativo</p>
+              </div>
+
+              <div className="space-y-10">
+                <div className="relative">
+                  <label className="text-[8px] font-black text-slate-600 uppercase tracking-widest absolute -top-5 left-0">NOME DO PRODUTO</label>
+                  <input type="text" required value={formProduct.name} onChange={e => setFormProduct({ ...formProduct, name: e.target.value })} className="w-full bg-transparent border-b-2 border-white/5 p-4 text-white text-2xl font-display font-black italic outline-none focus:border-primary transition-all" placeholder="EX: ÓLEO AURA ESSENCE" />
+                </div>
+
+                <div className="grid grid-cols-2 gap-8">
+                  <div className="bg-surface-dark border border-white/5 rounded-[32px] p-8">
+                    <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-4">Preço Boutique R$</p>
+                    <input
+                      type="number"
+                      step="0.01"
+                      required
+                      value={formProduct.price || ''}
+                      onChange={e => setFormProduct({ ...formProduct, price: parseFloat(e.target.value) })}
+                      className="text-4xl font-display font-black text-white italic bg-transparent outline-none w-full"
+                    />
+                  </div>
+                  <div className="bg-surface-dark border border-white/5 rounded-[32px] p-8">
+                    <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-4">Qtd Disponível</p>
+                    <input
+                      type="number"
+                      required
+                      value={formProduct.stock || '0'}
+                      onChange={e => setFormProduct({ ...formProduct, stock: parseInt(e.target.value) })}
+                      className="text-4xl font-display font-black text-primary italic bg-transparent outline-none w-full"
+                    />
                   </div>
                 </div>
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Categoria</label>
-                  <div className="grid grid-cols-2 gap-2">
+
+                <div className="bg-primary/5 border border-primary/20 rounded-[48px] p-10 space-y-8">
+                  <p className="text-[10px] font-black text-primary uppercase tracking-[0.4em] text-center italic">Esfera de Categoria</p>
+                  <div className="grid grid-cols-2 gap-3">
                     {categories.filter(c => c !== 'Todos').map(c => (
                       <button
                         key={c}
                         type="button"
                         onClick={() => setFormProduct({ ...formProduct, category: c })}
-                        className={`py-4 rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all border ${formProduct.category === c
-                          ? 'bg-primary/20 text-primary border-primary shadow-inner'
-                          : 'bg-surface-dark border-white/5 text-slate-500'
+                        className={`py-5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all border ${formProduct.category === c
+                          ? 'gold-gradient text-background-dark border-transparent shadow-gold-sm'
+                          : 'bg-background-dark/60 border-white/5 text-slate-500'
                           }`}
                       >
                         {c}
@@ -293,105 +371,57 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({ salonId }) => {
                     ))}
                   </div>
                 </div>
-                <div className="space-y-4">
-                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Imagem do Produto</label>
-                  <div className="flex items-center gap-6">
-                    <div className="size-24 rounded-3xl bg-surface-dark border-2 border-dashed border-white/10 flex items-center justify-center overflow-hidden shrink-0">
-                      {formProduct.image ? (
-                        <img src={formProduct.image} className="size-full object-cover" alt="Preview" />
-                      ) : (
-                        <span className="material-symbols-outlined text-slate-700 text-3xl">add_a_photo</span>
-                      )}
-                    </div>
-                    <div className="flex-1 space-y-2">
-                      <input
-                        type="file"
-                        id="prod-image"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={async (e) => {
-                          const file = e.target.files?.[0];
-                          if (file) {
-                            try {
-                              setIsLoading(true);
-                              const publicUrl = await api.storage.upload(file);
-                              setFormProduct({ ...formProduct, image: publicUrl });
-                              showToast("Imagem enviada!", "success");
-                            } catch (err: any) {
-                              showToast("Erro no upload: " + err.message, "error");
-                            } finally {
-                              setIsLoading(false);
-                            }
-                          }
-                        }}
-                      />
-                      <label htmlFor="prod-image" className="inline-block px-6 py-3 bg-white/5 border border-white/10 rounded-xl text-[9px] font-black text-white uppercase tracking-widest cursor-pointer hover:bg-white/10 active:scale-95 transition-all">
-                        {formProduct.image ? 'Alterar Foto' : 'Selecionar Arquivo'}
-                      </label>
-                    </div>
-                  </div>
-                </div>
-                <div className="pt-4 space-y-4">
+              </div>
+
+              <div className="absolute bottom-0 left-0 right-0 p-10 bg-gradient-to-t from-background-dark via-background-dark to-transparent space-y-4">
+                <button type="submit" disabled={isLoading} className="w-full gold-gradient text-background-dark h-24 rounded-[32px] font-black shadow-[0_30px_70px_rgba(0,0,0,0.5)] uppercase tracking-[0.6em] text-[11px] lg:text-[13px] active:scale-95 transition-all hover:brightness-110 flex items-center justify-center gap-4">
+                  {isLoading ? <div className="size-6 border-2 border-background-dark/30 border-t-background-dark rounded-full animate-spin"></div> : (editingProduct ? 'ATUALIZAR ACERVO' : 'CONSOLIDAR NA BOUTIQUE')}
+                </button>
+                {editingProduct && (
                   <button
-                    type="submit"
+                    type="button"
+                    onClick={() => setShowDeleteConfirm(true)}
                     disabled={isLoading}
-                    className="w-full gold-gradient text-background-dark font-black py-5 rounded-2xl shadow-xl uppercase tracking-widest text-xs active:scale-95 transition-all flex items-center justify-center gap-2"
+                    className="w-full h-16 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-500 text-[10px] font-black uppercase tracking-[0.4em] hover:bg-red-500/20 transition-all"
                   >
-                    {isLoading ? <div className="size-4 border-2 border-background-dark/30 border-t-background-dark rounded-full animate-spin"></div> : (editingProduct ? 'Salvar Alterações' : 'Adicionar à Boutique')}
+                    Expurgar do Estoque
                   </button>
+                )}
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
-                  {editingProduct && (
-                    <button
-                      type="button"
-                      onClick={() => setShowDeleteConfirm(true)}
-                      disabled={isLoading}
-                      className="w-full bg-red-500/10 border border-red-500/20 text-red-500 font-black py-4 rounded-2xl uppercase tracking-widest text-[10px] active:scale-95 transition-all"
-                    >
-                      Excluir Produto
-                    </button>
-                  )}
-                </div>
-              </form>
+      {/* Modal de Confirmação de Exclusão Refinado */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-[200] bg-black/95 backdrop-blur-md flex items-center justify-center p-8 animate-fade-in text-center">
+          <div className="bg-surface-dark border border-white/10 rounded-[48px] p-12 max-w-sm w-full shadow-3xl">
+            <div className="size-20 rounded-3xl bg-red-500/10 flex items-center justify-center text-red-500 mx-auto mb-8 animate-pulse">
+              <span className="material-symbols-outlined text-4xl">warning</span>
+            </div>
+            <h3 className="text-2xl font-display font-black text-white italic mb-4 uppercase tracking-tighter">Banir Ativo?</h3>
+            <p className="text-slate-500 text-[11px] font-bold uppercase tracking-widest leading-relaxed mb-10">Este item será expurgado do estoque permanentemente.</p>
+            <div className="flex flex-col gap-4">
+              <button
+                onClick={confirmDelete}
+                disabled={isLoading}
+                className="w-full bg-red-500 text-white h-16 rounded-2xl font-black uppercase tracking-[0.4em] text-[10px] shadow-2xl active:scale-95 transition-all"
+              >
+                {isLoading ? 'EXPURGANDO...' : 'CONFIRMAR BANIMENTO'}
+              </button>
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={isLoading}
+                className="w-full bg-white/5 border border-white/10 text-white h-16 rounded-2xl font-black uppercase tracking-[0.4em] text-[10px]"
+              >
+                CANCELAR
+              </button>
             </div>
           </div>
-        )}
+        </div>
+      )}
 
-        {/* Modal de Confirmação de Exclusão */}
-        {showDeleteConfirm && (
-          <div className="fixed inset-0 z-[70] bg-black/80 backdrop-blur-xl flex items-center justify-center p-6 animate-fade-in">
-            <div className="bg-surface-dark border border-red-500/20 rounded-[32px] p-8 max-w-sm w-full space-y-6 shadow-2xl shadow-red-500/10">
-              <div className="text-center space-y-4">
-                <div className="size-16 mx-auto rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center">
-                  <span className="material-symbols-outlined text-red-500 text-3xl">warning</span>
-                </div>
-                <h3 className="text-xl font-display font-black text-white italic tracking-tight uppercase">
-                  Excluir Produto?
-                </h3>
-                <p className="text-slate-400 text-sm">
-                  Esta ação não pode ser desfeita. O produto será removido permanentemente do estoque.
-                </p>
-              </div>
-              <div className="space-y-3">
-                <button
-                  onClick={confirmDelete}
-                  disabled={isLoading}
-                  className="w-full bg-red-500 text-white font-black py-4 rounded-2xl uppercase tracking-widest text-xs active:scale-95 transition-all shadow-lg shadow-red-500/20"
-                >
-                  {isLoading ? <div className="size-4 border-2 border-white/30 border-t-white rounded-full animate-spin mx-auto"></div> : 'Sim, Excluir'}
-                </button>
-                <button
-                  onClick={() => setShowDeleteConfirm(false)}
-                  disabled={isLoading}
-                  className="w-full bg-white/5 border border-white/10 text-white font-black py-4 rounded-2xl uppercase tracking-widest text-xs active:scale-95 transition-all"
-                >
-                  Cancelar
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-      </main>
     </div>
   );
 };

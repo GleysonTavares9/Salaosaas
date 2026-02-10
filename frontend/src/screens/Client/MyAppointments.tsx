@@ -102,43 +102,49 @@ const MyAppointments: React.FC<MyAppointmentsProps> = ({ appointments, onCancelA
   };
 
   return (
-    <div className="flex-1 h-full overflow-y-auto pb-32 relative no-scrollbar">
-      <header className="sticky top-0 z-50 bg-background-dark/60 backdrop-blur-md p-5 flex items-center justify-between border-b border-primary/10">
-        <button onClick={() => navigate('/explore')} className="text-primary">
-          <span className="material-symbols-outlined">arrow_back_ios</span>
-        </button>
-        <h1 className="text-xl font-display font-bold tracking-tight text-white">Minha Agenda</h1>
-        <button onClick={() => navigate('/messages')} className="text-primary relative">
-          <span className="material-symbols-outlined">chat</span>
-          <span className="absolute -top-1 -right-1 size-2 bg-red-500 rounded-full"></span>
-        </button>
+    <div className="flex-1 h-full overflow-y-auto pb-32 relative no-scrollbar bg-background-dark">
+      <header className="sticky top-0 z-50 bg-background-dark/80 backdrop-blur-2xl px-6 py-8 border-b border-white/5">
+        <div className="max-w-[1200px] mx-auto w-full flex items-center justify-between">
+          <button onClick={() => navigate('/explore')} className="size-12 rounded-2xl bg-black/30 border border-white/10 flex items-center justify-center text-primary hover:bg-white/5 active:scale-95 transition-all">
+            <span className="material-symbols-outlined text-xl">arrow_back_ios</span>
+          </button>
+          <div className="text-center">
+            <h1 className="font-display font-black text-white italic tracking-[0.2em] uppercase leading-none" style={{ fontSize: 'var(--step-1)' }}>Minha Agenda</h1>
+            <p className="text-[7px] text-primary font-black uppercase tracking-[0.4em] mt-2">Sincronia de Estilo</p>
+          </div>
+          <button onClick={() => navigate('/messages')} className="size-12 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary group active:scale-95 transition-all">
+            <span className="material-symbols-outlined text-2xl group-hover:scale-110 transition-transform">chat</span>
+            <span className="absolute top-3 right-3 size-2.5 bg-red-500 rounded-full border-2 border-background-dark animate-pulse"></span>
+          </button>
+        </div>
       </header>
 
       {/* MODAL DE CONFIRMAÇÃO CUSTOMIZADO */}
       {confirmModal.isOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/80 backdrop-blur-sm animate-fade-in">
-          <div className="bg-[#1A1B25] border border-white/10 rounded-[32px] p-6 w-full max-w-sm shadow-2xl relative overflow-hidden">
-            {/* Efeito de brilho de fundo */}
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-1 bg-primary blur-[20px] opacity-40"></div>
+          <div className="bg-[#1A1B25] border border-white/10 rounded-[48px] p-10 w-full max-w-md shadow-[0_40px_100px_rgba(0,0,0,0.8)] relative overflow-hidden">
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-1.5 gold-gradient blur-[20px] opacity-40"></div>
 
-            <div className="flex flex-col items-center text-center space-y-4">
-              <div className={`size-14 rounded-full flex items-center justify-center mb-2 ${confirmModal.isDanger ? 'bg-red-500/10 text-red-500' : 'bg-primary/10 text-primary'}`}>
-                <span className="material-symbols-outlined text-3xl">{confirmModal.isDanger ? 'warning' : 'info'}</span>
+            <div className="flex flex-col items-center text-center space-y-8">
+              <div className={`size-20 rounded-[32px] flex items-center justify-center ${confirmModal.isDanger ? 'bg-red-500/10 text-red-500 border border-red-500/20' : 'bg-primary/10 text-primary border border-primary/20'}`}>
+                <span className="material-symbols-outlined text-4xl">{confirmModal.isDanger ? 'warning' : 'info'}</span>
               </div>
 
-              <h3 className="text-lg font-display font-black text-white italic tracking-tight">{confirmModal.title}</h3>
-              <p className="text-slate-400 text-xs font-bold leading-relaxed">{confirmModal.message}</p>
+              <div className="space-y-4">
+                <h3 className="text-2xl font-display font-black text-white italic tracking-tight">{confirmModal.title}</h3>
+                <p className="text-slate-400 text-sm font-bold leading-relaxed max-w-[280px] mx-auto">{confirmModal.message}</p>
+              </div>
 
-              <div className="grid grid-cols-2 gap-3 w-full pt-4">
+              <div className="grid grid-cols-2 gap-4 w-full pt-6">
                 <button
                   onClick={closeConfirmModal}
-                  className="bg-white/5 border border-white/10 text-white py-4 rounded-2xl text-[9px] font-black uppercase tracking-widest active:scale-95 transition-all"
+                  className="bg-white/5 border border-white/10 text-white py-5 rounded-[24px] text-[10px] font-black uppercase tracking-[0.2em] hover:bg-white/10 active:scale-95 transition-all"
                 >
                   {confirmModal.cancelText}
                 </button>
                 <button
                   onClick={confirmModal.onConfirm}
-                  className={`${confirmModal.isDanger ? 'bg-red-500 hover:bg-red-600 shadow-red-900/20' : 'gold-gradient text-background-dark shadow-primary/20'} py-4 rounded-2xl text-[9px] font-black uppercase tracking-widest shadow-lg active:scale-95 transition-all`}
+                  className={`${confirmModal.isDanger ? 'bg-red-500 hover:bg-red-600 shadow-red-900/20' : 'gold-gradient text-background-dark shadow-primary/20'} py-5 rounded-[24px] text-[10px] font-black uppercase tracking-[0.2em] shadow-lg active:scale-95 transition-all`}
                 >
                   {confirmModal.confirmText}
                 </button>
@@ -148,129 +154,154 @@ const MyAppointments: React.FC<MyAppointmentsProps> = ({ appointments, onCancelA
         </div>
       )}
 
-      <div className="px-6 py-8 animate-fade-in">
-        <section className="space-y-8">
-          <h2 className="text-[10px] font-black uppercase tracking-[0.25em] text-primary px-1">Próximas Sessões</h2>
-          {upcoming.map(appt => {
-            // Format date to Brazilian format
-            const formattedDate = appt.date ? new Date(appt.date + 'T00:00:00').toLocaleDateString('pt-BR', {
-              day: '2-digit',
-              month: 'long',
-              year: 'numeric'
-            }) : appt.date;
+      <div className="max-w-[1200px] mx-auto w-full px-6 lg:px-12 py-12 animate-fade-in">
+        <section className="space-y-10">
+          <div className="flex items-center gap-4 mb-2">
+            <div className="h-0.5 w-8 bg-primary"></div>
+            <h2 className="text-[10px] font-black uppercase tracking-[0.4em] text-primary">Próximas Sessões</h2>
+          </div>
 
-            return (
-              <div key={appt.id} className="bg-surface-dark rounded-[32px] border border-white/5 p-6 shadow-2xl space-y-5">
-                <div className="flex justify-between items-start">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest bg-primary/10 text-primary border border-primary/20">
-                        {appt.status === 'confirmed' ? 'CONFIRMADO' : 'PENDENTE'}
-                      </span>
-                    </div>
-                    <h3 className="text-lg font-display font-black text-white tracking-tight mb-1 break-words">{appt.service_names || appt.serviceName || 'Serviço'}</h3>
-                    {appt.salonName && (
-                      <p className="text-xs text-slate-400 font-bold">{appt.salonName}</p>
-                    )}
-                  </div>
-                </div>
+          <div className="grid md:grid-cols-2 xl:grid-cols-2 gap-8 lg:gap-10">
+            {upcoming.map(appt => {
+              const formattedDate = appt.date ? new Date(appt.date + 'T00:00:00').toLocaleDateString('pt-BR', {
+                day: '2-digit',
+                month: 'long',
+                year: 'numeric'
+              }) : appt.date;
 
-                <div className="bg-background-dark rounded-2xl p-4 space-y-3">
-                  <div className="flex items-center gap-3">
-                    <div className="size-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                      <span className="material-symbols-outlined text-primary text-sm">calendar_today</span>
-                    </div>
+              return (
+                <div key={appt.id} className="bg-surface-dark/40 rounded-[48px] border border-white/5 p-8 lg:p-10 shadow-2xl space-y-8 backdrop-blur-md group hover:border-primary/20 transition-all active:scale-[0.99]">
+                  <div className="flex justify-between items-start">
                     <div className="flex-1 min-w-0">
-                      <p className="text-[9px] uppercase text-slate-500 font-black mb-0.5">Data</p>
-                      <p className="text-sm font-bold text-white capitalize">{formattedDate}</p>
+                      <div className="flex items-center gap-3 mb-4">
+                        <span className="px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-[0.3em] bg-primary/10 text-primary border border-primary/20">
+                          {appt.status === 'confirmed' ? 'Ritual Confirmado' : 'Aguardando Sincronia'}
+                        </span>
+                      </div>
+                      <h3 className="text-2xl font-display font-black text-white italic tracking-tight mb-2 uppercase group-hover:text-primary transition-colors">{appt.service_names || appt.serviceName || 'Ritual Premium'}</h3>
+                      {appt.salonName && (
+                        <div className="flex items-baseline gap-2 text-slate-500">
+                          <span className="material-symbols-outlined text-xs">location_on</span>
+                          <p className="text-xs font-black uppercase tracking-widest">{appt.salonName}</p>
+                        </div>
+                      )}
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3">
-                    <div className="size-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                      <span className="material-symbols-outlined text-primary text-sm">schedule</span>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[9px] uppercase text-slate-500 font-black mb-0.5">Horário</p>
-                      <p className="text-sm font-bold text-white">{appt.time}</p>
-                    </div>
-                  </div>
-
-                  {appt.valor && (
-                    <div className="flex items-center gap-3">
-                      <div className="size-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                        <span className="material-symbols-outlined text-primary text-sm">payments</span>
+                  <div className="bg-black/40 rounded-[32px] p-6 lg:p-8 space-y-6">
+                    <div className="flex items-center gap-5">
+                      <div className="size-12 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0 border border-primary/5">
+                        <span className="material-symbols-outlined text-primary text-xl">calendar_today</span>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-[9px] uppercase text-slate-500 font-black mb-0.5">Valor</p>
-                        <p className="text-lg font-display font-black text-primary italic">R$ {appt.valor.toFixed(2)}</p>
+                        <p className="text-[9px] uppercase text-slate-600 font-black tracking-widest mb-1">Data Agendada</p>
+                        <p className="text-base font-bold text-white capitalize">{formattedDate}</p>
                       </div>
                     </div>
-                  )}
-                </div>
 
-                <div className="grid grid-cols-2 gap-3">
-                  <button onClick={() => handleChat(appt)} className="bg-white/5 border border-white/10 text-white py-4 rounded-2xl text-[9px] font-black uppercase tracking-widest active:scale-95 transition-all">
-                    <span className="flex items-center justify-center gap-2">
-                      <span className="material-symbols-outlined text-sm">chat</span>
-                      Chat
-                    </span>
-                  </button>
-                  <button onClick={() => handleCancel(appt.id)} className="bg-red-500/10 text-red-500 border border-red-500/20 py-4 rounded-2xl text-[9px] font-black uppercase tracking-widest active:scale-95 transition-all">
-                    <span className="flex items-center justify-center gap-2">
-                      <span className="material-symbols-outlined text-sm">close</span>
+                    <div className="flex items-center gap-5">
+                      <div className="size-12 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0 border border-primary/5">
+                        <span className="material-symbols-outlined text-primary text-xl">schedule</span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[9px] uppercase text-slate-600 font-black tracking-widest mb-1">Horário Marcado</p>
+                        <p className="text-base font-bold text-white tracking-widest">{appt.time}</p>
+                      </div>
+                    </div>
+
+                    {appt.valor && (
+                      <div className="flex items-center gap-5 pt-4 border-t border-white/5">
+                        <div className="size-12 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0 border border-primary/5">
+                          <span className="material-symbols-outlined text-primary text-xl">payments</span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[9px] uppercase text-slate-600 font-black tracking-widest mb-1">Valor do Ritual</p>
+                          <p className="text-2xl font-display font-black text-primary italic">R$ {appt.valor.toFixed(2)}</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <button onClick={() => handleChat(appt)} className="bg-white/5 border border-white/5 text-white py-5 rounded-[24px] text-[10px] font-black uppercase tracking-[0.2em] hover:bg-white/10 active:scale-95 transition-all flex items-center justify-center gap-3">
+                      <span className="material-symbols-outlined text-lg">chat</span>
+                      Concierge
+                    </button>
+                    <button onClick={() => handleCancel(appt.id)} className="bg-red-500/5 text-red-500 border border-red-500/10 py-5 rounded-[24px] text-[10px] font-black uppercase tracking-[0.2em] hover:bg-red-500 hover:text-white active:scale-95 transition-all flex items-center justify-center gap-3">
+                      <span className="material-symbols-outlined text-lg">close</span>
                       Cancelar
-                    </span>
-                  </button>
+                    </button>
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
+
           {upcoming.length === 0 && (
-            <div className="py-20 text-center opacity-30 flex flex-col items-center">
-              <span className="material-symbols-outlined text-6xl mb-4">calendar_month</span>
-              <p className="text-[10px] font-black uppercase tracking-widest">Sem agendamentos próximos</p>
+            <div className="py-32 text-center flex flex-col items-center justify-center space-y-8 bg-surface-dark/20 border border-dashed border-white/10 rounded-[48px]">
+              <div className="size-24 rounded-full bg-white/5 flex items-center justify-center border border-white/10">
+                <span className="material-symbols-outlined text-6xl text-white/10">calendar_month</span>
+              </div>
+              <div className="space-y-2">
+                <p className="text-[11px] font-black uppercase tracking-[0.5em] text-white/20">Agenda em Branco</p>
+                <p className="text-[9px] font-bold text-slate-700 uppercase tracking-widest">Sua próxima experiência está a um toque</p>
+              </div>
+              <button
+                onClick={() => navigate('/explore')}
+                className="gold-gradient text-background-dark px-10 py-4 rounded-full text-[9px] font-black uppercase tracking-widest shadow-xl active:scale-95 transition-all"
+              >
+                Descobrir Rituais
+              </button>
             </div>
           )}
         </section>
 
         {/* Histórico e Avaliações */}
-        <section className="space-y-8 mt-12">
-          <h2 className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-500 px-1">Histórico & Avaliações</h2>
-          {history.length > 0 ? history.map(appt => {
-            const formattedDate = appt.date ? new Date(appt.date + 'T00:00:00').toLocaleDateString('pt-BR', {
-              day: '2-digit',
-              month: 'long'
-            }) : appt.date;
+        <section className="space-y-10 mt-24">
+          <div className="flex items-center gap-4 mb-2">
+            <div className="h-0.5 w-8 bg-slate-800"></div>
+            <h2 className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-500">Histórico de Experiências</h2>
+          </div>
 
-            return (
-              <div key={appt.id} className="bg-surface-dark/40 rounded-[32px] border border-white/5 p-6 space-y-4 opacity-80">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <h3 className="text-sm font-display font-black text-white tracking-tight leading-none mb-1">{appt.service_names || 'Serviço'}</h3>
-                    <p className="text-[8px] text-slate-500 font-bold uppercase">{formattedDate} • {appt.time}</p>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {history.length > 0 ? history.map(appt => {
+              const formattedDate = appt.date ? new Date(appt.date + 'T00:00:00').toLocaleDateString('pt-BR', {
+                day: '2-digit',
+                month: 'long'
+              }) : appt.date;
+
+              return (
+                <div key={appt.id} className="bg-surface-dark/20 rounded-[40px] border border-white/5 p-8 flex flex-col justify-between space-y-6 opacity-60 hover:opacity-100 transition-all group">
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-start">
+                      <div className="px-3 py-1 rounded-lg text-[7px] font-black uppercase tracking-[0.2em] bg-white/5 border border-white/5">
+                        {appt.status === 'completed' ? 'CONCLUÍDO' : 'CANCELADO'}
+                      </div>
+                      <span className="text-[10px] text-slate-700 font-black italic tracking-widest">{appt.time}</span>
+                    </div>
+                    <div className="space-y-2">
+                      <h3 className="text-base font-display font-black text-white italic tracking-tight uppercase group-hover:text-primary transition-colors">{appt.service_names || 'Ritual de Estilo'}</h3>
+                      <p className="text-[9px] text-slate-500 font-bold uppercase tracking-widest">{formattedDate}</p>
+                    </div>
                   </div>
-                  <span className={`px-2 py-1 rounded-lg text-[6px] font-black uppercase tracking-widest ${appt.status === 'completed' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}>
-                    {appt.status === 'completed' ? 'CONCLUÍDO' : 'CANCELADO'}
-                  </span>
-                </div>
 
-                {appt.status === 'completed' && (
-                  <button
-                    onClick={() => navigate(`/evaluate/${appt.id}`)}
-                    className="w-full bg-primary/10 border border-primary/20 text-primary py-3 rounded-xl text-[8px] font-black uppercase tracking-widest active:scale-95 transition-all flex items-center justify-center gap-2"
-                  >
-                    <span className="material-symbols-outlined text-xs">star</span>
-                    AVALIAR EXPERIÊNCIA
-                  </button>
-                )}
+                  {appt.status === 'completed' && (
+                    <button
+                      onClick={() => navigate(`/evaluate/${appt.id}`)}
+                      className="w-full bg-primary/10 border border-primary/20 text-primary py-4 rounded-[20px] text-[9px] font-black uppercase tracking-widest hover:bg-primary hover:text-background-dark active:scale-95 transition-all flex items-center justify-center gap-2"
+                    >
+                      <span className="material-symbols-outlined text-sm">star</span>
+                      Avaliar Aura
+                    </button>
+                  )}
+                </div>
+              );
+            }) : (
+              <div className="col-span-full py-20 text-center opacity-20 flex flex-col items-center border border-dashed border-white/5 rounded-[40px]">
+                <p className="text-[9px] font-black uppercase tracking-[0.4em]">Seu legado ainda não começou</p>
               </div>
-            );
-          }) : (
-            <div className="py-10 text-center opacity-20 flex flex-col items-center border border-dashed border-white/10 rounded-[32px]">
-              <p className="text-[8px] font-black uppercase tracking-widest">Nenhum histórico</p>
-            </div>
-          )}
+            )}
+          </div>
         </section>
       </div>
     </div>

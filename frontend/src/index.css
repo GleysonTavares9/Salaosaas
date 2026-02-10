@@ -24,9 +24,29 @@
   :root {
     --sab: env(safe-area-inset-bottom);
     --sat: env(safe-area-inset-top);
+
+    /* Fluid Typography Foundation */
+    --step-0: clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem);
+    /* ~12px to 14px */
+    --step-1: clamp(0.875rem, 0.8rem + 0.35vw, 1rem);
+    /* ~14px to 16px */
+    --step-2: clamp(1rem, 0.9rem + 0.5vw, 1.25rem);
+    /* ~16px to 20px */
+    --step-3: clamp(1.25rem, 1.1rem + 0.75vw, 1.75rem);
+    /* ~20px to 28px */
+    --step-4: clamp(1.75rem, 1.5rem + 1.25vw, 2.5rem);
+    /* ~28px to 40px */
+    --step-5: clamp(2.5rem, 2rem + 2.5vw, 4rem);
+    /* ~40px to 64px */
+    --step-6: clamp(3.5rem, 2.5rem + 5vw, 6rem);
+    /* ~56px to 96px */
   }
 
-  html,
+  html {
+    font-size: 16px;
+    -webkit-text-size-adjust: 100%;
+  }
+
   body {
     color: #e2e8f0;
     margin: 0;
@@ -34,7 +54,8 @@
     min-height: 100vh;
     min-height: 100dvh;
     width: 100vw;
-    overflow-x: hidden;
+    overflow: hidden;
+    touch-action: pan-x pan-y;
 
     /* Dark Warm Blur - Premium Background (fora da moldura) */
     background:
@@ -43,13 +64,12 @@
     background-attachment: fixed;
   }
 
-  /* Remover overrides claros antigos de desktop e manter textura se desejar */
+  /* Textura de ruído sutil no desktop */
   @media (min-width: 1024px) {
     body::before {
       content: "";
       position: fixed;
       inset: 0;
-      /* Mantendo textura sutil */
       background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.6' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
       opacity: 0.04;
       pointer-events: none;
@@ -76,18 +96,14 @@
     background-attachment: fixed;
   }
 
-  /* Animação de Aura Fluida */
-  @keyframes aura-shift {
-
-    0%,
-    100% {
-      opacity: 0.3;
-      transform: scale(1);
-    }
-
-    50% {
-      opacity: 0.5;
-      transform: scale(1.1);
+  /* No Desktop, o app mantém uma proporção elegante mas sem esticar infinitamente o conteúdo centralizado */
+  @media (min-width: 1024px) {
+    #root {
+      max-width: 100%;
+      margin: 0;
+      height: 100vh;
+      height: 100dvh;
+      position: relative;
     }
   }
 
@@ -96,36 +112,9 @@
     position: absolute;
     inset: 0;
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-    opacity: 0.04;
+    opacity: 0.03;
     pointer-events: none;
     z-index: 100;
-  }
-
-  #root::after {
-    content: "";
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle at center, rgba(193, 165, 113, 0.03) 0%, transparent 60%);
-    pointer-events: none;
-    z-index: 1;
-    animation: aura-shift 10s ease-in-out infinite;
-  }
-
-  /* No Desktop, o app ocupa 100% do espaço */
-  @media (min-width: 1024px) {
-    #root {
-      max-width: 100%;
-      margin: 0;
-      height: 100vh;
-      height: 100dvh;
-      border-radius: 0;
-      box-shadow: none;
-      border: none;
-      position: relative;
-    }
   }
 }
 
@@ -348,4 +337,15 @@
 
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
+}
+
+/* Máscaras de Gradiente para Scroll - Mais sutis para não ocultar itens */
+.mask-fade-right {
+  mask-image: linear-gradient(to right, black 95%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, black 95%, transparent 100%);
+}
+
+.mask-fade-down {
+  mask-image: linear-gradient(to bottom, black 95%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, black 95%, transparent 100%);
 }

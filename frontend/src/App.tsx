@@ -500,7 +500,7 @@ const AppContent: React.FC = () => {
         </div>
       )}
 
-      <div className={`flex-1 flex flex-col min-h-0 ${shouldShowNav ? 'pb-24 lg:pb-0 lg:pl-[280px]' : ''}`}>
+      <div className={`flex-1 flex flex-col min-h-0 ${shouldShowNav ? 'pb-24 lg:pb-0 lg:pl-[260px]' : ''}`}>
         <Suspense fallback={
           <div className="flex-1 bg-background-dark flex flex-col items-center justify-center">
             <div className="size-8 border-2 border-primary/20 border-t-primary rounded-full animate-spin mb-4"></div>

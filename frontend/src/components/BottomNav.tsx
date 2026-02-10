@@ -19,15 +19,15 @@ const BottomNav: React.FC<BottomNavProps> = ({ role }) => {
   const containerClass = "transition-all duration-300 z-[100] " +
     // Mobile: Bottom fixed to viewport
     "fixed bottom-0 left-0 right-0 w-full px-4 pb-[env(safe-area-inset-bottom)] " +
-    // Desktop: Left Sidebar ABSOLUTE inside the #root frame
-    "lg:absolute lg:top-0 lg:left-0 lg:h-full lg:w-[280px] lg:px-0 lg:pb-0 lg:border-r lg:border-white/5 lg:bg-background-dark/95 lg:backdrop-blur-xl lg:flex lg:flex-col lg:items-stretch lg:pt-4";
+    // Desktop: Left Sidebar FIXED
+    "lg:fixed lg:top-0 lg:left-0 lg:h-full lg:w-[260px] lg:px-0 lg:pb-0 lg:border-r lg:border-white/5 lg:bg-background-dark/95 lg:backdrop-blur-xl lg:flex lg:flex-col lg:items-stretch lg:pt-8 lg:overflow-y-auto lg:no-scrollbar";
 
   // Base classes for the nav element
   const navClass = "flex items-center justify-between w-full transition-all " +
     // Mobile: Glassmorphism Bottom Sheet
     "bg-background-dark/90 backdrop-blur-2xl border-t border-white/5 rounded-t-[32px] px-6 pt-4 pb-[calc(1.5rem+var(--sab))] shadow-[0_-10px_30px_rgba(0,0,0,0.5)] " +
     // Desktop: Vertical Column
-    "lg:flex-col lg:justify-start lg:gap-1 lg:bg-transparent lg:border-none lg:shadow-none lg:rounded-none lg:p-4 lg:h-full lg:w-full";
+    "lg:flex-col lg:justify-start lg:gap-1 lg:bg-transparent lg:border-none lg:shadow-none lg:rounded-none lg:px-4 lg:py-2 lg:h-auto lg:w-full";
 
   // Helper to render a nav item
   const NavItem = ({ path, icon, label, badge }: { path: string, icon: string, label: string, badge?: number }) => {
@@ -39,7 +39,7 @@ const BottomNav: React.FC<BottomNavProps> = ({ role }) => {
           /* Mobile: Column */
           flex-col items-center gap-1 
           /* Desktop: Row */
-          lg:flex-row lg:gap-4 lg:px-5 lg:py-4 lg:rounded-[20px] lg:justify-start
+          lg:flex-row lg:gap-5 lg:px-6 lg:py-4 lg:rounded-[20px] lg:justify-start
           ${active
             ? 'text-primary scale-110 lg:scale-100 lg:bg-primary/10 lg:border lg:border-primary/10'
             : 'text-slate-500 hover:text-slate-200 lg:hover:bg-white/5'}
@@ -49,7 +49,7 @@ const BottomNav: React.FC<BottomNavProps> = ({ role }) => {
         {active && <div className="hidden lg:block absolute left-0 top-1/2 -translate-y-1/2 h-8 w-1 bg-primary rounded-r-full shadow-[0_0_15px_rgba(193,165,113,0.6)]"></div>}
 
         <div className={`relative z-10 flex items-center justify-center transition-all duration-300`}>
-          <span className={`material-symbols-outlined text-xl lg:text-[26px] transition-transform ${active ? 'fill-1' : ''}`}>
+          <span className={`material-symbols-outlined text-xl lg:text-[28px] transition-transform ${active ? 'fill-1' : ''}`}>
             {icon}
           </span>
 
@@ -68,7 +68,7 @@ const BottomNav: React.FC<BottomNavProps> = ({ role }) => {
 
         {/* Desktop Label */}
         <span className={`
-          hidden lg:block font-black uppercase tracking-[0.2em] text-[11px] text-left flex-1 transition-colors
+          hidden lg:block font-black uppercase tracking-[0.15em] text-[11px] text-left flex-1 transition-colors leading-tight
           ${active ? 'text-primary' : 'text-slate-400 group-hover:text-white'}
         `}>
           {label}

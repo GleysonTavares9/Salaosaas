@@ -150,15 +150,15 @@ const AIConcierge: React.FC<AIConciergeProps> = ({ setBookingDraft }) => {
 
 
       {/* Wrapper to constrain position to the "mobile" app frame on desktop */}
-      <div className="fixed bottom-0 left-0 right-0 max-w-[450px] mx-auto z-[9999] pointer-events-none h-0 overflow-visible">
+      <div className="fixed bottom-0 left-0 right-0 max-w-[450px] mx-auto z-[999] pointer-events-none h-0 overflow-visible">
         <button
           onClick={() => setIsOpen(true)}
-          className={`absolute left-4 size-14 gold-gradient rounded-full shadow-[0_15px_40px_rgba(193,165,113,0.4)] flex flex-col items-center justify-center text-background-dark active:scale-90 transition-all border-2 border-white/20 pointer-events-auto ${isSalonPage ? 'bottom-32' : isChatPage ? 'bottom-28' : 'bottom-24'
+          className={`absolute left-4 size-11 lg:size-14 gold-gradient rounded-full shadow-[0_15px_40px_rgba(193,165,113,0.3)] flex flex-col items-center justify-center text-background-dark active:scale-90 transition-all border-2 border-white/20 pointer-events-auto ${isSalonPage ? 'bottom-32' : isChatPage ? 'bottom-28' : 'bottom-24'
             }`}
           aria-label="Aura IA"
         >
-          <span className="material-symbols-outlined text-[20px] font-black leading-none">auto_awesome</span>
-          <span className="text-[6px] font-black uppercase tracking-widest mt-0.5 leading-none">Aura AI</span>
+          <span className="material-symbols-outlined text-lg lg:text-[20px] font-black leading-none">auto_awesome</span>
+          <span className="text-[5px] lg:text-[6px] font-black uppercase tracking-widest mt-0.5 leading-none">Aura AI</span>
         </button>
       </div>
 

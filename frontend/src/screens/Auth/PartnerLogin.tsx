@@ -153,8 +153,8 @@ const PartnerLogin: React.FC<PartnerLoginProps> = ({ onLogin }) => {
           <div className="size-20 lg:size-24 rounded-[28px] lg:rounded-[32px] gold-gradient flex items-center justify-center text-background-dark shadow-[0_0_50px_rgba(193,165,113,0.4)] mx-auto mb-6 transform hover:rotate-6 transition-transform">
             <span className="material-symbols-outlined text-4xl lg:text-5xl font-black">spa</span>
           </div>
-          <h1 className="text-5xl lg:text-7xl font-display font-black text-white italic tracking-tighter leading-none uppercase">Luxe Aura</h1>
-          <p className="text-secondary text-[11px] lg:text-xs font-black uppercase tracking-[0.5em] mt-6 opacity-80">Management Experience</p>
+          <h1 className="font-display font-black text-white italic tracking-tighter leading-none uppercase" style={{ fontSize: 'var(--step-5)' }}>Luxe Aura</h1>
+          <p className="text-secondary text-[11px] lg:text-xs font-black uppercase tracking-[0.5em] mt-6 opacity-80" style={{ fontSize: 'var(--step-0)' }}>Management Experience</p>
         </div>
 
         {errorMessage && (

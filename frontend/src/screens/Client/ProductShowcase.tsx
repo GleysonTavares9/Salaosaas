@@ -125,78 +125,110 @@ const ProductShowcase: React.FC<ProductShowcaseProps> = ({ bookingDraft, setBook
   const itemCount = (bookingDraft?.services?.length || 0) + (bookingDraft?.products?.length || 0);
 
   return (
-    <div className="flex-1 flex flex-col h-full relative overflow-hidden">
-      <header className="sticky top-0 z-50 bg-background-dark/30 backdrop-blur-md px-6 pt-12 pb-6 border-b border-white/5 flex items-center justify-between">
-        <button onClick={() => navigate(-1)} className="size-10 rounded-full border border-white/10 flex items-center justify-center text-white">
-          <span className="material-symbols-outlined">arrow_back</span>
-        </button>
-        <div className="text-center">
-          <h1 className="text-xl font-display font-black text-white italic tracking-tighter uppercase leading-none">Aura Boutique</h1>
-          <button
-            onClick={handleGetLocation}
-            className="flex items-center justify-center gap-1 mx-auto mt-1 opacity-60 hover:opacity-100 transition-opacity"
-          >
-            <p className="text-[7px] text-primary font-black uppercase tracking-[0.3em]">Produtos Próximos</p>
-            <span className="material-symbols-outlined text-[10px] text-primary">near_me</span>
-          </button>
+    <div className="flex-1 overflow-y-auto h-full no-scrollbar bg-background-dark relative">
+      <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.02] pointer-events-none"></div>
+
+      <header className="sticky top-0 z-50 bg-background-dark/80 backdrop-blur-3xl px-6 pt-12 pb-10 border-b border-white/5">
+        <div className="max-w-[1400px] mx-auto w-full">
+          <div className="flex items-center justify-between mb-12">
+            <button onClick={() => navigate(-1)} className="size-12 rounded-2xl bg-black/40 border border-white/10 flex items-center justify-center text-white active:scale-95 transition-all">
+              <span className="material-symbols-outlined text-xl">arrow_back</span>
+            </button>
+            <div className="text-center">
+              <h1 className="font-display font-black text-white italic tracking-[0.2em] uppercase leading-none" style={{ fontSize: 'var(--step-1)' }}>
+                Boutique Elite
+              </h1>
+              <p className="text-[7px] text-primary font-black uppercase tracking-[0.4em] mt-3">Curadoria de Ativos de Luxo</p>
+            </div>
+            <div className="size-12 opacity-0 pointer-events-none"></div>
+          </div>
+
+          <div className="flex flex-col items-center gap-6">
+            <div className="relative group w-full max-w-2xl">
+              <span className="material-symbols-outlined absolute left-6 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors text-xl">search</span>
+              <input
+                type="text"
+                placeholder="PROCURAR POR ITEM..."
+                className="w-full bg-surface-dark/40 border border-white/10 rounded-3xl py-6 pl-16 pr-8 text-white text-[11px] font-black uppercase tracking-[0.3em] outline-none focus:border-primary/40 focus:bg-surface-dark/60 transition-all shadow-inner"
+              />
+            </div>
+
+            <button
+              onClick={handleGetLocation}
+              className="flex items-center gap-3 px-6 py-3 rounded-full bg-primary/10 border border-primary/20 text-primary active:scale-95 transition-all group"
+            >
+              {itemCount > 0 && <span className="absolute -top-1 -right-1 size-5 bg-primary text-background-dark text-[10px] font-black rounded-full flex items-center justify-center shadow-2xl animate-bounce">{itemCount}</span>}
+            </button>
+          </div>
         </div>
-        <button onClick={() => setShowCart(true)} className="size-10 flex items-center justify-center text-primary relative active:scale-90 transition-all">
-          <span className="material-symbols-outlined">shopping_bag</span>
-          {itemCount > 0 && <span className="absolute -top-1 -right-1 size-4 bg-primary text-background-dark text-[8px] font-black rounded-full flex items-center justify-center shadow-lg">{itemCount}</span>}
-        </button>
       </header>
 
-      <main className="flex-1 overflow-y-auto no-scrollbar p-6">
+      <main className="max-w-[1400px] mx-auto w-full px-6 py-12 lg:py-20 animate-fade-in relative z-10">
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-20 opacity-40">
-            <div className="size-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin mb-4"></div>
-            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Carregando produtos...</p>
+          <div className="flex flex-col items-center justify-center py-40">
+            <div className="size-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin mb-10"></div>
+            <p className="text-[11px] font-black uppercase tracking-[0.5em] text-primary animate-pulse">Consultando Acervo Elite...</p>
           </div>
         ) : enrichedProducts.length === 0 ? (
-          <div className="py-20 text-center opacity-30 flex flex-col items-center">
-            <span className="material-symbols-outlined text-6xl mb-4">shopping_bag</span>
-            <p className="text-[10px] font-black uppercase tracking-widest">Nenhum produto disponível</p>
+          <div className="py-40 text-center flex flex-col items-center gap-8">
+            <div className="size-24 rounded-[32px] bg-white/[0.02] border border-white/5 flex items-center justify-center text-slate-700">
+              <span className="material-symbols-outlined text-5xl">shopping_bag</span>
+            </div>
+            <p className="text-[11px] font-black uppercase tracking-[0.5em] text-slate-600">Boutique temporariamente fechada</p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-6 pb-20">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-10 lg:gap-14 pb-40">
             {enrichedProducts.map(product => {
               const isSelected = selectedProductIds.includes(product.id);
               const isOutOfStock = product.stock <= 0;
               const salon = product.salon;
 
               return (
-                <div key={product.id} className={`space-y-3 transition-opacity ${isOutOfStock ? 'opacity-60' : ''}`}>
-                  <div
-                    onClick={() => toggleProduct(product)}
-                    className={`aspect-[4/5] rounded-[40px] overflow-hidden bg-surface-dark border transition-all relative cursor-pointer shadow-xl ${isSelected ? 'border-primary' : 'border-white/5'}`}
-                  >
-                    <img src={product.image} className="w-full h-full object-cover grayscale-[0.3] opacity-80" alt={product.name} />
+                <div
+                  key={product.id}
+                  className={`group relative bg-surface-dark/40 rounded-[56px] border border-white/5 p-8 shadow-[0_30px_80px_rgba(0,0,0,0.4)] transition-all backdrop-blur-3xl overflow-hidden active:scale-[0.99]
+                    ${isOutOfStock ? 'opacity-40 grayscale pointer-events-none' : 'hover:border-primary/20'}
+                    ${isSelected ? 'ring-2 ring-primary ring-offset-4 ring-offset-background-dark' : ''}
+                  `}
+                  onClick={() => !isOutOfStock && toggleProduct(product)}
+                >
+                  <div className="relative aspect-[4/5] rounded-[40px] overflow-hidden border-2 border-white/5 shadow-2xl bg-black/20 mb-8 cursor-pointer">
+                    <img src={product.image} className="size-full object-cover grayscale-[0.3] group-hover:grayscale-0 group-hover:scale-110 transition-all duration-1000" alt={product.name} />
+                    <div className="absolute inset-0 bg-gradient-to-t from-background-dark/80 via-transparent to-transparent"></div>
 
-                    {/* Badge de Salão/Distância */}
                     {salon && (
-                      <div className="absolute top-4 left-4 right-4 flex flex-col gap-1">
-                        <div className="bg-black/60 backdrop-blur-md px-2 py-1 rounded-lg border border-white/10 self-start">
-                          <p className="text-[6px] font-black text-white uppercase truncate max-w-[80px]">{salon.nome}</p>
-                          <p className="text-[5px] text-primary font-black uppercase tracking-tighter">{salon.distancia} de você</p>
-                        </div>
+                      <div className="absolute top-6 left-6 flex flex-col gap-2">
+                        <span className="bg-black/60 backdrop-blur-md border border-white/10 px-4 py-2 rounded-full text-[8px] font-black text-white uppercase tracking-widest">{salon.nome}</span>
+                        <span className="bg-primary/20 backdrop-blur-md border border-primary/30 px-4 py-2 rounded-full text-[8px] font-black text-primary uppercase tracking-widest self-start">{salon.distancia}</span>
                       </div>
                     )}
 
                     {isOutOfStock && (
-                      <div className="absolute inset-0 bg-black/80 flex items-center justify-center">
-                        <span className="text-[8px] font-black text-white uppercase tracking-[0.2em] border border-white/20 px-3 py-1.5 rounded-full">Esgotado</span>
+                      <div className="absolute inset-0 bg-background-dark/80 flex items-center justify-center">
+                        <span className="text-[10px] font-black text-white uppercase tracking-[0.3em] border-2 border-white/20 px-6 py-3 rounded-full">Indisponível</span>
                       </div>
                     )}
 
-                    <div className={`absolute bottom-4 right-4 size-9 rounded-2xl flex items-center justify-center shadow-2xl transition-all ${isSelected ? 'bg-primary text-background-dark' : 'bg-white/10 text-white backdrop-blur-md border border-white/20'}`}>
-                      <span className="material-symbols-outlined text-base font-black">{isSelected ? 'check' : 'add'}</span>
+                    <div className={`absolute bottom-6 right-6 size-16 rounded-[24px] flex items-center justify-center shadow-gold transition-all duration-500
+                      ${isSelected ? 'gold-gradient text-background-dark scale-110' : 'bg-white/10 text-white backdrop-blur-md border border-white/10 group-hover:gold-gradient group-hover:text-background-dark group-hover:scale-110'}
+                    `}>
+                      <span className="material-symbols-outlined text-2xl font-black">{isSelected ? 'check' : 'shopping_bag'}</span>
                     </div>
                   </div>
-                  <div className="px-2">
-                    <h3 className={`font-bold text-[11px] leading-tight line-clamp-2 ${isSelected ? 'text-primary' : 'text-white'}`}>{product.name}</h3>
-                    <div className="flex items-center justify-between mt-1">
-                      <p className="text-primary font-black text-xs">R$ {product.price.toFixed(2)}</p>
-                      <span className="text-[6px] font-black text-slate-500 uppercase">{product.stock} em estoque</span>
+
+                  <div className="space-y-6">
+                    <div>
+                      <h4 className="font-display text-2xl font-black text-white italic tracking-tighter uppercase leading-none truncate group-hover:text-primary transition-colors">{product.name}</h4>
+                      <div className="flex items-center gap-3 mt-4">
+                        <span className="text-[8px] font-black text-slate-600 uppercase tracking-widest bg-white/5 px-3 py-1.5 rounded-xl border border-white/5">{product.stock} UNIDADES</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-6 border-t border-white/5">
+                      <div className="flex flex-col">
+                        <span className="text-[8px] font-black text-slate-600 uppercase tracking-widest leading-none mb-2">Valor de Investimento</span>
+                        <span className="text-3xl font-display font-black text-white italic tracking-tight">R$ {product.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -207,87 +239,116 @@ const ProductShowcase: React.FC<ProductShowcaseProps> = ({ bookingDraft, setBook
       </main>
 
       {itemCount > 0 && (
-        <footer className="fixed-floating-footer pb-[calc(2rem+var(--sab))]">
+        <div className="fixed bottom-12 left-1/2 -translate-x-1/2 z-[100] w-full max-w-xl px-6 animate-fade-in">
           <button
             onClick={() => setShowCart(true)}
-            className="w-full gold-gradient text-background-dark font-black py-5 rounded-2xl flex items-center justify-between px-7 shadow-2xl active:scale-95 transition-all"
+            className="w-full gold-gradient text-background-dark h-24 rounded-[32px] flex items-center justify-between px-10 shadow-gold active:scale-95 transition-all group overflow-hidden relative"
           >
-            <div className="text-left">
-              <p className="text-[7px] uppercase tracking-widest opacity-60 font-black">{itemCount} Itens na Sacola</p>
-              <p className="text-base font-display font-black">R$ {totalPrice.toFixed(2)}</p>
+            <div className="absolute inset-0 bg-white/10 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+            <div className="relative z-10 flex items-center gap-6 text-left">
+              <div className="size-14 rounded-2xl bg-background-dark/10 flex items-center justify-center">
+                <span className="material-symbols-outlined text-3xl font-black">shopping_cart</span>
+              </div>
+              <div>
+                <p className="text-[9px] uppercase tracking-[0.4em] font-black opacity-60 mb-1">{itemCount} ATIVOS SELECIONADOS</p>
+                <p className="text-2xl font-display font-black italic">R$ {totalPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="text-[8px] uppercase font-black tracking-widest">
-                Ver Sacola
-              </span>
-              <span className="material-symbols-outlined text-lg font-black">shopping_cart_checkout</span>
+            <div className="relative z-10 flex items-center gap-4">
+              <span className="text-[10px] uppercase font-black tracking-[0.4em]">RESGATAR</span>
+              <span className="material-symbols-outlined text-2xl font-black">arrow_forward</span>
             </div>
           </button>
-        </footer>
+        </div>
       )}
 
-      {/* Cart Summary Modal */}
+      {/* Cart Summary Modal Refinado */}
       {showCart && (
-        <div className="fixed inset-0 z-[1000] flex flex-col justify-end bg-black/60 backdrop-blur-sm animate-fade-in" onClick={() => setShowCart(false)}>
-          <div className="bg-[#121214] rounded-t-[40px] border-t border-white/5 p-8 space-y-8 animate-fade-in-up" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between">
+        <div className="fixed inset-0 z-[120] bg-background-dark/95 backdrop-blur-3xl animate-fade-in flex flex-col items-center overflow-hidden">
+          <div className="flex-1 flex flex-col max-w-[600px] w-full h-full relative">
+            <header className="px-10 pt-16 flex items-center justify-between shrink-0">
               <div>
-                <h2 className="text-lg font-display font-black text-white italic tracking-tighter uppercase">Sua Sacola</h2>
-                <p className="text-[8px] text-primary font-black uppercase tracking-widest">Revisão do Ritual Premium</p>
+                <h2 className="text-2xl lg:text-3xl font-display font-black text-white italic tracking-tighter uppercase">Sua Sacola</h2>
+                <p className="text-[10px] text-primary font-black uppercase tracking-[0.4em] mt-2 leading-none">Revisão Curada do Ritual</p>
               </div>
-              <button onClick={() => setShowCart(false)} className="size-10 rounded-full bg-white/5 flex items-center justify-center text-slate-400">
-                <span className="material-symbols-outlined">close</span>
+              <button
+                onClick={() => setShowCart(false)}
+                className="size-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-500 hover:text-white transition-all"
+              >
+                <span className="material-symbols-outlined font-black">close</span>
               </button>
-            </div>
+            </header>
 
-            <div className="max-h-[50vh] overflow-y-auto space-y-4 no-scrollbar">
+            <div className="flex-1 overflow-y-auto p-10 space-y-10 pb-60 no-scrollbar min-h-0">
               {/* Serviços */}
               {(bookingDraft?.services || []).map((svc: any) => (
-                <div key={svc.id} className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
-                  <div className="flex items-center gap-4">
-                    <div className="size-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary">✂️</div>
+                <div key={svc.id} className="flex items-center justify-between p-6 bg-surface-dark/40 border border-white/5 rounded-[32px] shadow-2xl backdrop-blur-xl group">
+                  <div className="flex items-center gap-6">
+                    <div className="size-16 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
+                      <span className="material-symbols-outlined text-3xl font-black">content_cut</span>
+                    </div>
                     <div>
-                      <p className="text-[10px] font-black text-white uppercase">{svc.name}</p>
-                      <p className="text-[8px] text-slate-500 font-bold uppercase">Ritual de Estilo</p>
+                      <p className="text-[11px] font-black text-white uppercase tracking-[0.4em] mb-1">{svc.name}</p>
+                      <p className="text-[9px] text-slate-500 font-bold uppercase tracking-widest">Ritual de Estética</p>
                     </div>
                   </div>
-                  <p className="text-[10px] font-black text-primary">R$ {svc.price.toFixed(2)}</p>
+                  <div className="text-right">
+                    <p className="text-xl font-display font-black text-primary italic">R$ {svc.price.toFixed(2)}</p>
+                  </div>
                 </div>
               ))}
 
               {/* Produtos */}
               {productsInDraft.map((prod: Product) => (
-                <div key={prod.id} className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
-                  <div className="flex items-center gap-4">
-                    <img src={prod.image} className="size-10 rounded-xl object-cover" />
+                <div key={prod.id} className="flex items-center justify-between p-6 bg-surface-dark/40 border border-white/5 rounded-[32px] shadow-2xl backdrop-blur-xl group">
+                  <div className="flex items-center gap-6">
+                    <div className="size-16 rounded-2xl overflow-hidden border border-white/10">
+                      <img src={prod.image} className="size-full object-cover grayscale-[0.3] group-hover:grayscale-0 transition-all" />
+                    </div>
                     <div>
-                      <p className="text-[10px] font-black text-white uppercase">{prod.name}</p>
-                      <p className="text-[8px] text-slate-500 font-bold uppercase">Aura Boutique</p>
+                      <p className="text-[11px] font-black text-white uppercase tracking-[0.4em] mb-1">{prod.name}</p>
+                      <p className="text-[9px] text-slate-500 font-bold uppercase tracking-widest">Aura Boutique</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-4">
-                    <p className="text-[10px] font-black text-primary">R$ {prod.price.toFixed(2)}</p>
-                    <button onClick={() => toggleProduct(prod)} className="text-red-500/50 hover:text-red-500">
-                      <span className="material-symbols-outlined text-sm">delete</span>
+                  <div className="flex items-center gap-6">
+                    <div className="text-right">
+                      <p className="text-xl font-display font-black text-primary italic">R$ {prod.price.toFixed(2)}</p>
+                    </div>
+                    <button
+                      onClick={() => toggleProduct(prod)}
+                      className="size-12 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 flex items-center justify-center active:scale-90 transition-all"
+                    >
+                      <span className="material-symbols-outlined text-xl font-black">delete</span>
                     </button>
                   </div>
                 </div>
               ))}
+
+              {itemCount === 0 && (
+                <div className="py-20 text-center flex flex-col items-center gap-6">
+                  <div className="size-20 rounded-[32px] bg-white/[0.02] border border-white/5 flex items-center justify-center text-slate-700">
+                    <span className="material-symbols-outlined text-4xl">shopping_cart</span>
+                  </div>
+                  <p className="text-[11px] font-black uppercase tracking-[0.4em] text-slate-600">Sua sacola está vazia</p>
+                </div>
+              )}
             </div>
 
-            <div className="pt-4 border-t border-white/5 space-y-4">
-              <div className="flex items-center justify-between">
-                <p className="text-[10px] font-black text-white uppercase tracking-widest">Total Estimado</p>
-                <p className="text-xl font-display font-black text-primary">R$ {totalPrice.toFixed(2)}</p>
+            <div className="absolute bottom-0 left-0 right-0 p-10 bg-gradient-to-t from-background-dark via-background-dark to-transparent">
+              <div className="bg-surface-dark border border-white/10 rounded-[40px] p-8 shadow-3xl space-y-8">
+                <div className="flex items-center justify-between px-2">
+                  <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.5em]">Consolidado Geral</p>
+                  <p className="text-3xl font-display font-black text-white italic tracking-tighter">R$ {totalPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                </div>
+
+                <button
+                  onClick={handleCheckout}
+                  className="w-full gold-gradient text-background-dark h-20 rounded-[28px] flex items-center justify-center gap-6 text-[11px] font-black uppercase tracking-[0.4em] shadow-gold active:scale-95 transition-all hover:brightness-110"
+                >
+                  <span>{role ? 'EFETIVAR RITUAL' : 'ACESSO PARA RESERVAR'}</span>
+                  <span className="material-symbols-outlined font-black">arrow_forward</span>
+                </button>
               </div>
-              <button
-                onClick={handleCheckout}
-                className="w-full gold-gradient text-background-dark font-black py-6 rounded-3xl flex items-center justify-center gap-3 shadow-xl active:scale-95 transition-all text-sm tracking-[0.2em]"
-              >
-                {role ? 'CONFIRMAR E PAGAR' : 'FAZER LOGIN PARA COMPRAR'}
-                <span className="material-symbols-outlined font-black">arrow_forward</span>
-              </button>
-              <div className="h-[var(--sab)]" /> {/* Mobile Safe Area Space */}
             </div>
           </div>
         </div>

@@ -159,39 +159,44 @@ const Discovery: React.FC<DiscoveryProps> = ({ salons: initialSalons, role }) =>
   }, [dynamicSalons, initialSalons, activeSegment, search, coords]);
 
   return (
-    <div className="flex-1 flex flex-col h-full relative text-white">
-      <header className="px-6 pt-[calc(env(safe-area-inset-top)+1rem)] pb-6 shrink-0 z-20 lg:pt-10 lg:px-6 w-full">
-        <div className="w-full">
-          <div className="flex items-center justify-between mb-8">
-            <div className="flex-1">
-              <h1 className="text-4xl font-display font-black italic tracking-tighter leading-none lg:text-7xl">Luxe Aura</h1>
-              <div className="flex items-center gap-3 mt-3">
-                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 lg:text-sm">{cityName}</p>
+    <div className="flex-1 flex flex-col h-full relative text-white bg-background-dark overflow-hidden">
+      <header className="px-6 lg:px-12 pt-[calc(env(safe-area-inset-top)+2rem)] pb-10 shrink-0 z-20 w-full bg-gradient-to-b from-background-dark via-background-dark/95 to-transparent">
+        <div className="max-w-[1400px] mx-auto w-full space-y-12">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
+            <div className="flex flex-col lg:flex-row lg:items-center gap-4 lg:gap-10 shrink-0">
+              <h1 className="font-display font-black italic tracking-tighter leading-none" style={{ fontSize: 'var(--step-3)' }}>Luxe Aura</h1>
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2 bg-white/5 border border-white/5 px-4 py-2 rounded-full backdrop-blur-md">
+                  <span className="material-symbols-outlined text-primary text-xs">location_on</span>
+                  <p className="font-black uppercase tracking-[0.2em] text-slate-400" style={{ fontSize: '9px' }}>{cityName}</p>
+                </div>
                 <button
                   onClick={handleDetectLocation}
                   disabled={isLocating}
-                  className="flex items-center gap-2 group"
+                  className="flex items-center gap-2.5 group bg-white/5 border border-white/10 px-4 py-2 rounded-full hover:bg-white/10 transition-all"
                 >
-                  <div className={`size-2 lg:size-2.5 rounded-full bg-primary ${isLocating ? 'animate-ping' : 'animate-pulse shadow-[0_0_10px_rgba(193,165,113,1)]'}`}></div>
-                  <span className="text-[8px] lg:text-[10px] font-black text-primary uppercase tracking-[0.2em] border-b border-primary/20 group-hover:border-primary transition-all">
-                    {isLocating ? 'Sincronizando...' : 'Detectar Localização'}
+                  <div className={`size-1.5 rounded-full bg-primary ${isLocating ? 'animate-ping' : 'animate-pulse shadow-[0_0_8px_rgba(193,165,113,1)]'}`}></div>
+                  <span className="font-black text-primary uppercase tracking-widest" style={{ fontSize: '9px' }}>
+                    {isLocating ? 'Sincronizando...' : 'Auto-Detectar'}
                   </span>
                 </button>
               </div>
             </div>
-            <div className="flex items-center gap-4">
+
+            <div className="flex items-center gap-3 lg:gap-4 lg:justify-end flex-1">
               <button
                 onClick={() => setViewMode(v => v === 'list' ? 'map' : 'list')}
-                className="size-12 lg:size-16 rounded-[20px] lg:rounded-[28px] bg-surface-dark border border-white/5 flex items-center justify-center text-slate-400 shadow-2xl active:scale-95 transition-all hover:bg-white/5 hover:text-white"
+                className="size-12 lg:size-14 rounded-[20px] lg:rounded-[24px] bg-surface-dark/40 backdrop-blur-md border border-white/5 flex items-center justify-center text-slate-400 shadow-2xl active:scale-95 transition-all hover:bg-white/5 hover:text-white group"
               >
-                <span className="material-symbols-outlined text-2xl lg:text-3xl">{viewMode === 'list' ? 'map' : 'list_alt'}</span>
+                <span className="material-symbols-outlined text-xl group-hover:scale-110 transition-transform">{viewMode === 'list' ? 'map' : 'list_alt'}</span>
               </button>
               {role && (
-                <div onClick={() => navigate('/profile')} className="size-12 lg:size-16 rounded-[20px] lg:rounded-[28px] gold-gradient p-0.5 shadow-2xl cursor-pointer active:scale-95 transition-all hover:brightness-110">
+                <div onClick={() => navigate('/profile')} className="size-12 lg:size-14 rounded-[20px] lg:rounded-[24px] gold-gradient p-0.5 shadow-2xl cursor-pointer active:scale-95 transition-all hover:brightness-110 group relative">
+                  <div className="absolute inset-0 rounded-[20px] lg:rounded-[24px] border-2 border-white/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                   {userAvatar ? (
-                    <img src={userAvatar} className="w-full h-full rounded-[18px] lg:rounded-[26px] object-cover" alt="Profile" />
+                    <img src={userAvatar} className="w-full h-full rounded-[18px] lg:rounded-[22px] object-cover" alt="Profile" />
                   ) : (
-                    <div className="w-full h-full rounded-[18px] lg:rounded-[26px] bg-background-dark flex items-center justify-center text-primary font-black text-sm lg:text-lg">
+                    <div className="w-full h-full rounded-[18px] lg:rounded-[22px] bg-background-dark flex items-center justify-center text-primary font-black text-xs lg:text-sm">
                       {(userName || 'A').substring(0, 2).toUpperCase()}
                     </div>
                   )}
@@ -200,28 +205,32 @@ const Discovery: React.FC<DiscoveryProps> = ({ salons: initialSalons, role }) =>
             </div>
           </div>
 
-          <div className="relative group mb-10 w-full max-w-2xl">
-            <input
-              type="text"
-              placeholder="Busque por beleza ou spas..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-surface-dark/40 border border-white/5 rounded-[24px] py-4 lg:py-5 pl-14 lg:pl-16 pr-8 text-sm lg:text-base text-white placeholder:text-slate-600 outline-none focus:border-primary/40 focus:bg-surface-dark/60 transition-all shadow-[inset_0_2px_10px_rgba(0,0,0,0.5)]"
-            />
-            <span className="material-symbols-outlined absolute left-5 lg:left-6 top-1/2 -translate-y-1/2 text-slate-600 text-xl lg:text-2xl group-focus-within:text-primary transition-colors">search</span>
-          </div>
+          <div className="flex flex-col lg:flex-row gap-6 lg:gap-10 items-center w-full lg:justify-between">
+            <div className="relative group w-full lg:w-[400px] shrink-0">
+              <input
+                type="text"
+                placeholder="Busque por beleza ou spas..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full bg-surface-dark/40 border border-white/5 rounded-[24px] lg:rounded-[32px] py-5 lg:py-6 pl-14 lg:pl-16 pr-10 text-xs lg:text-sm text-white placeholder:text-slate-600 outline-none focus:border-primary/40 focus:bg-surface-dark/60 transition-all shadow-[inset_0_2px_15px_rgba(0,0,0,0.5)]"
+              />
+              <span className="material-symbols-outlined absolute left-5 lg:left-6 top-1/2 -translate-y-1/2 text-slate-600 text-xl lg:text-2xl group-focus-within:text-primary transition-colors">search</span>
+            </div>
 
-          <div className="flex gap-3 overflow-x-auto no-scrollbar pb-2 lg:flex-wrap">
-            {segments.map(seg => (
-              <button key={seg} onClick={() => setActiveSegment(seg)} className={`px-6 py-3 lg:px-10 lg:py-4 rounded-xl lg:rounded-[28px] text-[10px] lg:text-[11px] font-black uppercase tracking-[0.2em] whitespace-nowrap transition-all border ${activeSegment === seg ? 'gold-gradient text-background-dark border-transparent shadow-[0_10px_30px_rgba(193,165,113,0.3)] scale-105' : 'bg-surface-dark/40 text-slate-500 border-white/5 hover:bg-surface-dark hover:text-white hover:border-white/10'}`}>
-                {seg}
-              </button>
-            ))}
+            <div className="relative w-full lg:flex-1 flex lg:justify-end overflow-hidden">
+              <div className="flex gap-2 lg:gap-3 overflow-x-auto no-scrollbar pb-1 px-1 lg:pb-0 scroll-smooth mask-fade-right pr-10 lg:pr-4">
+                {segments.map(seg => (
+                  <button key={seg} onClick={() => setActiveSegment(seg)} className={`px-5 py-3 lg:px-6 lg:py-3.5 rounded-full font-black uppercase tracking-[0.2em] whitespace-nowrap transition-all border ${activeSegment === seg ? 'gold-gradient text-background-dark border-transparent shadow-[0_10px_30px_rgba(193,165,113,0.3)]' : 'bg-surface-dark/40 text-slate-500 border-white/5 hover:bg-white/5 hover:text-white'}`} style={{ fontSize: '10px' }}>
+                    {seg}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </header>
 
-      <main className="flex-1 overflow-y-auto px-6 pt-2 pb-32 space-y-10 no-scrollbar w-full lg:px-6">
+      <main className="flex-1 overflow-y-auto px-6 lg:px-12 pt-2 pb-32 space-y-10 no-scrollbar w-full">
         <div className="w-full max-w-none">
           {viewMode === 'map' ? (
             <div className="h-[600px] lg:h-[calc(100vh-320px)] w-full rounded-[40px] lg:rounded-[56px] overflow-hidden border border-white/5 shadow-2xl relative">
@@ -258,7 +267,7 @@ const Discovery: React.FC<DiscoveryProps> = ({ salons: initialSalons, role }) =>
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3 3xl:grid-cols-4 gap-10 w-full">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3 3xl:grid-cols-4 gap-6 lg:gap-10 w-full">
               {filteredSalons.map((salon) => (
                 <div key={salon.id} onClick={() => navigate(`/salon/${salon.slug_publico}`)} className="group flex flex-col bg-surface-dark/20 border border-white/5 rounded-[40px] overflow-hidden hover:border-primary/20 transition-all active:scale-[0.98]">
                   <div className="relative h-64 overflow-hidden">
@@ -276,7 +285,7 @@ const Discovery: React.FC<DiscoveryProps> = ({ salons: initialSalons, role }) =>
                     </div>
                   </div>
 
-                  <div className="p-8 relative -mt-4">
+                  <div className="p-6 lg:p-8 relative -mt-4">
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex-1">
                         <div className="flex items-center gap-4 mb-2">

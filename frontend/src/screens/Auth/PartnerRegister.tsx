@@ -112,8 +112,8 @@ const PartnerRegister: React.FC<PartnerRegisterProps> = ({ onRegister }) => {
 
       <main className="relative z-10 flex-1 flex flex-col px-8 pb-12 overflow-y-auto no-scrollbar">
         <div className="space-y-2 mb-10">
-          <h1 className="text-4xl font-display font-black text-white italic tracking-tighter leading-none">Digitalize sua <br /> <span className="text-primary">Excelência.</span></h1>
-          <p className="text-slate-500 text-sm font-medium">Gestão premium para o seu negócio.</p>
+          <h1 className="font-display font-black text-white italic tracking-tighter leading-none" style={{ fontSize: 'var(--step-4)' }}>Digitalize sua <br /> <span className="text-primary">Excelência.</span></h1>
+          <p className="text-slate-500 font-medium" style={{ fontSize: 'var(--step-0)' }}>Gestão premium para o seu negócio.</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">

@@ -354,90 +354,98 @@ const Schedule: React.FC<ScheduleProps> = ({ appointments: initialAppointments, 
   }
 
   return (
-    <div className="flex-1 h-full overflow-y-auto pb-32 relative no-scrollbar">
-      <header className="sticky top-0 z-[100] bg-background-dark/60 backdrop-blur-xl px-6 pt-12 pb-6 border-b border-white/5">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-4">
-            <button onClick={() => navigate('/pro')} className="size-10 rounded-full border border-white/10 flex items-center justify-center text-white">
-              <span className="material-symbols-outlined">arrow_back</span>
-            </button>
-            <div>
-              <h1 className="font-display text-xl font-bold text-white italic tracking-tighter uppercase">Agenda Profissional</h1>
-              <p className="text-[8px] text-primary font-black uppercase tracking-widest">{salon?.nome || 'Carregando unidade...'}</p>
+    <div className="flex-1 h-full overflow-y-auto pb-32 relative no-scrollbar bg-background-dark">
+      <header className="sticky top-0 z-[100] bg-background-dark/80 backdrop-blur-2xl px-6 pt-12 pb-8 border-b border-white/5">
+        <div className="max-w-[1400px] mx-auto w-full">
+          <div className="flex items-center justify-between mb-10 px-2">
+            <div className="flex items-center gap-6">
+              <button onClick={() => navigate('/pro')} className="size-12 rounded-2xl bg-black/40 border border-white/10 flex items-center justify-center text-white active:scale-95 transition-all">
+                <span className="material-symbols-outlined text-xl">arrow_back</span>
+              </button>
+              <div>
+                <h1 className="font-display text-2xl font-black text-white italic tracking-[0.1em] uppercase leading-none">Agenda Profissional</h1>
+                <p className="text-[7px] text-primary font-black uppercase tracking-[0.4em] mt-3 opacity-60">{salon?.nome || 'Carregando unidade...'}</p>
+              </div>
             </div>
+
+            <button
+              onClick={() => setShowCalendar(!showCalendar)}
+              className={`size-12 rounded-xl flex items-center justify-center transition-all bg-surface-dark/40 text-white border border-white/10 hover:bg-white/5 ${showCalendar ? 'border-primary ring-1 ring-primary/20' : ''}`}
+            >
+              <span className="material-symbols-outlined text-xl">{showCalendar ? 'calendar_month' : 'calendar_today'}</span>
+            </button>
           </div>
 
-          <button
-            onClick={() => setShowCalendar(!showCalendar)}
-            className={`size-12 rounded-2xl flex items-center justify-center transition-all ${showCalendar ? 'bg-primary text-background-dark shadow-gold' : 'bg-surface-dark text-white border border-white/5'}`}
-          >
-            <span className="material-symbols-outlined">{showCalendar ? 'calendar_month' : 'calendar_today'}</span>
-          </button>
-        </div>
-
-        {showCalendar && (
-          <div className="mb-6 animate-fade-in">
-            <Calendar
-              selectedDate={selectedDate}
-              bookedDates={bookedDatesCount}
-              onDateSelect={(date) => {
-                setSelectedDate(date);
-                setShowCalendar(false);
-              }}
-            />
+          <div className="flex bg-surface-dark/30 p-1 rounded-[24px] border border-white/5 max-w-sm mx-auto backdrop-blur-md">
+            <button onClick={() => setActiveTab('grid')} className={`flex-1 py-4 rounded-[18px] text-[10px] font-black uppercase tracking-[0.2em] transition-all ${activeTab === 'grid' ? 'gold-gradient text-background-dark shadow-[0_10px_20px_rgba(0,0,0,0.4)]' : 'text-slate-500 hover:text-slate-300'}`}>Visualização Grade</button>
+            <button onClick={() => setActiveTab('list')} className={`flex-1 py-4 rounded-[18px] text-[10px] font-black uppercase tracking-[0.2em] transition-all ${activeTab === 'list' ? 'gold-gradient text-background-dark shadow-[0_10px_20px_rgba(0,0,0,0.4)]' : 'text-slate-500 hover:text-slate-300'}`}>Lista Linear</button>
           </div>
-        )}
 
-        <div className="flex bg-surface-dark p-1 rounded-2xl border border-white/5">
-          <button onClick={() => setActiveTab('grid')} className={`flex-1 py-3 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${activeTab === 'grid' ? 'bg-primary text-background-dark shadow-lg' : 'text-slate-500'}`}>Visualização Grade</button>
-          <button onClick={() => setActiveTab('list')} className={`flex-1 py-3 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${activeTab === 'list' ? 'bg-primary text-background-dark shadow-lg' : 'text-slate-500'}`}>Lista Linear</button>
+          {showCalendar && (
+            <div className="mt-8 animate-fade-in px-2">
+              <div className="max-w-md mx-auto">
+                <Calendar
+                  selectedDate={selectedDate}
+                  bookedDates={bookedDatesCount}
+                  onDateSelect={(date) => {
+                    setSelectedDate(date);
+                    setShowCalendar(false);
+                  }}
+                />
+              </div>
+            </div>
+          )}
         </div>
       </header>
 
-      <div className="px-6 py-4 bg-surface-dark/40 border-b border-white/5 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <span className="material-symbols-outlined text-primary text-sm">event</span>
-          <span className="text-[10px] font-black text-white uppercase tracking-widest">
+      <div className="max-w-[1400px] mx-auto w-full px-8 py-6 flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <div className="size-10 rounded-xl bg-white/5 flex items-center justify-center border border-white/10 text-slate-500">
+            <span className="material-symbols-outlined text-sm">event</span>
+          </div>
+          <span className="text-[10px] font-black text-white uppercase tracking-[0.4em]">
             {new Date(selectedDate + 'T12:00:00').toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' })}
           </span>
         </div>
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 rounded-full border border-primary/20">
-            <span className="size-1.5 bg-primary rounded-full animate-pulse"></span>
-            <span className="text-[9px] font-black text-primary uppercase">{todayAppointments.length} Sessões</span>
+        <div className="flex items-center gap-6">
+          <div className="flex items-center gap-2 px-4 py-2 bg-primary/5 rounded-full border border-primary/10">
+            <span className="size-1.5 bg-primary rounded-full animate-pulse shadow-[0_0_10px_rgba(193,165,113,0.5)]"></span>
+            <span className="text-[8px] font-black text-primary uppercase tracking-[0.2em]">{todayAppointments.length} Sessões Hoje</span>
           </div>
           <button
             onClick={() => setShowAddModal(true)}
-            className="size-8 rounded-xl bg-primary text-background-dark flex items-center justify-center shadow-gold transition-all active:scale-90"
+            className="size-12 rounded-2xl gold-gradient text-background-dark flex items-center justify-center shadow-[0_10px_30px_rgba(0,0,0,0.5)] transition-all active:scale-95 hover:scale-105"
           >
-            <span className="material-symbols-outlined text-sm font-bold">add</span>
+            <span className="material-symbols-outlined font-black">add</span>
           </button>
         </div>
       </div>
 
-      <main className="px-4 py-8 animate-fade-in">
+      <main className="max-w-[1400px] mx-auto w-full px-6 py-6 animate-fade-in relative">
+        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] pointer-events-none"></div>
+
         {activeTab === 'grid' ? (
           <div
-            className="relative bg-surface-dark/30 rounded-[40px] border border-white/5 overflow-hidden flex flex-col"
-            style={{ minHeight: `${hours.length * 100 + 80}px` }}
+            className="relative bg-surface-dark/10 rounded-[48px] border border-white/10 overflow-hidden flex flex-col shadow-[0_40px_100px_rgba(0,0,0,0.4)]"
+            style={{ minHeight: `${hours.length * 120 + 80}px` }}
           >
             {/* Professional Column Headers (Sticky) */}
             {allProfessionals.length > 0 && (
-              <div className="sticky top-0 left-0 right-0 h-20 flex items-center border-b border-white/10 bg-surface-dark/95 backdrop-blur-xl z-[40]">
-                <div className="w-16 shrink-0 border-r border-white/5 h-full flex items-center justify-center bg-black/20">
-                  <span className="material-symbols-outlined text-slate-600 text-sm">schedule</span>
+              <div className="sticky top-0 left-0 right-0 h-28 flex items-center border-b border-white/10 bg-surface-dark/90 backdrop-blur-2xl z-[40]">
+                <div className="w-20 shrink-0 border-r border-white/5 h-full flex items-center justify-center bg-black/20">
+                  <span className="material-symbols-outlined text-slate-600">schedule</span>
                 </div>
                 <div className="flex-1 flex h-full">
                   {allProfessionals.map((pro) => (
-                    <div key={pro.id} style={{ width: `${100 / allProfessionals.length}%` }} className="flex flex-col items-center justify-center px-1 border-r border-white/5 last:border-r-0">
-                      <div className="size-8 rounded-full border-2 border-primary/30 p-0.5 mb-1">
+                    <div key={pro.id} style={{ width: `${100 / allProfessionals.length}%` }} className="flex flex-col items-center justify-center px-4 border-r border-white/5 last:border-r-0 group">
+                      <div className="size-12 rounded-[18px] border-2 border-primary/30 p-0.5 mb-2 transition-transform group-hover:scale-110">
                         <img
                           src={pro.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(pro.name)}&background=c1a571&color=0c0d10&bold=true`}
-                          className="size-full rounded-full object-cover shadow-gold-sm"
+                          className="size-full rounded-[15px] object-cover shadow-2xl"
                           alt={pro.name}
                         />
                       </div>
-                      <span className="text-[8px] font-black text-white uppercase truncate w-full text-center tracking-tighter">
+                      <span className="text-[9px] font-black text-white uppercase truncate w-full text-center tracking-widest opacity-80 group-hover:opacity-100 transition-opacity">
                         {pro.name.split(' ')[0]}
                       </span>
                     </div>
@@ -449,7 +457,7 @@ const Schedule: React.FC<ScheduleProps> = ({ appointments: initialAppointments, 
             <div className="relative flex-1">
               {/* Professional Column Separators (Background) */}
               <div className="absolute inset-0 flex pointer-events-none">
-                <div className="w-16 shrink-0 border-r border-white/5 h-full bg-black/10"></div>
+                <div className="w-20 shrink-0 border-r border-white/5 h-full bg-black/5"></div>
                 <div className="flex-1 flex h-full">
                   {allProfessionals.map((_, idx) => (
                     <div key={idx} style={{ width: `${100 / allProfessionals.length}%` }} className="h-full border-r border-white/5 last:border-r-0"></div>
@@ -459,11 +467,11 @@ const Schedule: React.FC<ScheduleProps> = ({ appointments: initialAppointments, 
 
               {/* Linhas de Horário with Drop Zones */}
               {hours.map(h => (
-                <div key={h} className="relative h-[100px] border-b border-white/5 w-full flex flex-col group/row">
+                <div key={h} className="relative h-[120px] border-b border-white/5 w-full flex flex-col group/row">
                   {/* Meia hora 00 */}
                   <div className="h-1/2 w-full flex items-stretch relative">
-                    <div className="w-16 shrink-0 flex items-center justify-center bg-black/5">
-                      <span className="text-[10px] font-black text-slate-500 uppercase tracking-tighter">{h.toString().padStart(2, '0')}:00</span>
+                    <div className="w-20 shrink-0 flex items-center justify-center bg-black/10">
+                      <span className="text-[11px] font-black text-slate-600 uppercase tracking-tighter">{h.toString().padStart(2, '0')}:00</span>
                     </div>
                     <div className="flex-1 flex">
                       {allProfessionals.map(pro => (
@@ -481,8 +489,8 @@ const Schedule: React.FC<ScheduleProps> = ({ appointments: initialAppointments, 
                           }}
                           className="flex-1 h-full hover:bg-primary/5 transition-colors cursor-pointer relative group/item"
                         >
-                          <div className="absolute right-2 top-2 opacity-0 group-hover/item:opacity-100 transition-opacity">
-                            <span className="material-symbols-outlined text-primary text-[10px]">add_circle</span>
+                          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/item:opacity-40 transition-opacity">
+                            <span className="material-symbols-outlined text-primary text-2xl">add_circle</span>
                           </div>
                         </div>
                       ))}
@@ -491,8 +499,8 @@ const Schedule: React.FC<ScheduleProps> = ({ appointments: initialAppointments, 
 
                   {/* Meia hora 30 */}
                   <div className="h-1/2 w-full flex items-stretch relative border-t border-dashed border-white/5">
-                    <div className="w-16 shrink-0 flex items-center justify-center">
-                      <span className="text-[8px] font-black text-slate-700 uppercase tracking-tighter opacity-0 group-hover/row:opacity-100 transition-opacity">{h}:30</span>
+                    <div className="w-20 shrink-0 flex items-center justify-center">
+                      <span className="text-[9px] font-black text-slate-800 uppercase tracking-tighter opacity-0 group-hover/row:opacity-100 transition-opacity">{h}:30</span>
                     </div>
                     <div className="flex-1 flex">
                       {allProfessionals.map(pro => (
@@ -510,8 +518,8 @@ const Schedule: React.FC<ScheduleProps> = ({ appointments: initialAppointments, 
                           }}
                           className="flex-1 h-full hover:bg-primary/5 transition-colors cursor-pointer relative group/item"
                         >
-                          <div className="absolute right-2 top-2 opacity-0 group-hover/item:opacity-100 transition-opacity">
-                            <span className="material-symbols-outlined text-primary text-[10px]">add_circle</span>
+                          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/item:opacity-40 transition-opacity">
+                            <span className="material-symbols-outlined text-primary text-2xl">add_circle</span>
                           </div>
                         </div>
                       ))}
@@ -522,20 +530,14 @@ const Schedule: React.FC<ScheduleProps> = ({ appointments: initialAppointments, 
 
               {/* Cards de Agendamento */}
               {todayAppointments.map(appt => {
-                const top = getPosition(appt.time);
-                const height = Math.max(80, (appt.duration_min || 60) / 60 * 100 - 4);
+                const top = getPosition(appt.time) * 1.2; // Adjusted for height 120px
+                const height = Math.max(100, (appt.duration_min || 60) / 60 * 120 - 6);
 
-                // Encontrar o índice do profissional para o deslocamento horizontal
                 let proIndex = allProfessionals.findIndex(p => p.id === appt.professional_id);
-
-                // Se o profissional não estiver na lista (ex: admin sem proData), 
-                // dar um fallback ou colocar na primeira coluna disponível
                 if (proIndex === -1) {
                   if (allProfessionals.length > 0) proIndex = 0;
-                  else return null; // Sem colunas disponíveis
+                  else return null;
                 }
-
-                const columnWidthPercent = allProfessionals.length > 0 ? (100 / allProfessionals.length) : 100;
 
                 return (
                   <div
@@ -549,129 +551,128 @@ const Schedule: React.FC<ScheduleProps> = ({ appointments: initialAppointments, 
                       (e.target as HTMLElement).style.opacity = '1';
                     }}
                     style={{
-                      top: `${top + 2}px`,
+                      top: `${top + 3}px`,
                       height: `${height}px`,
-                      left: `calc(64px + ((100% - 64px) * ${proIndex} / ${allProfessionals.length}) + 4px)`,
-                      width: `calc(((100% - 64px) / ${allProfessionals.length}) - 8px)`,
+                      left: `calc(80px + ((100% - 80px) * ${proIndex} / ${allProfessionals.length}) + 8px)`,
+                      width: `calc(((100% - 80px) / ${allProfessionals.length}) - 16px)`,
                       zIndex: 20
                     }}
-                    className="absolute p-3 rounded-2xl border-l-[4px] border border-white/10 shadow-xl transition-all cursor-grab active:cursor-grabbing group overflow-hidden bg-surface-dark/95 backdrop-blur-md"
+                    className="absolute p-5 rounded-[28px] border-l-[6px] border border-white/10 shadow-2xl transition-all cursor-grab active:cursor-grabbing group overflow-hidden bg-surface-dark/95 backdrop-blur-xl hover:scale-[1.02] active:scale-[0.98]"
                     onClick={() => handleFinish(appt.id)}
                   >
                     <div className={`absolute inset-0 opacity-10 ${appt.status === 'confirmed' ? 'bg-primary' : 'bg-emerald-500'}`}></div>
-                    <div className={`absolute inset-y-0 left-0 w-1 ${appt.status === 'confirmed' ? 'bg-primary' : 'bg-emerald-500'}`}></div>
+                    <div className={`absolute inset-y-0 left-0 w-1.5 ${appt.status === 'confirmed' ? 'bg-primary shadow-[0_0_15px_rgba(193,165,113,0.8)]' : 'bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.8)]'}`}></div>
 
                     <div className="relative h-full flex flex-col justify-between">
                       <div className="min-w-0">
-                        <div className="flex justify-between items-start gap-1">
-                          <p className={`text-[7px] font-black uppercase tracking-wider truncate shrink-0 ${appt.status === 'confirmed' ? 'text-primary' : 'text-emerald-500'}`}>{appt.time}</p>
+                        <div className="flex justify-between items-start gap-2 mb-2">
+                          <p className={`text-[9px] font-black uppercase tracking-widest shrink-0 ${appt.status === 'confirmed' ? 'text-primary' : 'text-emerald-500'}`}>{appt.time}</p>
                           <button
                             onClick={(e) => { e.stopPropagation(); handleDelete(appt.id); }}
-                            className="size-4 rounded-md bg-red-500/10 flex items-center justify-center text-red-500 hover:bg-red-500/20 transition-colors"
+                            className="size-6 rounded-lg bg-red-500/10 flex items-center justify-center text-red-500 hover:bg-red-500 hover:text-white transition-all scale-0 group-hover:scale-100 origin-right"
                           >
-                            <span className="material-symbols-outlined text-[10px]">delete</span>
+                            <span className="material-symbols-outlined text-sm">delete</span>
                           </button>
                         </div>
-                        <h4 className="text-[10px] font-black text-white uppercase italic truncate mt-1">{appt.clientName}</h4>
-                        <p className="text-[8px] font-bold text-slate-500 uppercase truncate">{appt.service_names}</p>
+                        <h4 className="text-sm font-display font-black text-white uppercase italic tracking-tight truncate">{appt.clientName}</h4>
+                        <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest truncate mt-1">{appt.service_names}</p>
                       </div>
 
-                      <div className="flex justify-between items-center mt-1">
-                        <span className="text-[9px] font-black text-primary italic">R$ {appt.valor}</span>
-                        <span className="text-[7px] font-bold text-slate-600 uppercase">{appt.duration_min}m</span>
+                      <div className="flex justify-between items-end mt-2">
+                        <span className="text-base font-display font-black text-primary italic">R$ {appt.valor.toFixed(2)}</span>
+                        <div className="flex items-center gap-1.5 px-2 py-0.5 bg-black/40 rounded-full border border-white/5">
+                          <span className="material-symbols-outlined text-[10px] text-slate-600">schedule</span>
+                          <span className="text-[8px] font-black text-slate-500 uppercase">{appt.duration_min}m</span>
+                        </div>
                       </div>
                     </div>
                   </div>
                 );
               })}
-
-              {todayAppointments.length === 0 && (
-                <div className="absolute inset-0 flex flex-col items-center justify-center opacity-20 pointer-events-none">
-                  <span className="material-symbols-outlined text-6xl">event_busy</span>
-                  <p className="text-[10px] font-black uppercase tracking-widest mt-4">Nenhum agendamendo hoje</p>
-                </div>
-              )}
             </div>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="max-w-4xl mx-auto w-full space-y-8">
             {todayAppointments.length > 0 ? (
-              todayAppointments.map(appt => (
-                <div key={appt.id} className="bg-surface-dark/60 rounded-[32px] border border-white/5 p-6 shadow-xl relative overflow-hidden animate-fade-in group">
-                  <div className={`absolute top-0 left-0 w-1 h-full ${appt.status === 'confirmed' ? 'bg-primary' : appt.status === 'completed' ? 'bg-emerald-500' : 'bg-amber-500'}`}></div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {todayAppointments.map(appt => (
+                  <div key={appt.id} className="group bg-surface-dark/40 rounded-[48px] border border-white/5 p-8 shadow-2xl relative overflow-hidden backdrop-blur-md hover:border-primary/20 transition-all">
+                    <div className={`absolute top-0 left-0 w-2 h-full ${appt.status === 'confirmed' ? 'bg-primary' : appt.status === 'completed' ? 'bg-emerald-500' : 'bg-amber-500'}`}></div>
 
-                  <div className="flex justify-between items-start mb-4">
-                    <div>
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className={`text-[7px] font-black uppercase tracking-[0.2em] px-2 py-1 rounded-md ${appt.status === 'confirmed' ? 'bg-primary/10 text-primary' :
-                          appt.status === 'completed' ? 'bg-emerald-500/10 text-emerald-500' :
-                            'bg-amber-500/10 text-amber-500'
-                          }`}>
-                          {appt.status}
-                        </span>
-                        <span className="text-[8px] font-bold text-slate-600 uppercase tracking-widest">{appt.time}</span>
+                    <div className="space-y-6">
+                      <div className="flex justify-between items-start">
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-3">
+                            <span className={`text-[9px] font-black uppercase tracking-[0.3em] px-3 py-1.5 rounded-full border ${appt.status === 'confirmed' ? 'bg-primary/10 text-primary border-primary/20' :
+                              appt.status === 'completed' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' :
+                                'bg-amber-500/10 text-amber-500 border-amber-500/20'
+                              }`}>
+                              {appt.status === 'confirmed' ? 'Em Aberto' : appt.status === 'completed' ? 'Concluído' : 'Processando'}
+                            </span>
+                            <div className="flex items-center gap-2 px-3 py-1.5 bg-black/40 rounded-full border border-white/5">
+                              <span className="material-symbols-outlined text-xs text-primary">schedule</span>
+                              <span className="text-[10px] font-bold text-white tracking-widest">{appt.time}</span>
+                            </div>
+                          </div>
+                          <h3 className="text-2xl font-display font-black text-white uppercase italic tracking-tight group-hover:text-primary transition-colors">{appt.clientName || 'Cliente Aura'}</h3>
+                        </div>
+
+                        <div className="text-right">
+                          <p className="text-3xl font-display font-black text-white italic tracking-tighter">R$ {appt.valor.toFixed(2)}</p>
+                          <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest mt-1">{appt.duration_min || 60} MIN</p>
+                        </div>
                       </div>
-                      <h3 className="text-white font-black text-base uppercase italic tracking-tight leading-tight">{appt.clientName}</h3>
-                      <p className="text-[10px] text-slate-500 font-bold uppercase mt-1 tracking-wide">{appt.service_names}</p>
-                    </div>
-                    <div className="flex justify-between items-start mb-2 relative z-10">
-                      <div className="min-w-0">
-                        <span className="text-[10px] font-black text-white italic tracking-tighter truncate block">{appt.serviceName}</span>
-                        <div className="flex items-center gap-1 mt-0.5">
-                          <span className="material-symbols-outlined text-[8px] text-primary">person</span>
-                          <span className="text-[7px] font-bold text-slate-400 uppercase tracking-widest truncate">
-                            {allProfessionals.find(p => p.id === appt.professional_id)?.name || 'Profissional'}
+
+                      <div className="bg-black/40 rounded-3xl p-6 border border-white/5 space-y-2">
+                        <p className="text-[11px] text-primary font-black uppercase tracking-[0.2em]">{appt.service_names}</p>
+                        <div className="flex items-center gap-2 text-slate-500">
+                          <span className="material-symbols-outlined text-sm">person</span>
+                          <span className="text-[10px] font-black uppercase tracking-widest">
+                            {allProfessionals.find(p => p.id === appt.professional_id)?.name || 'Profissional Designado'}
                           </span>
                         </div>
                       </div>
-                      <span className="text-[8px] font-black text-white/40 uppercase bg-black/20 px-2 py-0.5 rounded-full shrink-0">{appt.time.substring(0, 5)}</span>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-white font-black text-sm tracking-tighter">R$ {appt.valor}</p>
-                      <p className="text-[8px] font-bold text-slate-600 uppercase mt-1">{appt.duration_min || 60} MIN</p>
+
+                      <div className="grid grid-cols-4 gap-4">
+                        <button
+                          onClick={() => navigate(`/chat/${appt.client_id}`)}
+                          className="size-14 bg-white/5 border border-white/10 rounded-[20px] flex items-center justify-center text-white hover:bg-primary hover:text-background-dark hover:border-transparent transition-all active:scale-95"
+                        >
+                          <span className="material-symbols-outlined text-xl">chat</span>
+                        </button>
+
+                        <button
+                          onClick={() => handleFinish(appt.id)}
+                          className="col-span-2 bg-primary/10 border border-primary/20 rounded-[24px] flex items-center justify-center gap-3 text-[10px] font-black text-primary uppercase tracking-[0.2em] hover:bg-primary hover:text-background-dark transition-all active:scale-95"
+                        >
+                          <span className="material-symbols-outlined text-lg">verified</span>
+                          Finalizar Ritual
+                        </button>
+
+                        <button
+                          onClick={() => handleCancel(appt.id)}
+                          className="size-14 bg-red-500/10 border border-red-500/20 rounded-[20px] flex items-center justify-center text-red-500 hover:bg-red-500 hover:text-white transition-all active:scale-95"
+                        >
+                          <span className="material-symbols-outlined text-xl">close</span>
+                        </button>
+                      </div>
                     </div>
                   </div>
-
-                  <div className="flex gap-2 mt-2">
-                    <button
-                      onClick={() => navigate(`/chat/${appt.client_id}`)}
-                      className="size-10 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center text-white active:bg-white/10 transition-all shrink-0"
-                    >
-                      <span className="material-symbols-outlined text-base">chat</span>
-                    </button>
-
-                    {appt.status === 'confirmed' && (
-                      <button
-                        onClick={() => handleCancel(appt.id)}
-                        className="flex-1 bg-white/5 border border-white/10 rounded-2xl py-3 text-[9px] font-black text-slate-400 uppercase tracking-widest active:bg-red-500/10 transition-all"
-                      >
-                        Cancelar
-                      </button>
-                    )}
-
-                    {appt.status !== 'completed' && (
-                      <button
-                        onClick={() => handleFinish(appt.id)}
-                        className="flex-1 bg-primary/10 border border-primary/20 rounded-2xl py-3 flex items-center justify-center gap-2 text-[9px] font-black text-primary uppercase tracking-widest active:bg-primary/30 transition-all"
-                      >
-                        <span className="material-symbols-outlined text-sm">done_all</span>
-                        Finalizar
-                      </button>
-                    )}
-
-                    <button
-                      onClick={() => handleDelete(appt.id)}
-                      className="size-10 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-center justify-center text-red-500 active:bg-red-500/30 transition-all shrink-0"
-                    >
-                      <span className="material-symbols-outlined text-base">delete</span>
-                    </button>
-                  </div>
-                </div>
-              ))
+                ))}
+              </div>
             ) : (
-              <div className="py-20 text-center flex flex-col items-center opacity-20 pointer-events-none">
-                <span className="material-symbols-outlined text-6xl">event_busy</span>
-                <p className="text-[10px] font-black uppercase tracking-widest mt-4">Nenhum agendamento para este dia</p>
+              <div className="py-40 text-center flex flex-col items-center justify-center bg-surface-dark/10 border border-dashed border-white/10 rounded-[64px] animate-fade-in">
+                <div className="size-24 rounded-full bg-white/5 flex items-center justify-center border border-white/10 mb-8">
+                  <span className="material-symbols-outlined text-6xl text-white/10">event_busy</span>
+                </div>
+                <h3 className="text-[12px] font-black uppercase tracking-[0.5em] text-white/20">Silêncio na Agenda</h3>
+                <p className="text-[9px] font-bold text-slate-700 uppercase tracking-[0.2em] mt-3">Nenhum agendamendo planejado para este ciclo</p>
+                <button
+                  onClick={() => setShowAddModal(true)}
+                  className="mt-10 px-8 py-4 gold-gradient text-background-dark rounded-full text-[10px] font-black uppercase tracking-widest shadow-xl active:scale-95 transition-all"
+                >
+                  Agendar Manualmente
+                </button>
               </div>
             )}
           </div>

@@ -193,124 +193,129 @@ const Analytics: React.FC<AnalyticsProps> = ({ appointments, role, salon, userId
   const COLORS = ['#c1a571', '#8b7a5e', '#5c503d', '#3d3428', '#c9b185'];
 
   return (
-    <div className="flex-1 overflow-y-auto h-full no-scrollbar">
-      <header className="sticky top-0 z-[60] bg-background-dark/30 backdrop-blur-md px-6 pt-12 pb-6 border-b border-white/5 flex items-center gap-4">
-        <button onClick={() => navigate(-1)} className="size-10 rounded-full border border-white/10 flex items-center justify-center text-white active:scale-95 transition-transform bg-white/5">
-          <span className="material-symbols-outlined">arrow_back</span>
-        </button>
-        <div>
-          <h1 className="text-xl font-display font-black tracking-tight uppercase italic text-white">Analytics Elite</h1>
-          <p className="text-primary text-[8px] font-black uppercase tracking-[0.2em] mt-1">Inteligência de Dados</p>
-        </div>
-      </header>
+    <div className="flex-1 overflow-y-auto h-full no-scrollbar bg-background-dark relative">
+      <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.02] pointer-events-none"></div>
 
-      <main className="px-3 sm:px-6 py-4 space-y-4 animate-fade-in w-full max-w-full mx-auto">
-
-        {/* Filtros */}
-        <div className="space-y-4">
-          <div className="flex overflow-x-auto no-scrollbar gap-2 pb-2">
-            {[
-              { id: 'today', label: 'HOJE' },
-              { id: '7d', label: '7 DIAS' },
-              { id: '30d', label: '30 DIAS' },
-              { id: 'month', label: 'MÊS ATUAL' },
-              { id: 'custom', label: 'FILTRO' },
-            ].map(p => (
-              <button
-                key={p.id}
-                onClick={() => p.id === 'custom' ? setShowCustomModal(true) : setPeriod(p.id as Period)}
-                className={`px-6 py-2.5 rounded-full text-[9px] font-black uppercase tracking-widest whitespace-nowrap transition-all border ${(period === p.id && p.id !== 'custom') || (p.id === 'custom' && period === 'custom')
-                  ? 'bg-primary border-primary text-background-dark shadow-gold-sm'
-                  : 'bg-white/5 border-white/10 text-slate-400'
-                  }`}
-              >
-                {p.label}
-              </button>
-            ))}
+      <header className="sticky top-0 z-50 bg-background-dark/80 backdrop-blur-3xl px-6 pt-12 pb-10 border-b border-white/5">
+        <div className="max-w-[1400px] mx-auto w-full">
+          <div className="flex items-center justify-between mb-12">
+            <button onClick={() => navigate(-1)} className="size-12 rounded-2xl bg-black/40 border border-white/10 flex items-center justify-center text-white active:scale-95 transition-all">
+              <span className="material-symbols-outlined text-xl">arrow_back</span>
+            </button>
+            <div className="text-center">
+              <h1 className="font-display font-black text-white italic tracking-[0.2em] uppercase leading-none" style={{ fontSize: 'var(--step-1)' }}>
+                Inteligência Aura
+              </h1>
+              <p className="text-[7px] text-primary font-black uppercase tracking-[0.4em] mt-3">Análise de Performance de Luxo</p>
+            </div>
+            <div className="size-12 opacity-0 pointer-events-none"></div>
           </div>
 
-          {role === 'admin' && professionals.length > 0 && (
-            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
-              <button
-                onClick={() => setSelectedProId('all')}
-                className={`px-5 py-2 rounded-full text-[8px] font-black uppercase tracking-widest transition-all ${selectedProId === 'all' ? 'bg-white/10 text-white border border-primary/40' : 'text-slate-500'
-                  }`}
-              >Todos Artistas</button>
-              {professionals.map(pro => (
+          <div className="space-y-8">
+            <div className="flex overflow-x-auto no-scrollbar gap-4 pb-2">
+              {[
+                { id: 'today', label: 'HOJE' },
+                { id: '7d', label: '7 DIAS' },
+                { id: '30d', label: '30 DIAS' },
+                { id: 'month', label: 'MÊS ATUAL' },
+                { id: 'custom', label: 'PERSONALIZAR' },
+              ].map(p => (
                 <button
-                  key={pro.id}
-                  onClick={() => setSelectedProId(pro.id)}
-                  className={`px-4 py-2 rounded-full text-[8px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${selectedProId === pro.id ? 'bg-primary/20 text-primary border border-primary/30' : 'text-slate-600'
+                  key={p.id}
+                  onClick={() => p.id === 'custom' ? setShowCustomModal(true) : setPeriod(p.id as Period)}
+                  className={`px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all whitespace-nowrap border ${(period === p.id && p.id !== 'custom') || (p.id === 'custom' && period === 'custom')
+                    ? 'gold-gradient text-background-dark border-transparent shadow-gold-sm scale-105 z-10'
+                    : 'bg-surface-dark/40 text-slate-500 border-white/5 hover:border-white/10'
                     }`}
                 >
-                  {pro.name.split(' ')[0]}
+                  {p.label}
                 </button>
               ))}
             </div>
-          )}
-        </div>
 
-        {/* Cards de Métricas Principais */}
-        <section className="bg-surface-dark rounded-[24px] sm:rounded-[40px] p-4 sm:p-8 border border-white/5 shadow-2xl overflow-hidden relative group">
-          <div className="flex justify-between items-start mb-2">
-            <div>
-              <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em]">Faturamento Bruto</p>
-              <h3 className="text-4xl font-display font-black text-white italic tracking-tighter mt-1">
+            {role === 'admin' && professionals.length > 0 && (
+              <div className="flex items-center gap-3 overflow-x-auto no-scrollbar pt-4 border-t border-white/5">
+                <button
+                  onClick={() => setSelectedProId('all')}
+                  className={`px-6 py-3 rounded-full text-[9px] font-black uppercase tracking-[0.2em] transition-all ${selectedProId === 'all'
+                    ? 'bg-primary/20 text-primary border border-primary/30'
+                    : 'text-slate-600 hover:text-slate-400'
+                    }`}
+                >VER TODOS</button>
+                {professionals.map(pro => (
+                  <button
+                    key={pro.id}
+                    onClick={() => setSelectedProId(pro.id)}
+                    className={`px-6 py-3 rounded-full text-[9px] font-black uppercase tracking-[0.2em] transition-all whitespace-nowrap ${selectedProId === pro.id
+                      ? 'bg-primary text-background-dark shadow-gold-sm'
+                      : 'bg-white/5 text-slate-600 border border-white/5'
+                      }`}
+                  >
+                    {pro.name.toUpperCase()}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </header>
+
+      <main className="max-w-[1400px] mx-auto w-full px-6 py-12 lg:py-20 space-y-12 pb-40 animate-fade-in relative z-10">
+        {/* Card de Faturamento Elite */}
+        <section className="bg-surface-dark/40 rounded-[56px] border border-white/5 p-10 lg:p-14 shadow-[0_30px_80px_rgba(0,0,0,0.4)] backdrop-blur-3xl overflow-hidden relative group">
+          <div className="flex flex-col lg:flex-row justify-between items-start gap-12 mb-16">
+            <div className="space-y-4">
+              <p className="text-[11px] font-black text-primary uppercase tracking-[0.5em]">Patrimônio Bruto</p>
+              <h3 className="text-5xl lg:text-7xl font-display font-black text-white italic tracking-tighter leading-none">
                 R$ {stats.grossRev.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
               </h3>
             </div>
-            <div className="flex flex-col items-end gap-2">
-              <div className="size-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary border border-primary/20">
-                <span className="material-symbols-outlined font-black">payments</span>
-              </div>
 
-              {/* Toggle Dia/Semana */}
-              <div className="flex bg-black/40 rounded-full p-1 border border-white/5">
+            <div className="flex flex-col items-end gap-6 w-full lg:w-auto">
+              <div className="flex bg-black/40 rounded-[20px] p-1.5 border border-white/10 backdrop-blur-md">
                 <button
                   onClick={() => setViewMode('daily')}
-                  className={`px-3 py-1 rounded-full text-[7px] font-black uppercase tracking-widest transition-all ${viewMode === 'daily' ? 'bg-primary text-background-dark' : 'text-slate-500'}`}
-                >DIA</button>
+                  className={`px-6 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${viewMode === 'daily' ? 'gold-gradient text-background-dark shadow-gold-sm' : 'text-slate-500 hover:text-slate-300'}`}
+                >DIÁRIO</button>
                 <button
                   onClick={() => setViewMode('weekly')}
-                  className={`px-3 py-1 rounded-full text-[7px] font-black uppercase tracking-widest transition-all ${viewMode === 'weekly' ? 'bg-primary text-background-dark' : 'text-slate-500'}`}
-                >SEM</button>
+                  className={`px-6 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${viewMode === 'weekly' ? 'gold-gradient text-background-dark shadow-gold-sm' : 'text-slate-500 hover:text-slate-300'}`}
+                >SEMANAL</button>
+              </div>
+
+              <div className="flex items-center gap-8 w-full lg:w-auto justify-end">
+                <div className="text-right">
+                  <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-1">Pura Margem</p>
+                  <p className="text-2xl font-display font-black text-emerald-500 italic">R$ {stats.netRev.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                </div>
+                <div className="size-14 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
+                  <span className="material-symbols-outlined text-3xl">payments</span>
+                </div>
               </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-4 mt-6 pt-6 border-t border-white/5">
-            <div>
-              <p className="text-[8px] font-black text-slate-600 uppercase tracking-widest mb-1">Resultado Líquido</p>
-              <p className="text-lg font-black text-emerald-500 tracking-tighter">R$ {stats.netRev.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-            </div>
-            <div className="w-px h-8 bg-white/5"></div>
-            <div>
-              <p className="text-[8px] font-black text-slate-600 uppercase tracking-widest mb-1">Ticket Médio</p>
-              <p className="text-lg font-black text-white tracking-tighter">R$ {stats.avgTicket.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-            </div>
-          </div>
-
-          <div className="h-48 w-full mt-10 -ml-4 relative">
-            {/* Bloqueio Dinâmico pelo Banco (Bypassa se Trial ou se 'financial_enabled' for true) */}
+          <div className="h-[300px] w-full relative -ml-6 lg:-ml-10 scale-105">
             {billingInfo && !billingInfo.limits.financial_enabled && !billingInfo.is_trial_active && (
-              <div className="absolute inset-x-4 -inset-y-32 z-10 bg-background-dark/80 backdrop-blur-md flex flex-col items-center justify-center p-8 text-center animate-fade-in rounded-[40px] border-2 border-primary/20">
-                <div className="size-16 rounded-[24px] gold-gradient flex items-center justify-center text-background-dark shadow-2xl mb-4">
-                  <span className="material-symbols-outlined text-3xl font-black">lock</span>
+              <div className="absolute inset-x-6 lg:inset-x-10 -inset-y-10 z-20 bg-background-dark/90 backdrop-blur-2xl flex flex-col items-center justify-center p-12 text-center rounded-[48px] border border-primary/20">
+                <div className="size-24 rounded-[32px] gold-gradient flex items-center justify-center text-background-dark shadow-gold mb-8">
+                  <span className="material-symbols-outlined text-4xl font-black">lock</span>
                 </div>
-                <h3 className="text-xl font-display font-black text-white italic tracking-tighter uppercase mb-2">Controle Financeiro</h3>
-                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest leading-relaxed mb-6">
-                  O faturamento e relatórios financeiros detalhados estão disponíveis apenas nos planos <span className="text-primary">PRO</span> e <span className="text-primary">PREMIUM</span>.
+                <h3 className="text-3xl font-display font-black text-white italic tracking-tighter uppercase mb-4">Métricas Restritas</h3>
+                <p className="text-[11px] text-slate-400 font-bold uppercase tracking-widest leading-relaxed mb-10 max-w-sm">
+                  Desbloqueie o potencial máximo com o <span className="text-primary italic">Painel de Inteligência Financeira</span> do seu plano.
                 </p>
-                <button onClick={() => navigate('/pro/billing')} className="gold-gradient text-background-dark px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] shadow-xl active:scale-95 transition-all">
-                  Desbloquear agora
+                <button onClick={() => navigate('/pro/billing')} className="gold-gradient text-background-dark px-12 py-6 rounded-[32px] text-[11px] font-black uppercase tracking-[0.4em] shadow-gold active:scale-95 transition-all hover:brightness-110">
+                  Evoluir Plano
                 </button>
               </div>
             )}
+
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={stats.chartData}>
                 <defs>
                   <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#c1a571" stopOpacity={0.4} />
+                    <stop offset="5%" stopColor="#c1a571" stopOpacity={0.6} />
                     <stop offset="95%" stopColor="#c1a571" stopOpacity={0} />
                   </linearGradient>
                 </defs>
@@ -319,199 +324,196 @@ const Analytics: React.FC<AnalyticsProps> = ({ appointments, role, salon, userId
                   hide={false}
                   axisLine={false}
                   tickLine={false}
-                  tick={{ fill: '#64748b', fontSize: 8, fontWeight: 'bold' }}
-                  dy={10}
+                  tick={{ fill: '#64748b', fontSize: 9, fontWeight: '900' }}
+                  dy={15}
                 />
                 <Tooltip
-                  contentStyle={{ backgroundColor: '#0c0d10', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', fontSize: '10px', color: '#fff' }}
-                  itemStyle={{ color: '#c1a571', fontWeight: 'bold' }}
+                  contentStyle={{ backgroundColor: '#0c0d10', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '24px', fontSize: '11px', color: '#fff', padding: '16px' }}
+                  itemStyle={{ color: '#c1a571', fontWeight: '900', textTransform: 'uppercase' }}
+                  cursor={{ stroke: '#c1a571', strokeWidth: 1, strokeDasharray: '5 5' }}
                 />
                 <Area
                   type="monotone"
                   dataKey="rev"
                   stroke="#c1a571"
-                  strokeWidth={4}
+                  strokeWidth={6}
                   fillOpacity={1}
                   fill="url(#colorRev)"
-                  animationDuration={2000}
+                  animationDuration={2500}
                 />
               </AreaChart>
             </ResponsiveContainer>
           </div>
         </section>
 
-        {/* Grade de KPIs Secundários */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <div className="bg-surface-dark p-4 rounded-[24px] border border-white/5 shadow-xl flex flex-col justify-between">
-            <div>
-              <span className="material-symbols-outlined text-emerald-500 text-base mb-1">check_circle</span>
-              <p className="text-slate-500 text-[7px] font-black uppercase tracking-widest">Concluídos</p>
+        {/* Grade de KPIs Magnéticos */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-10">
+          {[
+            { label: 'Rituais Concluídos', val: stats.total, icon: 'task_alt', color: 'text-emerald-500' },
+            { label: 'Fluxo Agendado', val: stats.confirmed, icon: 'auto_awesome', color: 'text-primary' },
+            { label: 'Pendências Cli.', val: stats.pending, icon: 'hourglass_empty', color: 'text-amber-500' },
+            { label: 'Taxa Dissidência', val: `${stats.cancelRate.toFixed(0)}%`, icon: 'cancel', color: 'text-red-500' },
+          ].map((kpi, i) => (
+            <div key={i} className="bg-surface-dark/40 rounded-[40px] border border-white/5 p-8 shadow-2xl flex flex-col justify-between group hover:border-primary/20 transition-all">
+              <div className="flex items-center justify-between mb-8">
+                <span className={`material-symbols-outlined text-3xl ${kpi.color}`}>{kpi.icon}</span>
+                <div className="size-2 rounded-full bg-white/5"></div>
+              </div>
+              <div>
+                <p className="text-slate-500 text-[9px] font-black uppercase tracking-[0.3em] mb-2">{kpi.label}</p>
+                <h4 className="text-white font-display font-black text-3xl italic">{kpi.val}</h4>
+              </div>
             </div>
-            <h4 className="text-white font-display font-black text-xl italic mt-1">{stats.total}</h4>
-          </div>
-          <div className="bg-surface-dark p-4 rounded-[24px] border border-white/5 shadow-xl flex flex-col justify-between">
-            <div>
-              <span className="material-symbols-outlined text-primary text-base mb-1">event_available</span>
-              <p className="text-slate-500 text-[7px] font-black uppercase tracking-widest">Agendados</p>
-            </div>
-            <h4 className="text-white font-display font-black text-xl italic mt-1">{stats.confirmed}</h4>
-          </div>
-          <div className="bg-surface-dark p-4 rounded-[24px] border border-white/5 shadow-xl flex flex-col justify-between">
-            <div>
-              <span className="material-symbols-outlined text-amber-500 text-base mb-1">pending_actions</span>
-              <p className="text-slate-500 text-[7px] font-black uppercase tracking-widest">Pendentes</p>
-            </div>
-            <h4 className="text-white font-display font-black text-xl italic mt-1">{stats.pending}</h4>
-          </div>
-          <div className="bg-surface-dark p-4 rounded-[24px] border border-white/5 shadow-xl flex flex-col justify-between">
-            <div>
-              <span className="material-symbols-outlined text-red-500 text-base mb-1">cancel</span>
-              <p className="text-slate-500 text-[7px] font-black uppercase tracking-widest">Cancelados</p>
-            </div>
-            <h4 className="text-white font-display font-black text-xl italic mt-1">{stats.cancelRate.toFixed(0)}%</h4>
-          </div>
+          ))}
         </div>
 
-        {/* Analytics por Categoria e Distribuição */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 w-full">
-          {/* Mix de Serviços */}
-          <section className="bg-surface-dark rounded-[24px] sm:rounded-[40px] p-5 border border-white/5 overflow-hidden">
-            <h4 className="text-[9px] font-black text-primary uppercase tracking-[0.4em] mb-6">Mix de Serviços</h4>
-            <div className="h-48 w-full flex items-center justify-center">
+        {/* Distribuição & Rankings Elite */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16">
+          {/* Mix de Rituais */}
+          <section className="bg-surface-dark/40 rounded-[56px] border border-white/5 p-10 shadow-2xl backdrop-blur-3xl overflow-hidden">
+            <h4 className="text-[11px] font-black text-primary uppercase tracking-[0.5em] mb-12">Alquimia de Rituais</h4>
+            <div className="h-[350px] w-full flex items-center justify-center relative">
+              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest">Destaque</p>
+                <p className="text-3xl font-display font-black text-white italic">{stats.serviceData[0]?.value || 0}x</p>
+              </div>
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
                     data={stats.serviceData}
                     cx="50%"
                     cy="50%"
-                    innerRadius={45}
-                    outerRadius={65}
-                    paddingAngle={5}
+                    innerRadius={90}
+                    outerRadius={120}
+                    paddingAngle={8}
                     dataKey="value"
+                    stroke="none"
                   >
                     {stats.serviceData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
-                  <Tooltip />
+                  <Tooltip
+                    contentStyle={{ backgroundColor: '#0c0d10', border: 'none', borderRadius: '16px', fontSize: '10px' }}
+                  />
                 </PieChart>
               </ResponsiveContainer>
             </div>
-            <div className="space-y-2.5 mt-4">
+            <div className="space-y-4 mt-12 bg-black/20 p-8 rounded-[32px] border border-white/5">
               {stats.serviceData.map((s, idx) => (
-                <div key={`${s.name}-${idx}`} className="flex justify-between items-center text-[8px]">
-                  <div className="flex items-center gap-2">
-                    <div className="size-1.5 rounded-full" style={{ backgroundColor: COLORS[idx % COLORS.length] }}></div>
-                    <span className="text-slate-400 font-black uppercase truncate max-w-[100px]">{s.name}</span>
+                <div key={`${s.name}-${idx}`} className="flex justify-between items-center text-[10px]">
+                  <div className="flex items-center gap-4">
+                    <div className="size-2.5 rounded-full shadow-lg" style={{ backgroundColor: COLORS[idx % COLORS.length] }}></div>
+                    <span className="text-slate-400 font-black uppercase tracking-widest truncate max-w-[150px]">{s.name}</span>
                   </div>
-                  <span className="text-white font-black">{s.value}x</span>
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-1 bg-white/5 rounded-full overflow-hidden">
+                      <div className="h-full bg-primary" style={{ width: `${(s.value / stats.total) * 100}%` }}></div>
+                    </div>
+                    <span className="text-white font-black">{s.value}x</span>
+                  </div>
                 </div>
               ))}
             </div>
           </section>
 
-          {/* Ranking de Artistas */}
+          {/* Ranking Maestros */}
           {role === 'admin' && stats.proRanking.length > 0 && (
-            <section className="bg-surface-dark rounded-[24px] sm:rounded-[40px] p-5 border border-white/5 overflow-hidden">
-              <h4 className="text-[9px] font-black text-primary uppercase tracking-[0.4em] mb-6">Top Artistas (R$)</h4>
-              <div className="space-y-4">
+            <section className="bg-surface-dark/40 rounded-[56px] border border-white/5 p-10 shadow-2xl backdrop-blur-3xl flex flex-col h-full">
+              <h4 className="text-[11px] font-black text-primary uppercase tracking-[0.5em] mb-12">Maestria em Resultados</h4>
+              <div className="space-y-10 flex-1">
                 {stats.proRanking.slice(0, 5).map((pro, idx) => (
-                  <div key={pro.id || `pro-${idx}`} className="flex flex-col gap-1.5">
-                    <div className="flex justify-between text-[8px] font-black tracking-widest uppercase">
-                      <span className="text-white truncate max-w-[120px]">#{idx + 1} {pro.name}</span>
-                      <span className="text-primary whitespace-nowrap">R$ {pro.rev.toLocaleString('pt-BR')}</span>
+                  <div key={pro.id || `pro-${idx}`} className="space-y-4">
+                    <div className="flex justify-between items-center text-[10px] font-black tracking-[0.2em] uppercase">
+                      <div className="flex items-center gap-4">
+                        <span className="size-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-primary font-display italic">0{idx + 1}</span>
+                        <span className="text-white truncate max-w-[160px]">{pro.name}</span>
+                      </div>
+                      <span className="text-primary tracking-tighter text-base">R$ {pro.rev.toLocaleString('pt-BR')}</span>
                     </div>
-                    <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
+                    <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
                       <div
-                        className="h-full gold-gradient rounded-full transition-all duration-1000"
+                        className="h-full gold-gradient rounded-full shadow-gold-sm transition-all duration-2000"
                         style={{ width: `${(pro.rev / stats.grossRev) * 100}%` }}
                       ></div>
                     </div>
                   </div>
                 ))}
               </div>
+
+              <div className="mt-12 p-8 bg-primary/5 border border-primary/20 rounded-[32px] text-center">
+                <p className="text-[9px] font-black text-primary uppercase tracking-widest">Maestro em Destaque</p>
+                <h5 className="text-2xl font-display font-black text-white italic mt-2 uppercase">{stats.proRanking[0]?.name}</h5>
+              </div>
             </section>
           )}
-
-          {/* Distribuição de Status - Saúde da Agenda */}
-          <section className="bg-surface-dark rounded-[24px] sm:rounded-[40px] p-5 border border-white/5 md:col-span-2 overflow-hidden">
-            <h4 className="text-[9px] font-black text-primary uppercase tracking-[0.4em] mb-4">Saúde da Agenda</h4>
-            <div className="h-40 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={stats.statusData} layout="vertical">
-                  <XAxis type="number" hide />
-                  <YAxis dataKey="name" type="category" hide />
-                  <Tooltip cursor={{ fill: 'transparent' }} contentStyle={{ backgroundColor: '#0c0d10', border: 'none', borderRadius: '12px', fontSize: '10px' }} />
-                  <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={20}>
-                    {stats.statusData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-4">
-              {stats.statusData.map((s) => (
-                <div key={s.name} className="bg-black/20 p-2.5 rounded-xl border border-white/5">
-                  <p className="text-[6px] text-slate-500 font-black uppercase tracking-widest">{s.name}</p>
-                  <p className="text-[10px] text-white font-black mt-0.5">{s.value}</p>
-                </div>
-              ))}
-            </div>
-          </section>
         </div>
 
-        {/* Seção Informativa */}
-        <section className="bg-surface-dark/40 rounded-[32px] p-8 border border-white/5 text-center">
-          <span className="material-symbols-outlined text-primary text-4xl mb-4">auto_graph</span>
-          <h4 className="text-white text-[11px] font-black uppercase tracking-widest mb-2">IA Insights Aura</h4>
-          <p className="text-slate-500 text-[9px] font-bold uppercase tracking-widest leading-relaxed px-4">
-            Seu faturamento médio por agendamento é de R$ {stats.avgTicket.toFixed(2)}.
-            {stats.cancelRate < 10 ? ' Sua taxa de cancelamento está excelente!' : ' Analise o motivo dos cancelamentos para otimizar seus lucros.'}
-          </p>
+        {/* IA Aura Insights */}
+        <section className="bg-surface-dark/40 rounded-[56px] p-12 lg:p-16 border border-white/5 text-center relative overflow-hidden">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[500px] h-[200px] bg-primary/10 blur-[120px] rounded-full"></div>
+          <div className="relative z-10 space-y-8">
+            <div className="size-24 mx-auto rounded-[32px] gold-gradient flex items-center justify-center text-background-dark shadow-gold">
+              <span className="material-symbols-outlined text-4xl font-black">insights</span>
+            </div>
+            <div className="space-y-4">
+              <h4 className="text-white text-2xl font-display font-black italic uppercase tracking-tighter">Insights do Oráculo Aura</h4>
+              <p className="text-slate-500 text-[11px] lg:text-[13px] font-bold uppercase tracking-[0.3em] leading-loose max-w-2xl mx-auto italic">
+                Sua curadoria atinge um ticket médio de R$ {stats.avgTicket.toFixed(2)}.
+                {stats.cancelRate < 10 ? ' O alinhamento da agenda está impecável, mantendo a elite engajada.' : ' Há uma oscilação na fidelidade. Sugerimos recalibrar os rituais de confirmação.'}
+              </p>
+            </div>
+          </div>
         </section>
       </main>
 
-      {/* Modal de Filtro Personalizado */}
+      {/* Modal de Filtro Cronológico */}
       {showCustomModal && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-6 bg-background-dark/95 backdrop-blur-xl animate-fade-in">
-          <div className="relative w-full max-w-sm bg-surface-dark border border-white/10 rounded-[40px] p-10 shadow-2xl animate-scale-in text-center">
-            <h2 className="text-2xl font-display font-black text-white italic uppercase tracking-tighter mb-2">Filtro de Período</h2>
-            <p className="text-[9px] text-slate-500 font-black uppercase tracking-widest mb-8">Selecione as datas para o relatório</p>
+        <div className="fixed inset-0 z-[120] flex items-center justify-center p-8 bg-background-dark/95 backdrop-blur-3xl animate-fade-in">
+          <div className="relative w-full max-w-[500px] bg-surface-dark border border-white/10 rounded-[56px] p-12 shadow-3xl animate-scale-in text-center">
+            <button
+              onClick={() => setShowCustomModal(false)}
+              className="absolute top-8 right-8 size-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-500 hover:text-white transition-all"
+            >
+              <span className="material-symbols-outlined font-black">close</span>
+            </button>
 
-            <div className="space-y-6 text-left">
-              <div className="space-y-2">
-                <label className="text-[8px] font-black text-primary uppercase tracking-widest ml-4">Data Inicial</label>
+            <h2 className="text-3xl font-display font-black text-white italic uppercase tracking-tighter mb-4">Lapidar Período</h2>
+            <p className="text-[10px] text-slate-500 font-black uppercase tracking-[0.4em] mb-12">Selecione o espectro temporal para análise</p>
+
+            <div className="space-y-10 text-left">
+              <div className="space-y-4">
+                <label className="text-[9px] font-black text-primary uppercase tracking-[0.4em] ml-6 italic">Gênese do Relatório</label>
                 <input
                   type="date"
-                  className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white font-bold text-[10px] outline-none focus:border-primary transition-all"
+                  className="w-full bg-background-dark border-2 border-white/5 rounded-[24px] px-8 py-6 text-white font-black text-[13px] outline-none focus:border-primary transition-all shadow-inner uppercase tracking-widest"
                   value={customRange.start}
                   onChange={e => setCustomRange(prev => ({ ...prev, start: e.target.value }))}
                 />
               </div>
-              <div className="space-y-2">
-                <label className="text-[8px] font-black text-primary uppercase tracking-widest ml-4">Data Final</label>
+              <div className="space-y-4">
+                <label className="text-[9px] font-black text-primary uppercase tracking-[0.4em] ml-6 italic">Zênite do Relatório</label>
                 <input
                   type="date"
-                  className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white font-bold text-[10px] outline-none focus:border-primary transition-all"
+                  className="w-full bg-background-dark border-2 border-white/5 rounded-[24px] px-8 py-6 text-white font-black text-[13px] outline-none focus:border-primary transition-all shadow-inner uppercase tracking-widest"
                   value={customRange.end}
                   onChange={e => setCustomRange(prev => ({ ...prev, end: e.target.value }))}
                 />
               </div>
             </div>
 
-            <div className="flex gap-4 mt-10">
+            <div className="grid grid-cols-2 gap-6 mt-16">
               <button
                 onClick={() => setShowCustomModal(false)}
-                className="flex-1 py-4 rounded-2xl border border-white/5 text-[9px] font-black text-slate-500 uppercase tracking-widest active:bg-white/5 transition-all"
-              >Cancelar</button>
+                className="h-20 rounded-[24px] border border-white/10 text-[10px] font-black text-slate-500 uppercase tracking-[0.4em] hover:bg-white/5 transition-all"
+              >VOLTAR</button>
               <button
                 onClick={() => {
                   setPeriod('custom');
                   setShowCustomModal(false);
                 }}
-                className="flex-1 gold-gradient py-4 rounded-2xl text-[9px] font-black text-background-dark uppercase tracking-widest shadow-gold-sm active:scale-95 transition-all"
-              >Gerar Relatório</button>
+                className="h-20 gold-gradient rounded-[24px] text-[10px] font-black text-background-dark uppercase tracking-[0.4em] shadow-gold-sm active:scale-95 transition-all hover:brightness-110"
+              >CONSOLIDAR</button>
             </div>
           </div>
         </div>

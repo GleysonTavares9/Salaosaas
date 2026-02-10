@@ -233,18 +233,21 @@ const Billing: React.FC = () => {
                 </div>
             </header>
 
-            <main className="px-6 py-10 space-y-10 safe-area-bottom pb-40 max-w-[450px] mx-auto animate-fade-in">
+            <main className="px-6 lg:px-12 py-10 lg:py-20 space-y-16 safe-area-bottom pb-40 max-w-[1400px] mx-auto animate-fade-in">
 
-                <section className="text-center space-y-4">
-                    <div className="size-20 rounded-[32px] gold-gradient flex items-center justify-center text-background-dark mx-auto shadow-2xl">
-                        <span className="material-symbols-outlined text-4xl">workspace_premium</span>
+                <section className="text-center space-y-6">
+                    <div className="size-20 lg:size-24 rounded-[32px] lg:rounded-[40px] gold-gradient flex items-center justify-center text-background-dark mx-auto shadow-2xl">
+                        <span className="material-symbols-outlined text-4xl lg:text-5xl">workspace_premium</span>
                     </div>
-                    <h2 className="text-2xl font-display font-black text-white italic tracking-tight uppercase leading-tight">Escolha o próximo<br /><span className="text-primary text-3xl">Nível de Sucesso.</span></h2>
+                    <div className="space-y-2">
+                        <h2 className="text-2xl lg:text-5xl font-display font-black text-white italic tracking-tighter uppercase leading-tight">Escolha o próximo<br /><span className="text-primary text-3xl lg:text-7xl">Nível de Sucesso.</span></h2>
+                        <p className="text-[10px] lg:text-xs text-slate-500 font-bold uppercase tracking-[0.5em] lg:mt-4">Planos desenhados para a escala do seu negócio</p>
+                    </div>
 
                     {billingInfo?.is_trial_active && (
-                        <div className="bg-primary/10 border border-primary/20 rounded-2xl p-4 mt-4 animate-pulse">
-                            <p className="text-[10px] font-black text-primary uppercase tracking-widest">✨ Trial Elite Ativo</p>
-                            <p className="text-[8px] text-white font-bold uppercase tracking-widest mt-1">
+                        <div className="bg-primary/10 border border-primary/20 rounded-3xl p-6 lg:p-8 mt-8 animate-pulse max-w-[600px] mx-auto">
+                            <p className="text-[10px] lg:text-xs font-black text-primary uppercase tracking-[0.4em] mb-2 leading-none">✨ Trial Elite Ativo</p>
+                            <p className="text-[11px] lg:text-sm text-white font-bold uppercase tracking-widest mt-1">
                                 {(() => {
                                     if (!billingInfo?.trial_ends_at) return '30 dias restantes';
                                     const diff = new Date(billingInfo.trial_ends_at).getTime() - new Date().getTime();
@@ -256,39 +259,47 @@ const Billing: React.FC = () => {
                     )}
                 </section>
 
-                <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-12">
                     {plans.map((p, i) => {
                         const isCurrent = billingInfo?.plan === p.id || billingInfo?.plan_id === p.id;
                         return (
-                            <div key={i} className={`relative bg-surface-dark border p-8 rounded-[40px] shadow-2xl transition-all hover:scale-[1.02] ${p.highlight ? 'border-primary ring-1 ring-primary/50' : 'border-white/5'} ${isCurrent ? 'border-emerald-500/50' : ''}`}>
+                            <div key={i} className={`relative flex flex-col bg-surface-dark border p-8 lg:p-10 rounded-[40px] lg:rounded-[56px] shadow-2xl transition-all hover:scale-[1.02] ${p.highlight ? 'border-primary shadow-[0_30px_100px_rgba(193,165,113,0.15)] ring-1 ring-primary/30' : 'border-white/5'} ${isCurrent ? 'border-emerald-500/50' : ''}`}>
                                 {p.highlight && (
-                                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 gold-gradient px-4 py-1 rounded-full text-[8px] font-black text-background-dark uppercase tracking-widest">Mais Popular</div>
+                                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 gold-gradient px-6 py-2 rounded-full text-[9px] font-black text-background-dark uppercase tracking-widest shadow-gold">Mais Popular</div>
                                 )}
                                 {isCurrent && (
-                                    <div className="absolute -top-3 right-8 bg-emerald-500 px-4 py-1 rounded-full text-[8px] font-black text-white uppercase tracking-widest">Plano Atual</div>
+                                    <div className="absolute -top-3 right-8 bg-emerald-500 px-5 py-2 rounded-full text-[9px] font-black text-white uppercase tracking-widest shadow-2xl">Plano Atual</div>
                                 )}
 
-                                <div className="flex justify-between items-start mb-6">
-                                    <div>
-                                        <h3 className={`text-xl font-display font-black italic uppercase italic tracking-tighter ${p.color === 'primary' ? 'text-primary' : 'text-white'}`}>{p.name}</h3>
-                                        <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{p.desc}</p>
+                                <div className="space-y-6 mb-10">
+                                    <div className="flex justify-between items-start">
+                                        <div>
+                                            <h3 className={`text-2xl lg:text-3xl font-display font-black italic uppercase italic tracking-tighter ${p.color === 'primary' ? 'text-primary' : 'text-white'}`}>{p.name}</h3>
+                                            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">{p.desc}</p>
+                                        </div>
                                     </div>
-                                    <div className="text-right">
-                                        <p className="text-2xl font-display font-black text-white tracking-tighter leading-none">{p.price}<span className="text-[10px] text-slate-500">{p.period}</span></p>
+
+                                    <div className="flex items-baseline gap-1">
+                                        <p className="text-4xl lg:text-5xl font-display font-black text-white tracking-tighter leading-none">{p.price}</p>
+                                        <p className="text-[11px] text-slate-500 font-black uppercase tracking-widest">{p.period}</p>
                                     </div>
                                 </div>
 
-                                <div className="space-y-4 mb-8">
+                                <div className="space-y-5 mb-10 flex-1">
                                     {p.features.map((f, fi) => (
-                                        <div key={fi} className="flex items-center gap-3">
-                                            <span className="material-symbols-outlined text-emerald-500 text-sm font-black">check_circle</span>
-                                            <span className="text-[10px] text-slate-300 font-black uppercase tracking-widest">{f}</span>
+                                        <div key={fi} className="flex items-center gap-4">
+                                            <div className="size-5 rounded-full bg-emerald-500/10 flex items-center justify-center">
+                                                <span className="material-symbols-outlined text-emerald-500 text-[14px] font-black">check</span>
+                                            </div>
+                                            <span className="text-[10px] lg:text-[11px] text-slate-300 font-bold uppercase tracking-widest">{f}</span>
                                         </div>
                                     ))}
                                     {p.blocked?.map((b, bi) => (
-                                        <div key={bi} className="flex items-center gap-3 opacity-40">
-                                            <span className="material-symbols-outlined text-red-500 text-sm">block</span>
-                                            <span className="text-[10px] text-slate-600 font-black uppercase tracking-widest line-through">{b}</span>
+                                        <div key={bi} className="flex items-center gap-4 opacity-30">
+                                            <div className="size-5 rounded-full bg-white/5 flex items-center justify-center">
+                                                <span className="material-symbols-outlined text-slate-500 text-[14px]">close</span>
+                                            </div>
+                                            <span className="text-[10px] text-slate-600 font-bold uppercase tracking-widest line-through">{b}</span>
                                         </div>
                                     ))}
                                 </div>
@@ -296,19 +307,25 @@ const Billing: React.FC = () => {
                                 <button
                                     onClick={() => (isCurrent || isLoading) ? null : handleCheckout(p)}
                                     disabled={isCurrent || isLoading}
-                                    className={`w-full py-5 rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] shadow-xl active:scale-95 transition-all ${isCurrent ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : p.highlight ? 'gold-gradient text-background-dark' : 'bg-white/5 border border-white/10 text-white'} ${(isLoading && !isCurrent) ? 'opacity-50 cursor-wait' : ''}`}
+                                    className={`w-full py-6 rounded-2xl lg:rounded-3xl font-black uppercase tracking-[0.3em] text-[10px] lg:text-[11px] shadow-2xl active:scale-95 transition-all
+                                        ${isCurrent ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'
+                                            : p.highlight ? 'gold-gradient text-background-dark shadow-gold hover:brightness-110'
+                                                : 'bg-white/5 border border-white/10 text-white hover:bg-white/10'} 
+                                        ${(isLoading && !isCurrent) ? 'opacity-50 cursor-wait' : ''}`}
                                 >
-                                    {isLoading ? 'Carregando...' : (isCurrent ? 'Plano Ativo' : 'Migrar Plano')}
+                                    {isLoading ? 'Carregando...' : (isCurrent ? 'Plano Ativo' : 'Efetivar Assinatura')}
                                 </button>
                             </div>
                         );
                     })}
                 </div>
 
-                <section className="bg-primary/5 border border-primary/20 p-8 rounded-[40px] text-center">
-                    <span className="material-symbols-outlined text-primary mb-2">lock_reset</span>
-                    <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest leading-relaxed">
-                        Todas as transações são seguras e processadas pelo Mercado Pago. Cancele quando quiser.
+                <section className="bg-primary/5 border border-white/5 p-10 lg:p-14 rounded-[40px] lg:rounded-[64px] text-center max-w-[800px] mx-auto">
+                    <div className="size-14 lg:size-16 rounded-3xl bg-white/5 flex items-center justify-center text-primary mx-auto mb-8 border border-white/5 shadow-inner">
+                        <span className="material-symbols-outlined text-3xl">verified_user</span>
+                    </div>
+                    <p className="text-[10px] lg:text-xs text-slate-400 font-bold uppercase tracking-widest leading-loose">
+                        Segurança Platinum by Mercado Pago. Acesso instantâneo após confirmação. Gestão transparente sem contratos de fidelidade. Cancele ou mude de nível a qualquer momento.
                     </p>
                 </section>
 
