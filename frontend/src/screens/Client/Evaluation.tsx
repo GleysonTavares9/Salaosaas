@@ -69,20 +69,20 @@ const Evaluation: React.FC = () => {
 
   if (isSuccess) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center p-10 text-center animate-fade-in">
-        <div className="size-24 rounded-full gold-gradient flex items-center justify-center shadow-[0_0_50px_rgba(193,165,113,0.3)] mb-8">
-          <span className="material-symbols-outlined text-5xl text-background-dark font-black">verified</span>
+      <div className="flex-1 flex flex-col items-center justify-center p-10 sm:p-10 lg:p-10 text-center animate-fade-in">
+        <div className="size-18 sm:size-20 lg:size-24 rounded-full gold-gradient flex items-center justify-center shadow-[0_0_50px_rgba(193,165,113,0.3)] mb-8">
+          <span className="material-symbols-outlined text-3xl sm:text-4xl lg:text-5xl lg:text-3xl sm:text-4xl lg:text-5xl text-background-dark font-black">verified</span>
         </div>
-        <h2 className="text-3xl font-display font-black text-white italic mb-2">Aura Verified</h2>
+        <h2 className="text-3xl lg:text-3xl font-display font-black text-white italic mb-2">Aura Verified</h2>
         <p className="text-slate-500 text-xs font-medium uppercase tracking-widest leading-relaxed">Obrigado! Sua avaliação impacta diretamente <br /> no ranking de excelência da nossa rede.</p>
       </div>
     );
   }
 
   return (
-    <div className="flex-1 min-h-screen flex flex-col p-8 overflow-y-auto no-scrollbar">
+    <div className="flex-1 min-h-screen flex flex-col p-8 sm:p-8 lg:p-8 overflow-y-auto no-scrollbar">
       <header className="pt-8 pb-12 flex items-center justify-between">
-        <button onClick={() => navigate(-1)} className="size-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-white">
+        <button onClick={() => navigate(-1)} className="size-10 sm:size-12 lg:size-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-white">
           <span className="material-symbols-outlined">close</span>
         </button>
         <span className="text-[10px] font-black text-primary uppercase tracking-[0.3em]">Avaliar Experiência</span>
@@ -90,13 +90,13 @@ const Evaluation: React.FC = () => {
 
       <main className="flex-1 flex flex-col items-center max-w-sm mx-auto w-full">
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-display font-black text-white italic tracking-tighter mb-4 leading-none">Sua <span className="text-primary">Opinião</span> <br /> é Arte.</h1>
+          <h1 className="text-4xl lg:text-4xl font-display font-black text-white italic tracking-tighter mb-4 leading-none">Sua <span className="text-primary">Opinião</span> <br /> é Arte.</h1>
           <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em]">O quão excepcional foi seu atendimento?</p>
         </div>
 
         <form onSubmit={handleSubmit} className="w-full space-y-12">
           {/* STAR RATING INTERATIVO */}
-          <div className="flex justify-center gap-3">
+          <div className="flex justify-center gap-3 lg:gap-3">
             {[1, 2, 3, 4, 5].map((star) => (
               <button
                 key={star}
@@ -106,7 +106,7 @@ const Evaluation: React.FC = () => {
                 onMouseEnter={() => setHover(star)}
                 onMouseLeave={() => setHover(0)}
               >
-                <span className={`material-symbols-outlined text-5xl ${star <= (hover || rating) ? 'text-primary fill-1' : 'text-slate-800'
+                <span className={`material-symbols-outlined text-3xl sm:text-4xl lg:text-5xl lg:text-3xl sm:text-4xl lg:text-5xl ${star <= (hover || rating) ? 'text-primary fill-1' : 'text-slate-800'
                   }`}>
                   star
                 </span>
@@ -121,7 +121,7 @@ const Evaluation: React.FC = () => {
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
                 placeholder="Como foi o resultado? Recomendaria o profissional?"
-                className="w-full bg-surface-dark border border-white/5 rounded-[32px] p-6 text-white text-sm outline-none focus:border-primary/50 transition-all shadow-inner h-40 resize-none"
+                className="w-full bg-surface-dark border border-white/5 rounded-2xl sm:rounded-3xl lg:rounded-[32px] p-6 sm:p-6 lg:p-6 text-white text-sm outline-none focus:border-primary/50 transition-all shadow-inner h-40 resize-none"
               />
             </div>
           </div>
@@ -129,7 +129,7 @@ const Evaluation: React.FC = () => {
           <button
             type="submit"
             disabled={isSubmitting || rating === 0}
-            className="w-full gold-gradient text-background-dark font-black py-5 rounded-2xl shadow-2xl uppercase tracking-[0.3em] text-[11px] flex items-center justify-center gap-3 active:scale-95 transition-all disabled:opacity-30 disabled:grayscale"
+            className="w-full gold-gradient text-background-dark font-black py-5 sm:py-5 lg:py-5 rounded-2xl shadow-2xl uppercase tracking-[0.3em] text-[11px] flex items-center justify-center gap-3 lg:gap-3 active:scale-95 transition-all disabled:opacity-30 disabled:grayscale"
           >
             {isSubmitting ? (
               <div className="size-5 border-2 border-background-dark/30 border-t-background-dark rounded-full animate-spin"></div>

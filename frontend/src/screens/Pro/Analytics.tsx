@@ -196,35 +196,35 @@ const Analytics: React.FC<AnalyticsProps> = ({ appointments, role, salon, userId
     <div className="flex-1 overflow-y-auto h-full no-scrollbar bg-background-dark relative">
       <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.02] pointer-events-none"></div>
 
-      <header className="sticky top-0 z-50 bg-background-dark/80 backdrop-blur-3xl px-6 pt-12 pb-10 border-b border-white/5">
-        <div className="max-w-[1400px] mx-auto w-full">
-          <div className="flex items-center justify-between mb-12">
-            <button onClick={() => navigate(-1)} className="size-12 rounded-2xl bg-black/40 border border-white/10 flex items-center justify-center text-white active:scale-95 transition-all">
+      <header className="sticky top-0 z-50 bg-background-dark/80 backdrop-blur-3xl px-4 lg:px-6 pt-2 lg:pt-12 pb-2 lg:pb-10 border-b border-white/5">
+        <div className="max-w-full max-w-[1400px] mx-auto w-full">
+          <div className="flex items-center justify-between mb-2 lg:mb-12">
+            <button onClick={() => navigate(-1)} className="size-9 lg:size-12 rounded-xl bg-black/40 border border-white/10 flex items-center justify-center text-white active:scale-95 transition-all">
               <span className="material-symbols-outlined text-xl">arrow_back</span>
             </button>
             <div className="text-center">
-              <h1 className="font-display font-black text-white italic tracking-[0.2em] uppercase leading-none" style={{ fontSize: 'var(--step-1)' }}>
+              <h1 className="font-display font-black text-white italic tracking-[0.2em] uppercase leading-none text-base lg:text-2xl">
                 Inteligência Aura
               </h1>
-              <p className="text-[7px] text-primary font-black uppercase tracking-[0.4em] mt-3">Análise de Performance de Luxo</p>
+              <p className="text-[7px] text-primary font-black uppercase tracking-[0.4em] mt-1 lg:mt-3">Análise de Performance de Luxo</p>
             </div>
-            <div className="size-12 opacity-0 pointer-events-none"></div>
+            <div className="size-9 lg:size-12 opacity-0 pointer-events-none"></div>
           </div>
 
-          <div className="space-y-8">
-            <div className="flex overflow-x-auto no-scrollbar gap-4 pb-2">
+          <div className="space-y-4 lg:space-y-8">
+            <div className="flex overflow-x-auto no-scrollbar gap-2 lg:gap-4 pb-1">
               {[
                 { id: 'today', label: 'HOJE' },
                 { id: '7d', label: '7 DIAS' },
                 { id: '30d', label: '30 DIAS' },
                 { id: 'month', label: 'MÊS ATUAL' },
-                { id: 'custom', label: 'PERSONALIZAR' },
+                { id: 'custom', label: 'PERSON.' },
               ].map(p => (
                 <button
                   key={p.id}
                   onClick={() => p.id === 'custom' ? setShowCustomModal(true) : setPeriod(p.id as Period)}
-                  className={`px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all whitespace-nowrap border ${(period === p.id && p.id !== 'custom') || (p.id === 'custom' && period === 'custom')
-                    ? 'gold-gradient text-background-dark border-transparent shadow-gold-sm scale-105 z-10'
+                  className={`px-5 lg:px-8 py-2.5 lg:py-4 rounded-xl text-[9px] lg:text-[10px] font-black uppercase tracking-[0.2em] transition-all whitespace-nowrap border ${(period === p.id && p.id !== 'custom') || (p.id === 'custom' && period === 'custom')
+                    ? 'gold-gradient text-background-dark border-transparent shadow-gold-sm'
                     : 'bg-surface-dark/40 text-slate-500 border-white/5 hover:border-white/10'
                     }`}
                 >
@@ -234,24 +234,24 @@ const Analytics: React.FC<AnalyticsProps> = ({ appointments, role, salon, userId
             </div>
 
             {role === 'admin' && professionals.length > 0 && (
-              <div className="flex items-center gap-3 overflow-x-auto no-scrollbar pt-4 border-t border-white/5">
+              <div className="flex items-center gap-2 lg:gap-3 overflow-x-auto no-scrollbar py-2 border-t border-white/5">
                 <button
                   onClick={() => setSelectedProId('all')}
-                  className={`px-6 py-3 rounded-full text-[9px] font-black uppercase tracking-[0.2em] transition-all ${selectedProId === 'all'
+                  className={`px-4 lg:px-6 py-2 lg:py-3 rounded-full text-[8px] lg:text-[9px] font-black uppercase tracking-[0.2em] transition-all ${selectedProId === 'all'
                     ? 'bg-primary/20 text-primary border border-primary/30'
                     : 'text-slate-600 hover:text-slate-400'
                     }`}
-                >VER TODOS</button>
+                >TODOS</button>
                 {professionals.map(pro => (
                   <button
                     key={pro.id}
                     onClick={() => setSelectedProId(pro.id)}
-                    className={`px-6 py-3 rounded-full text-[9px] font-black uppercase tracking-[0.2em] transition-all whitespace-nowrap ${selectedProId === pro.id
-                      ? 'bg-primary text-background-dark shadow-gold-sm'
+                    className={`px-4 lg:px-6 py-2 lg:py-3 rounded-full text-[8px] lg:text-[9px] font-black uppercase tracking-[0.2em] transition-all whitespace-nowrap ${selectedProId === pro.id
+                      ? 'bg-primary text-background-dark'
                       : 'bg-white/5 text-slate-600 border border-white/5'
                       }`}
                   >
-                    {pro.name.toUpperCase()}
+                    {pro.name.split(' ')[0].toUpperCase()}
                   </button>
                 ))}
               </div>
@@ -260,52 +260,52 @@ const Analytics: React.FC<AnalyticsProps> = ({ appointments, role, salon, userId
         </div>
       </header>
 
-      <main className="max-w-[1400px] mx-auto w-full px-6 py-12 lg:py-20 space-y-12 pb-40 animate-fade-in relative z-10">
+      <main className="max-w-full max-w-[1400px] mx-auto w-full px-6 sm:px-6 lg:px-6 py-12 sm:py-12 lg:py-12 lg:py-20 sm:py-20 lg:py-20 space-y-12 pb-40 animate-fade-in relative z-10">
         {/* Card de Faturamento Elite */}
-        <section className="bg-surface-dark/40 rounded-[56px] border border-white/5 p-10 lg:p-14 shadow-[0_30px_80px_rgba(0,0,0,0.4)] backdrop-blur-3xl overflow-hidden relative group">
-          <div className="flex flex-col lg:flex-row justify-between items-start gap-12 mb-16">
+        <section className="bg-surface-dark/40 rounded-2xl sm:rounded-3xl lg:rounded-[56px] border border-white/5 p-10 sm:p-10 lg:p-10 lg:p-14 sm:p-16 lg:p-18 sm:p-14 sm:p-16 lg:p-18 lg:p-14 sm:p-16 lg:p-18 shadow-[0_30px_80px_rgba(0,0,0,0.4)] backdrop-blur-3xl overflow-hidden relative group">
+          <div className="flex flex-col lg:flex-row justify-between items-start gap-12 lg:gap-12 mb-16">
             <div className="space-y-4">
               <p className="text-[11px] font-black text-primary uppercase tracking-[0.5em]">Patrimônio Bruto</p>
-              <h3 className="text-5xl lg:text-7xl font-display font-black text-white italic tracking-tighter leading-none">
+              <h3 className="text-3xl sm:text-4xl lg:text-5xl lg:text-3xl sm:text-4xl lg:text-5xl lg:text-5xl sm:text-6xl lg:text-7xl lg:text-5xl sm:text-6xl lg:text-7xl font-display font-black text-white italic tracking-tighter leading-none">
                 R$ {stats.grossRev.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
               </h3>
             </div>
 
-            <div className="flex flex-col items-end gap-6 w-full lg:w-auto">
-              <div className="flex bg-black/40 rounded-[20px] p-1.5 border border-white/10 backdrop-blur-md">
+            <div className="flex flex-col items-end gap-6 lg:gap-6 w-full lg:w-auto">
+              <div className="flex bg-black/40 rounded-[20px] p-1 sm:p-1 lg:p-1.5 border border-white/10 backdrop-blur-md">
                 <button
                   onClick={() => setViewMode('daily')}
-                  className={`px-6 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${viewMode === 'daily' ? 'gold-gradient text-background-dark shadow-gold-sm' : 'text-slate-500 hover:text-slate-300'}`}
+                  className={`px-6 sm:px-6 lg:px-6 py-2 sm:py-2 lg:py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${viewMode === 'daily' ? 'gold-gradient text-background-dark shadow-gold-sm' : 'text-slate-500 hover:text-slate-300'}`}
                 >DIÁRIO</button>
                 <button
                   onClick={() => setViewMode('weekly')}
-                  className={`px-6 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${viewMode === 'weekly' ? 'gold-gradient text-background-dark shadow-gold-sm' : 'text-slate-500 hover:text-slate-300'}`}
+                  className={`px-6 sm:px-6 lg:px-6 py-2 sm:py-2 lg:py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${viewMode === 'weekly' ? 'gold-gradient text-background-dark shadow-gold-sm' : 'text-slate-500 hover:text-slate-300'}`}
                 >SEMANAL</button>
               </div>
 
-              <div className="flex items-center gap-8 w-full lg:w-auto justify-end">
+              <div className="flex items-center gap-8 lg:gap-8 w-full lg:w-auto justify-end">
                 <div className="text-right">
                   <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-1">Pura Margem</p>
-                  <p className="text-2xl font-display font-black text-emerald-500 italic">R$ {stats.netRev.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                  <p className="text-2xl lg:text-2xl font-display font-black text-emerald-500 italic">R$ {stats.netRev.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                 </div>
-                <div className="size-14 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
-                  <span className="material-symbols-outlined text-3xl">payments</span>
+                <div className="size-10 sm:size-12 lg:size-14 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
+                  <span className="material-symbols-outlined text-3xl lg:text-3xl">payments</span>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="h-[300px] w-full relative -ml-6 lg:-ml-10 scale-105">
+          <div className="h-auto min-h-[300px] w-full relative -ml-6 lg:-ml-10 scale-105">
             {billingInfo && !billingInfo.limits.financial_enabled && !billingInfo.is_trial_active && (
-              <div className="absolute inset-x-6 lg:inset-x-10 -inset-y-10 z-20 bg-background-dark/90 backdrop-blur-2xl flex flex-col items-center justify-center p-12 text-center rounded-[48px] border border-primary/20">
-                <div className="size-24 rounded-[32px] gold-gradient flex items-center justify-center text-background-dark shadow-gold mb-8">
-                  <span className="material-symbols-outlined text-4xl font-black">lock</span>
+              <div className="absolute inset-x-6 lg:inset-x-10 -inset-y-10 z-20 bg-background-dark/90 backdrop-blur-2xl flex flex-col items-center justify-center p-8 lg:p-12 text-center rounded-2xl lg:rounded-[40px] border border-primary/20">
+                <div className="size-16 lg:size-20 rounded-2xl lg:rounded-3xl gold-gradient flex items-center justify-center text-background-dark shadow-gold mb-6">
+                  <span className="material-symbols-outlined text-3xl lg:text-4xl font-black">lock</span>
                 </div>
-                <h3 className="text-3xl font-display font-black text-white italic tracking-tighter uppercase mb-4">Métricas Restritas</h3>
+                <h3 className="text-3xl lg:text-3xl font-display font-black text-white italic tracking-tighter uppercase mb-4">Métricas Restritas</h3>
                 <p className="text-[11px] text-slate-400 font-bold uppercase tracking-widest leading-relaxed mb-10 max-w-sm">
                   Desbloqueie o potencial máximo com o <span className="text-primary italic">Painel de Inteligência Financeira</span> do seu plano.
                 </p>
-                <button onClick={() => navigate('/pro/billing')} className="gold-gradient text-background-dark px-12 py-6 rounded-[32px] text-[11px] font-black uppercase tracking-[0.4em] shadow-gold active:scale-95 transition-all hover:brightness-110">
+                <button onClick={() => navigate('/pro/billing')} className="gold-gradient text-background-dark px-12 sm:px-12 lg:px-12 py-6 sm:py-6 lg:py-6 rounded-2xl sm:rounded-3xl lg:rounded-[32px] text-[11px] font-black uppercase tracking-[0.4em] shadow-gold active:scale-95 transition-all hover:brightness-110">
                   Evoluir Plano
                 </button>
               </div>
@@ -347,35 +347,35 @@ const Analytics: React.FC<AnalyticsProps> = ({ appointments, role, salon, userId
         </section>
 
         {/* Grade de KPIs Magnéticos */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-10">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-8">
           {[
             { label: 'Rituais Concluídos', val: stats.total, icon: 'task_alt', color: 'text-emerald-500' },
             { label: 'Fluxo Agendado', val: stats.confirmed, icon: 'auto_awesome', color: 'text-primary' },
             { label: 'Pendências Cli.', val: stats.pending, icon: 'hourglass_empty', color: 'text-amber-500' },
             { label: 'Taxa Dissidência', val: `${stats.cancelRate.toFixed(0)}%`, icon: 'cancel', color: 'text-red-500' },
           ].map((kpi, i) => (
-            <div key={i} className="bg-surface-dark/40 rounded-[40px] border border-white/5 p-8 shadow-2xl flex flex-col justify-between group hover:border-primary/20 transition-all">
+            <div key={i} className="bg-surface-dark/40 rounded-2xl sm:rounded-3xl lg:rounded-[40px] border border-white/5 p-8 sm:p-8 lg:p-8 shadow-2xl flex flex-col justify-between group hover:border-primary/20 transition-all">
               <div className="flex items-center justify-between mb-8">
-                <span className={`material-symbols-outlined text-3xl ${kpi.color}`}>{kpi.icon}</span>
+                <span className={`material-symbols-outlined text-3xl lg:text-3xl ${kpi.color}`}>{kpi.icon}</span>
                 <div className="size-2 rounded-full bg-white/5"></div>
               </div>
               <div>
                 <p className="text-slate-500 text-[9px] font-black uppercase tracking-[0.3em] mb-2">{kpi.label}</p>
-                <h4 className="text-white font-display font-black text-3xl italic">{kpi.val}</h4>
+                <h4 className="text-white font-display font-black text-3xl lg:text-3xl italic">{kpi.val}</h4>
               </div>
             </div>
           ))}
         </div>
 
         {/* Distribuição & Rankings Elite */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16">
+        <div className="grid grid-cols-1 lg:grid-cols-1 sm:grid-cols-2 gap-10 lg:gap-10 lg:gap-16 lg:gap-16">
           {/* Mix de Rituais */}
-          <section className="bg-surface-dark/40 rounded-[56px] border border-white/5 p-10 shadow-2xl backdrop-blur-3xl overflow-hidden">
+          <section className="bg-surface-dark/40 rounded-2xl sm:rounded-3xl lg:rounded-[56px] border border-white/5 p-10 sm:p-10 lg:p-10 shadow-2xl backdrop-blur-3xl overflow-hidden">
             <h4 className="text-[11px] font-black text-primary uppercase tracking-[0.5em] mb-12">Alquimia de Rituais</h4>
-            <div className="h-[350px] w-full flex items-center justify-center relative">
+            <div className="h-auto min-h-[350px] w-full flex items-center justify-center relative">
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                 <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest">Destaque</p>
-                <p className="text-3xl font-display font-black text-white italic">{stats.serviceData[0]?.value || 0}x</p>
+                <p className="text-3xl lg:text-3xl font-display font-black text-white italic">{stats.serviceData[0]?.value || 0}x</p>
               </div>
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -399,14 +399,14 @@ const Analytics: React.FC<AnalyticsProps> = ({ appointments, role, salon, userId
                 </PieChart>
               </ResponsiveContainer>
             </div>
-            <div className="space-y-4 mt-12 bg-black/20 p-8 rounded-[32px] border border-white/5">
+            <div className="space-y-4 mt-12 bg-black/20 p-8 sm:p-8 lg:p-8 rounded-2xl sm:rounded-3xl lg:rounded-[32px] border border-white/5">
               {stats.serviceData.map((s, idx) => (
                 <div key={`${s.name}-${idx}`} className="flex justify-between items-center text-[10px]">
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-4 lg:gap-4">
                     <div className="size-2.5 rounded-full shadow-lg" style={{ backgroundColor: COLORS[idx % COLORS.length] }}></div>
-                    <span className="text-slate-400 font-black uppercase tracking-widest truncate max-w-[150px]">{s.name}</span>
+                    <span className="text-slate-400 font-black uppercase tracking-widest truncate max-w-full max-w-[150px]">{s.name}</span>
                   </div>
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 lg:gap-3">
                     <div className="w-12 h-1 bg-white/5 rounded-full overflow-hidden">
                       <div className="h-full bg-primary" style={{ width: `${(s.value / stats.total) * 100}%` }}></div>
                     </div>
@@ -419,15 +419,15 @@ const Analytics: React.FC<AnalyticsProps> = ({ appointments, role, salon, userId
 
           {/* Ranking Maestros */}
           {role === 'admin' && stats.proRanking.length > 0 && (
-            <section className="bg-surface-dark/40 rounded-[56px] border border-white/5 p-10 shadow-2xl backdrop-blur-3xl flex flex-col h-full">
+            <section className="bg-surface-dark/40 rounded-2xl sm:rounded-3xl lg:rounded-[56px] border border-white/5 p-10 sm:p-10 lg:p-10 shadow-2xl backdrop-blur-3xl flex flex-col h-full">
               <h4 className="text-[11px] font-black text-primary uppercase tracking-[0.5em] mb-12">Maestria em Resultados</h4>
               <div className="space-y-10 flex-1">
                 {stats.proRanking.slice(0, 5).map((pro, idx) => (
                   <div key={pro.id || `pro-${idx}`} className="space-y-4">
                     <div className="flex justify-between items-center text-[10px] font-black tracking-[0.2em] uppercase">
-                      <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-4 lg:gap-4">
                         <span className="size-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-primary font-display italic">0{idx + 1}</span>
-                        <span className="text-white truncate max-w-[160px]">{pro.name}</span>
+                        <span className="text-white truncate max-w-full max-w-[160px]">{pro.name}</span>
                       </div>
                       <span className="text-primary tracking-tighter text-base">R$ {pro.rev.toLocaleString('pt-BR')}</span>
                     </div>
@@ -441,24 +441,24 @@ const Analytics: React.FC<AnalyticsProps> = ({ appointments, role, salon, userId
                 ))}
               </div>
 
-              <div className="mt-12 p-8 bg-primary/5 border border-primary/20 rounded-[32px] text-center">
+              <div className="mt-12 p-8 sm:p-8 lg:p-8 bg-primary/5 border border-primary/20 rounded-2xl sm:rounded-3xl lg:rounded-[32px] text-center">
                 <p className="text-[9px] font-black text-primary uppercase tracking-widest">Maestro em Destaque</p>
-                <h5 className="text-2xl font-display font-black text-white italic mt-2 uppercase">{stats.proRanking[0]?.name}</h5>
+                <h5 className="text-2xl lg:text-2xl font-display font-black text-white italic mt-2 uppercase">{stats.proRanking[0]?.name}</h5>
               </div>
             </section>
           )}
         </div>
 
         {/* IA Aura Insights */}
-        <section className="bg-surface-dark/40 rounded-[56px] p-12 lg:p-16 border border-white/5 text-center relative overflow-hidden">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[500px] h-[200px] bg-primary/10 blur-[120px] rounded-full"></div>
+        <section className="bg-surface-dark/40 rounded-2xl sm:rounded-3xl lg:rounded-[56px] p-12 sm:p-14 lg:p-16 sm:p-12 sm:p-14 lg:p-16 lg:p-12 sm:p-14 lg:p-16 lg:p-16 sm:p-18 lg:p-20 sm:p-16 sm:p-18 lg:p-20 lg:p-16 sm:p-18 lg:p-20 border border-white/5 text-center relative overflow-hidden">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-[500px] h-auto min-h-[200px] bg-primary/10 blur-[120px] rounded-full"></div>
           <div className="relative z-10 space-y-8">
-            <div className="size-24 mx-auto rounded-[32px] gold-gradient flex items-center justify-center text-background-dark shadow-gold">
-              <span className="material-symbols-outlined text-4xl font-black">insights</span>
+            <div className="size-18 sm:size-20 lg:size-24 mx-auto rounded-2xl sm:rounded-3xl lg:rounded-[32px] gold-gradient flex items-center justify-center text-background-dark shadow-gold">
+              <span className="material-symbols-outlined text-4xl lg:text-4xl font-black">insights</span>
             </div>
             <div className="space-y-4">
-              <h4 className="text-white text-2xl font-display font-black italic uppercase tracking-tighter">Insights do Oráculo Aura</h4>
-              <p className="text-slate-500 text-[11px] lg:text-[13px] font-bold uppercase tracking-[0.3em] leading-loose max-w-2xl mx-auto italic">
+              <h4 className="text-white text-2xl lg:text-2xl font-display font-black italic uppercase tracking-tighter">Insights do Oráculo Aura</h4>
+              <p className="text-slate-500 text-[11px] lg:text-[13px] font-bold uppercase tracking-[0.3em] leading-loose max-w-full sm:max-w-2xl mx-auto italic">
                 Sua curadoria atinge um ticket médio de R$ {stats.avgTicket.toFixed(2)}.
                 {stats.cancelRate < 10 ? ' O alinhamento da agenda está impecável, mantendo a elite engajada.' : ' Há uma oscilação na fidelidade. Sugerimos recalibrar os rituais de confirmação.'}
               </p>
@@ -469,16 +469,16 @@ const Analytics: React.FC<AnalyticsProps> = ({ appointments, role, salon, userId
 
       {/* Modal de Filtro Cronológico */}
       {showCustomModal && (
-        <div className="fixed inset-0 z-[120] flex items-center justify-center p-8 bg-background-dark/95 backdrop-blur-3xl animate-fade-in">
-          <div className="relative w-full max-w-[500px] bg-surface-dark border border-white/10 rounded-[56px] p-12 shadow-3xl animate-scale-in text-center">
+        <div className="fixed inset-0 z-[120] flex items-center justify-center p-8 sm:p-8 lg:p-8 bg-background-dark/95 backdrop-blur-3xl animate-fade-in">
+          <div className="relative w-full max-w-full max-w-[500px] bg-surface-dark border border-white/10 rounded-2xl sm:rounded-3xl lg:rounded-[56px] p-12 sm:p-14 lg:p-16 sm:p-12 sm:p-14 lg:p-16 lg:p-12 sm:p-14 lg:p-16 shadow-3xl animate-scale-in text-center">
             <button
               onClick={() => setShowCustomModal(false)}
-              className="absolute top-8 right-8 size-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-500 hover:text-white transition-all"
+              className="absolute top-8 right-8 size-10 sm:size-12 lg:size-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-500 hover:text-white transition-all"
             >
               <span className="material-symbols-outlined font-black">close</span>
             </button>
 
-            <h2 className="text-3xl font-display font-black text-white italic uppercase tracking-tighter mb-4">Lapidar Período</h2>
+            <h2 className="text-3xl lg:text-3xl font-display font-black text-white italic uppercase tracking-tighter mb-4">Lapidar Período</h2>
             <p className="text-[10px] text-slate-500 font-black uppercase tracking-[0.4em] mb-12">Selecione o espectro temporal para análise</p>
 
             <div className="space-y-10 text-left">
@@ -486,7 +486,7 @@ const Analytics: React.FC<AnalyticsProps> = ({ appointments, role, salon, userId
                 <label className="text-[9px] font-black text-primary uppercase tracking-[0.4em] ml-6 italic">Gênese do Relatório</label>
                 <input
                   type="date"
-                  className="w-full bg-background-dark border-2 border-white/5 rounded-[24px] px-8 py-6 text-white font-black text-[13px] outline-none focus:border-primary transition-all shadow-inner uppercase tracking-widest"
+                  className="w-full bg-background-dark border-2 border-white/5 rounded-[24px] px-8 sm:px-8 lg:px-8 py-6 sm:py-6 lg:py-6 text-white font-black text-[13px] outline-none focus:border-primary transition-all shadow-inner uppercase tracking-widest"
                   value={customRange.start}
                   onChange={e => setCustomRange(prev => ({ ...prev, start: e.target.value }))}
                 />
@@ -495,14 +495,14 @@ const Analytics: React.FC<AnalyticsProps> = ({ appointments, role, salon, userId
                 <label className="text-[9px] font-black text-primary uppercase tracking-[0.4em] ml-6 italic">Zênite do Relatório</label>
                 <input
                   type="date"
-                  className="w-full bg-background-dark border-2 border-white/5 rounded-[24px] px-8 py-6 text-white font-black text-[13px] outline-none focus:border-primary transition-all shadow-inner uppercase tracking-widest"
+                  className="w-full bg-background-dark border-2 border-white/5 rounded-[24px] px-8 sm:px-8 lg:px-8 py-6 sm:py-6 lg:py-6 text-white font-black text-[13px] outline-none focus:border-primary transition-all shadow-inner uppercase tracking-widest"
                   value={customRange.end}
                   onChange={e => setCustomRange(prev => ({ ...prev, end: e.target.value }))}
                 />
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-6 mt-16">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 lg:gap-6 mt-16">
               <button
                 onClick={() => setShowCustomModal(false)}
                 className="h-20 rounded-[24px] border border-white/10 text-[10px] font-black text-slate-500 uppercase tracking-[0.4em] hover:bg-white/5 transition-all"

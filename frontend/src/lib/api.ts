@@ -237,9 +237,7 @@ export const api = {
             })) as Appointment[];
         },
         async update(id: string, updates: Partial<Appointment>) {
-            console.log('🔄 API: Iniciando update do agendamento:', { id, updates });
             const { data, error } = await supabase.from('appointments').update(updates).eq('id', id).select().single();
-            console.log('🔄 API: Resultado do update:', { data, error });
             if (error) {
                 console.error('🔄 API: ERRO ao atualizar:', error);
                 throw error;
@@ -248,14 +246,10 @@ export const api = {
             return data as Appointment;
         },
         async updateStatus(id: string, status: Appointment['status']) {
-            console.log('📊 API: Atualizando status para:', { id, status });
             return this.update(id, { status });
         },
         async delete(id: string) {
-            console.log('🔥 API: Iniciando delete do agendamento:', id);
             const { data, error } = await supabase.from('appointments').delete().eq('id', id).select();
-            console.log('🔥 API: Resultado do delete:', { data, error });
-
             if (error) {
                 console.error('🔥 API: ERRO ao deletar:', error);
                 throw error;
@@ -271,7 +265,6 @@ export const api = {
                 throw new Error('Não foi possível deletar: sem permissão ou registro não encontrado');
             }
 
-            console.log('🔥 API: Delete concluído com sucesso!', data.length, 'registro(s) deletado(s)');
             return { success: true, deleted: data };
         }
     },
@@ -311,15 +304,28 @@ export const api = {
                 .select('*')
                 .or(`and(user1_id.eq.${currentUserId},user2_id.eq.${targetUserId}),and(user1_id.eq.${targetUserId},user2_id.eq.${currentUserId})`)
                 .maybeSingle();
-            if (existing) return existing as Conversation;
+
+            if (existing) {
+                const isUser1 = existing.user1_id === currentUserId;
+                return {
+                    ...existing,
+                    unread_count: (isUser1 ? existing.user1_unread_count : existing.user2_unread_count) || 0
+                } as Conversation;
+            }
+
             const { data, error } = await supabase.from('conversations').insert({
                 user1_id: currentUserId,
                 user2_id: targetUserId,
-                last_message: 'Nova conexão',
-                unread_count: 0
+                last_message: 'Nova conexão'
             }).select().single();
+
             if (error) throw error;
-            return data as Conversation;
+
+            const isUser1 = data.user1_id === currentUserId;
+            return {
+                ...data,
+                unread_count: (isUser1 ? data.user1_unread_count : data.user2_unread_count) || 0
+            } as Conversation;
         },
         async getMessages(conversationId: string) {
             const { data, error } = await supabase.from('messages').select('*').eq('conversation_id', conversationId).order('timestamp', { ascending: true });
@@ -336,14 +342,12 @@ export const api = {
             return data as ChatMessage;
         },
         async markAsRead(conversationId: string) {
-            console.log('📖 Chat: Marcando como lido:', conversationId);
             const { error } = await supabase.rpc('mark_chat_as_read', {
                 p_conversation_id: conversationId
             });
             if (error) console.warn('Falha ao zerar contador:', error.message);
         },
         subscribeToMessages(conversationId: string, callback: (payload: any) => void) {
-            console.log('📡 Chat: Iniciando inscrição Realtime para:', conversationId);
             const channel = supabase
                 .channel(`messages:${conversationId}`)
                 .on('postgres_changes', {
@@ -352,11 +356,9 @@ export const api = {
                     table: 'messages',
                     filter: `conversation_id=eq.${conversationId}`
                 }, (payload) => {
-                    console.log('📬 Nova Mensagem Recebida via Realtime:', payload);
                     callback(payload);
                 })
                 .subscribe((status) => {
-                    console.log(`🔌 Status da Conexão Realtime (${conversationId}):`, status);
                     if (status === 'CHANNEL_ERROR') {
                         console.error('❌ Erro Crítico: Falha ao conectar ao Realtime. Verifique se o Realtime está habilitado no Supabase para a tabela messages.');
                     }

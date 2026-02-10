@@ -150,10 +150,10 @@ const AIConcierge: React.FC<AIConciergeProps> = ({ setBookingDraft }) => {
 
 
       {/* Wrapper to constrain position to the "mobile" app frame on desktop */}
-      <div className="fixed bottom-0 left-0 right-0 max-w-[450px] mx-auto z-[999] pointer-events-none h-0 overflow-visible">
+      <div className="fixed bottom-0 left-0 right-0 max-w-full max-w-[450px] mx-auto z-[999] pointer-events-none h-0 overflow-visible">
         <button
           onClick={() => setIsOpen(true)}
-          className={`absolute left-4 size-11 lg:size-14 gold-gradient rounded-full shadow-[0_15px_40px_rgba(193,165,113,0.3)] flex flex-col items-center justify-center text-background-dark active:scale-90 transition-all border-2 border-white/20 pointer-events-auto ${isSalonPage ? 'bottom-32' : isChatPage ? 'bottom-28' : 'bottom-24'
+          className={`absolute left-4 size-10 sm:size-12 lg:size-10 sm:size-11 lg:size-12 lg:size-10 sm:size-12 lg:size-14 gold-gradient rounded-full shadow-[0_15px_40px_rgba(193,165,113,0.3)] flex flex-col items-center justify-center text-background-dark active:scale-90 transition-all border-2 border-white/20 pointer-events-auto ${isSalonPage ? 'bottom-32' : isChatPage ? 'bottom-28' : 'bottom-24'
             }`}
           aria-label="Aura IA"
         >
@@ -163,17 +163,17 @@ const AIConcierge: React.FC<AIConciergeProps> = ({ setBookingDraft }) => {
       </div>
 
       {isOpen && (
-        <div className="fixed inset-0 z-[300] bg-black/95 backdrop-blur-2xl flex items-end justify-center p-4 animate-fade-in">
-          <div className="w-full max-w-[420px] bg-background-dark border border-white/10 rounded-[40px] shadow-[0_0_100px_rgba(193,165,113,0.1)] p-6 md:p-8 space-y-6 animate-fade-in-up">
+        <div className="fixed inset-0 z-[300] bg-black/95 backdrop-blur-2xl flex items-end justify-center p-4 sm:p-4 lg:p-4 animate-fade-in">
+          <div className="w-full max-w-full max-w-[420px] bg-background-dark border border-white/10 rounded-2xl sm:rounded-3xl lg:rounded-[40px] shadow-[0_0_100px_rgba(193,165,113,0.1)] p-6 sm:p-6 lg:p-6 md:p-8 sm:p-8 lg:p-8 space-y-6 animate-fade-in-up">
             <div className="flex justify-between items-center">
-              <div className="flex items-center gap-3">
-                <div className="size-11 rounded-2xl gold-gradient flex items-center justify-center text-background-dark shadow-[0_10px_20px_rgba(193,165,113,0.3)] relative">
+              <div className="flex items-center gap-3 lg:gap-3">
+                <div className="size-10 sm:size-12 lg:size-10 sm:size-11 lg:size-12 rounded-2xl gold-gradient flex items-center justify-center text-background-dark shadow-[0_10px_20px_rgba(193,165,113,0.3)] relative">
                   <span className="material-symbols-outlined text-xl font-black">psychology_alt</span>
                   <div className="absolute -top-1 -right-1 size-3 bg-emerald-500 border-2 border-background-dark rounded-full"></div>
                 </div>
                 <div>
                   <h3 className="text-white font-display font-black italic text-lg tracking-tight leading-none uppercase">Aura Concierge</h3>
-                  <div className="flex items-center gap-2 mt-1">
+                  <div className="flex items-center gap-2 lg:gap-2 mt-1">
                     <span className="text-[7px] text-primary uppercase font-black tracking-[0.3em] leading-none">Active Intelligence</span>
                     <span className="text-[7px] text-emerald-500 font-black uppercase leading-none opacity-80 animate-pulse">• Online</span>
                   </div>
@@ -181,23 +181,23 @@ const AIConcierge: React.FC<AIConciergeProps> = ({ setBookingDraft }) => {
               </div>
               <button
                 onClick={() => { setIsOpen(false); setMessages([]); setInput(''); }}
-                className="size-10 rounded-xl bg-white/5 text-slate-500 flex items-center justify-center hover:text-white transition-all active:scale-90 border border-white/5"
+                className="size-10 sm:size-12 lg:size-10 rounded-xl bg-white/5 text-slate-500 flex items-center justify-center hover:text-white transition-all active:scale-90 border border-white/5"
               >
                 <span className="material-symbols-outlined text-xl">close</span>
               </button>
             </div>
 
-            <div className="flex-1 min-h-[250px] max-h-[350px] overflow-y-auto bg-surface-dark/60 rounded-[28px] p-6 border border-white/5 space-y-4 scrollbar-hide">
+            <div className="flex-1 min-h-auto min-h-[250px] max-h-auto min-h-[350px] overflow-y-auto bg-surface-dark/60 rounded-[28px] p-6 sm:p-6 lg:p-6 border border-white/5 space-y-4 scrollbar-hide">
               {messages.length === 0 ? (
                 <div className="h-full flex flex-col items-center justify-center text-center space-y-6">
                   <div className="space-y-2">
                     <p className="text-white font-bold text-xs">Olá! Eu sou a Aura.</p>
-                    <p className="text-slate-500 text-[10px] leading-relaxed max-w-[200px] mx-auto">
+                    <p className="text-slate-500 text-[10px] leading-relaxed max-w-full max-w-[200px] mx-auto">
                       Posso te ajudar a encontrar e agendar o serviço ideal agora mesmo.
                     </p>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2 w-full">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 lg:gap-2 w-full">
                     {suggestedServices.length > 0 ? (
                       suggestedServices.map((btn, i) => (
                         <button
@@ -208,14 +208,14 @@ const AIConcierge: React.FC<AIConciergeProps> = ({ setBookingDraft }) => {
                               document.getElementById('aura-submit-btn')?.click();
                             }, 50);
                           }}
-                          className="flex flex-col items-center justify-center gap-2 p-4 bg-white/5 border border-white/10 rounded-[24px] hover:bg-white/10 transition-all active:scale-95 group text-center"
+                          className="flex flex-col items-center justify-center gap-2 lg:gap-2 p-4 sm:p-4 lg:p-4 bg-white/5 border border-white/10 rounded-[24px] hover:bg-white/10 transition-all active:scale-95 group text-center"
                         >
                           <span className="material-symbols-outlined text-primary text-xl group-hover:scale-110 transition-transform">{btn.icon}</span>
                           <span className="text-[9px] text-white/80 font-black uppercase tracking-widest line-clamp-1">{btn.label}</span>
                         </button>
                       ))
                     ) : (
-                      <div className="col-span-2 py-4 bg-white/5 border border-white/10 rounded-2xl">
+                      <div className="col-span-2 py-4 sm:py-4 lg:py-4 bg-white/5 border border-white/10 rounded-2xl">
                         <p className="text-[9px] text-slate-500 font-black uppercase tracking-widest">Diga o que você deseja agendar ✨</p>
                       </div>
                     )}
@@ -225,7 +225,7 @@ const AIConcierge: React.FC<AIConciergeProps> = ({ setBookingDraft }) => {
                 <>
                   {messages.map((msg, i) => (
                     <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in`}>
-                      <div className={`max-w-[85%] p-4 rounded-2xl whitespace-pre-wrap ${msg.role === 'user' ? 'bg-primary/10 border border-primary/20 text-white' : 'bg-white/5 border border-white/10 text-white/90'}`}>
+                      <div className={`max-w-[85%] p-4 sm:p-4 lg:p-4 rounded-2xl whitespace-pre-wrap ${msg.role === 'user' ? 'bg-primary/10 border border-primary/20 text-white' : 'bg-white/5 border border-white/10 text-white/90'}`}>
                         <p className="text-[11px] leading-relaxed">
                           {msg.content
                             .replace(/\/choose-time\?\S+/g, '')
@@ -261,7 +261,7 @@ const AIConcierge: React.FC<AIConciergeProps> = ({ setBookingDraft }) => {
                                 setIsOpen(false);
                               }
                             }}
-                            className="w-full mt-3 py-2.5 gold-gradient border border-white/20 rounded-xl text-background-dark text-[10px] font-black uppercase tracking-[0.2em] hover:scale-[1.02] transition-all active:scale-95 flex items-center justify-center gap-2 shadow-[0_10px_20px_rgba(193,165,113,0.2)]"
+                            className="w-full mt-3 py-2 sm:py-2 lg:py-2.5 gold-gradient border border-white/20 rounded-xl text-background-dark text-[10px] font-black uppercase tracking-[0.2em] hover:scale-[1.02] transition-all active:scale-95 flex items-center justify-center gap-2 lg:gap-2 shadow-[0_10px_20px_rgba(193,165,113,0.2)]"
                           >
                             <span className="material-symbols-outlined text-[14px]">{hasSession ? 'confirmation_number' : 'login'}</span>
                             {msg.content.includes('/choose-time')
@@ -274,7 +274,7 @@ const AIConcierge: React.FC<AIConciergeProps> = ({ setBookingDraft }) => {
                   ))}
                   {loading && (
                     <div className="flex justify-start animate-fade-in">
-                      <div className="bg-white/5 border border-white/10 p-4 rounded-2xl flex items-center gap-3">
+                      <div className="bg-white/5 border border-white/10 p-4 sm:p-4 lg:p-4 rounded-2xl flex items-center gap-3 lg:gap-3">
                         <div className="size-3 border-2 border-primary/20 border-t-primary rounded-full animate-spin"></div>
                         <span className="text-[8px] text-slate-500 font-black uppercase tracking-widest">Aura está pensando...</span>
                       </div>
@@ -286,16 +286,16 @@ const AIConcierge: React.FC<AIConciergeProps> = ({ setBookingDraft }) => {
               <div ref={(el) => el?.scrollIntoView({ behavior: 'smooth' })} />
             </div>
 
-            <form onSubmit={handleAsk} className="flex gap-2">
+            <form onSubmit={handleAsk} className="flex gap-2 lg:gap-2">
               <input
                 autoFocus
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="Dúvida?"
-                className="flex-1 bg-surface-dark border border-white/5 rounded-xl py-3.5 px-5 text-white text-[11px] outline-none focus:border-primary/40 transition-all placeholder:text-slate-700 shadow-inner"
+                className="flex-1 bg-surface-dark border border-white/5 rounded-xl py-3 sm:py-3 lg:py-3.5 px-5 sm:px-5 lg:px-5 text-white text-[11px] outline-none focus:border-primary/40 transition-all placeholder:text-slate-700 shadow-inner"
               />
-              <button id="aura-submit-btn" type="submit" className="size-11 gold-gradient rounded-xl flex items-center justify-center text-background-dark shadow-2xl active:scale-90 transition-transform disabled:opacity-50">
+              <button id="aura-submit-btn" type="submit" className="size-10 sm:size-12 lg:size-10 sm:size-11 lg:size-12 gold-gradient rounded-xl flex items-center justify-center text-background-dark shadow-2xl active:scale-90 transition-transform disabled:opacity-50">
                 <span className="material-symbols-outlined font-black text-xl">send</span>
               </button>
             </form>

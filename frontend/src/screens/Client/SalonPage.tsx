@@ -19,7 +19,7 @@ const WhatsAppIcon = ({ className }: { className?: string }) => (
   </svg>
 );
 
-const PreciseRatingStars: React.FC<{ rating: number; size?: string; className?: string }> = ({ rating, size = "text-xs", className = "gap-1" }) => {
+const PreciseRatingStars: React.FC<{ rating: number; size?: string; className?: string }> = ({ rating, size = "text-xs", className = "gap-1 lg:gap-1" }) => {
   return (
     <div className={`flex ${className} items-center`}>
       {[1, 2, 3, 4, 5].map(star => {
@@ -107,7 +107,7 @@ const SalonPage: React.FC<SalonPageProps> = ({ salons, role, setBookingDraft }) 
 
   const salon = currentSalon || initialSalon;
 
-  if (!salon && !isLoading) return <div className="p-10 text-center text-white">Salão não encontrado.</div>;
+  if (!salon && !isLoading) return <div className="p-10 sm:p-10 lg:p-10 text-center text-white">Salão não encontrado.</div>;
   if (!salon) return null;
 
   const toggleService = (service: Service) => {
@@ -182,43 +182,43 @@ const SalonPage: React.FC<SalonPageProps> = ({ salons, role, setBookingDraft }) 
     <div className="flex-1 flex flex-col h-full relative overflow-hidden bg-background-dark">
       <div className="flex-1 overflow-y-auto no-scrollbar scroll-smooth">
         {/* Banner e Header Section */}
-        <section className="relative h-[300px] lg:h-[400px] w-full shrink-0 flex items-center justify-center overflow-hidden">
+        <section className="relative h-auto min-h-[300px] lg:min-h-[450px] w-full shrink-0 flex items-center justify-center overflow-hidden">
           <img src={salon.banner_url} className="absolute inset-0 w-full h-full object-cover grayscale opacity-30 scale-110" alt="Banner" />
           <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-background-dark/20 to-background-dark pointer-events-none"></div>
 
           {/* Header Superior */}
-          <header className="absolute top-0 left-0 right-0 z-20 p-6 pt-[calc(env(safe-area-inset-top)+2rem)]">
-            <div className="max-w-[1200px] mx-auto w-full flex items-center justify-between">
-              <button onClick={() => navigate(-1)} className="size-12 flex items-center justify-center rounded-2xl bg-black/30 backdrop-blur-md border border-white/10 text-white active:scale-95 transition-all">
+          <header className="absolute top-0 left-0 right-0 z-20 p-6 sm:p-6 lg:p-6 pt-[calc(env(safe-area-inset-top)+2rem)]">
+            <div className="max-w-full max-w-[1200px] mx-auto w-full flex items-center justify-between">
+              <button onClick={() => navigate(-1)} className="size-10 sm:size-12 lg:size-12 flex items-center justify-center rounded-2xl bg-black/30 backdrop-blur-md border border-white/10 text-white active:scale-95 transition-all">
                 <span className="material-symbols-outlined text-xl">arrow_back</span>
               </button>
               <h2 className="font-display font-black text-white italic tracking-[0.4em] uppercase opacity-90" style={{ fontSize: 'var(--step-0)', transform: 'scale(0.8)' }}>Detalhes da Unidade</h2>
-              <div className="size-12"></div>
+              <div className="size-10 sm:size-12 lg:size-12"></div>
             </div>
           </header>
 
           {/* Info Principal do Salão */}
-          <div className="relative z-10 w-full max-w-[1200px] px-6 mt-12 lg:mt-20">
-            <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 py-8">
-              <div className="flex items-center gap-6">
+          <div className="relative z-10 w-full max-w-full max-w-[1200px] px-6 sm:px-6 lg:px-6 mt-12 lg:mt-20">
+            <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 lg:gap-8 py-8 sm:py-8 lg:py-8">
+              <div className="flex items-center gap-6 lg:gap-6">
                 <div className="relative shrink-0">
-                  <img src={salon.logo_url} className="size-20 lg:size-24 rounded-[32px] border-2 border-primary/20 shadow-2xl object-cover" alt="Logo" />
-                  <div className="absolute inset-0 rounded-[32px] ring-1 ring-white/10 ring-inset"></div>
+                  <img src={salon.logo_url} className="size-16 lg:size-24 rounded-3xl lg:rounded-[32px] border-2 border-primary/20 shadow-2xl object-cover" alt="Logo" />
+                  <div className="absolute inset-0 rounded-3xl lg:rounded-[32px] ring-1 ring-white/10 ring-inset"></div>
                 </div>
                 <div className="min-w-0">
                   <h1 className="text-white font-display font-black italic tracking-tight leading-[0.9] mb-4" style={{ fontSize: 'var(--step-4)' }}>{salon.nome}</h1>
-                  <div className="flex flex-wrap items-center gap-4">
-                    <span className="text-primary font-black uppercase tracking-[0.2em] bg-primary/10 border border-primary/20 px-3 py-1 rounded-full" style={{ fontSize: 'var(--step-0)', transform: 'scale(0.8)', transformOrigin: 'left' }}>{salon.segmento}</span>
-                    <div className="flex items-center gap-3 pl-4 border-l border-white/10">
+                  <div className="flex flex-wrap items-center gap-4 lg:gap-4">
+                    <span className="text-primary font-black uppercase tracking-[0.2em] bg-primary/10 border border-primary/20 px-3 sm:px-3 lg:px-3 py-1 sm:py-1 lg:py-1 rounded-full" style={{ fontSize: 'var(--step-0)', transform: 'scale(0.8)', transformOrigin: 'left' }}>{salon.segmento}</span>
+                    <div className="flex items-center gap-3 lg:gap-3 pl-4 border-l border-white/10">
                       <span className="text-white font-black tracking-widest" style={{ fontSize: 'var(--step-1)' }}>{dynamicRating.toFixed(1)}</span>
-                      <PreciseRatingStars rating={dynamicRating} size="text-[12px]" className="gap-1" />
+                      <PreciseRatingStars rating={dynamicRating} size="text-[12px]" className="gap-1 lg:gap-1" />
                       <span className="text-slate-500 font-bold uppercase tracking-widest ml-1" style={{ fontSize: 'var(--step-0)', transform: 'scale(0.7)' }}>({dynamicReviewsCount} Reviews)</span>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div className="max-w-[400px]">
+              <div className="max-w-full max-w-[400px]">
                 <p className="text-slate-400 font-medium italic opacity-70 leading-relaxed" style={{ fontSize: 'var(--step-0)' }}>"{salon.descricao}"</p>
               </div>
             </div>
@@ -231,7 +231,7 @@ const SalonPage: React.FC<SalonPageProps> = ({ salons, role, setBookingDraft }) 
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab as TabType)}
-                className={`py-3 px-6 lg:py-4 lg:px-8 font-black uppercase tracking-[0.3em] rounded-[20px] lg:rounded-[24px] transition-all outline-none whitespace-nowrap shadow-xl border ${activeTab === tab
+                className={`py-3 sm:py-3 lg:py-3 px-6 sm:px-6 lg:px-6 lg:py-4 sm:py-4 lg:py-4 lg:px-8 sm:px-8 lg:px-8 font-black uppercase tracking-[0.3em] rounded-[20px] lg:rounded-[24px] transition-all outline-none whitespace-nowrap shadow-xl border ${activeTab === tab
                   ? 'gold-gradient text-background-dark border-transparent scale-100'
                   : 'bg-white/5 text-slate-500 hover:text-white border-white/5 hover:bg-white/10'
                   }`}
@@ -243,24 +243,24 @@ const SalonPage: React.FC<SalonPageProps> = ({ salons, role, setBookingDraft }) 
           </div>
         </nav>
 
-        <main className="max-w-[1200px] mx-auto w-full px-6 py-10 pb-48">
+        <main className="max-w-full max-w-[1200px] mx-auto w-full px-6 sm:px-6 lg:px-6 py-10 sm:py-10 lg:py-10 pb-48">
           {activeTab === 'reviews' && (
-            <div className="grid lg:grid-cols-12 gap-8 lg:items-start animate-fade-in">
+            <div className="grid lg:grid-cols-12 gap-8 lg:gap-8 lg:items-start animate-fade-in">
               <div className="lg:col-span-4 space-y-6 lg:sticky lg:top-32">
-                <div className="bg-surface-dark/40 border border-white/5 rounded-[40px] p-8 shadow-2xl backdrop-blur-md">
+                <div className="bg-surface-dark/40 border border-white/5 rounded-2xl sm:rounded-3xl lg:rounded-[40px] p-8 sm:p-8 lg:p-8 shadow-2xl backdrop-blur-md">
                   <div className="text-center">
-                    <div className="flex items-baseline justify-center gap-2 mb-2">
-                      <h3 className="text-6xl font-display font-black text-white italic tracking-tighter">{dynamicRating.toFixed(1)}</h3>
+                    <div className="flex items-baseline justify-center gap-2 lg:gap-2 mb-2">
+                      <h3 className="text-4xl sm:text-5xl lg:text-6xl lg:text-4xl sm:text-5xl lg:text-6xl font-display font-black text-white italic tracking-tighter">{dynamicRating.toFixed(1)}</h3>
                       <span className="text-xs font-bold text-slate-600 uppercase tracking-widest">/ 5.0</span>
                     </div>
                     <div className="flex justify-center">
-                      <PreciseRatingStars rating={dynamicRating} size="text-lg" className="gap-1.5" />
+                      <PreciseRatingStars rating={dynamicRating} size="text-lg" className="gap-1 lg:gap-1.5" />
                     </div>
                     <p className="text-[10px] text-slate-500 font-black uppercase tracking-[0.3em] mt-6 leading-relaxed">Sinfonia de {dynamicReviewsCount} Experiências</p>
                   </div>
 
                   <div className="mt-10">
-                    <button onClick={() => setShowReviewForm(true)} className="w-full gold-gradient text-background-dark py-6 rounded-[32px] font-black uppercase tracking-[0.3em] shadow-[0_20px_40px_rgba(193,165,113,0.2)] active:scale-95 transition-all flex items-center justify-center gap-3" style={{ fontSize: 'var(--step-0)', transform: 'scale(0.8)' }}>
+                    <button onClick={() => setShowReviewForm(true)} className="w-full gold-gradient text-background-dark py-6 sm:py-6 lg:py-6 rounded-2xl sm:rounded-3xl lg:rounded-[32px] font-black uppercase tracking-[0.3em] shadow-[0_20px_40px_rgba(193,165,113,0.2)] active:scale-95 transition-all flex items-center justify-center gap-3 lg:gap-3" style={{ fontSize: 'var(--step-0)', transform: 'scale(0.8)' }}>
                       <span className="material-symbols-outlined font-black">add_comment</span>
                       Avaliar Aura
                     </button>
@@ -268,15 +268,15 @@ const SalonPage: React.FC<SalonPageProps> = ({ salons, role, setBookingDraft }) 
                 </div>
 
                 {showReviewForm && (
-                  <div className="bg-surface-dark border border-primary/30 rounded-[40px] p-8 animate-slide-up space-y-8 shadow-2xl backdrop-blur-xl">
+                  <div className="bg-surface-dark border border-primary/30 rounded-2xl sm:rounded-3xl lg:rounded-[40px] p-8 sm:p-8 lg:p-8 animate-slide-up space-y-8 shadow-2xl backdrop-blur-xl">
                     <div className="flex justify-between items-center">
                       <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-primary">Sua Experiência</h4>
                       <button onClick={() => setShowReviewForm(false)} className="text-slate-500 hover:text-white transition-colors"><span className="material-symbols-outlined">close</span></button>
                     </div>
-                    <div className="flex justify-center gap-3">
+                    <div className="flex justify-center gap-3 lg:gap-3">
                       {[1, 2, 3, 4, 5].map(star => (
                         <button key={star} onClick={() => setNewRating(star)} className="hover:scale-110 transition-transform">
-                          <span className={`material-symbols-outlined text-4xl ${star <= newRating ? 'text-primary fill-1 drop-shadow-[0_0_15px_rgba(193,165,113,0.5)]' : 'text-white/10'}`}>star</span>
+                          <span className={`material-symbols-outlined text-4xl lg:text-4xl ${star <= newRating ? 'text-primary fill-1 drop-shadow-[0_0_15px_rgba(193,165,113,0.5)]' : 'text-white/10'}`}>star</span>
                         </button>
                       ))}
                     </div>
@@ -284,9 +284,9 @@ const SalonPage: React.FC<SalonPageProps> = ({ salons, role, setBookingDraft }) 
                       value={newComment}
                       onChange={(e) => setNewComment(e.target.value)}
                       placeholder="Descreva seu ritual..."
-                      className="w-full bg-black/40 border border-white/5 rounded-[24px] p-6 text-sm text-white outline-none h-40 focus:border-primary/30 transition-all placeholder:text-slate-700"
+                      className="w-full bg-black/40 border border-white/5 rounded-[24px] p-6 sm:p-6 lg:p-6 text-sm text-white outline-none h-40 focus:border-primary/30 transition-all placeholder:text-slate-700"
                     />
-                    <button onClick={handlePublicReview} disabled={isSubmittingReview} className="w-full bg-primary text-background-dark py-6 rounded-[32px] text-[10px] font-black uppercase tracking-[0.3em] shadow-xl hover:shadow-primary/20 transition-all">
+                    <button onClick={handlePublicReview} disabled={isSubmittingReview} className="w-full bg-primary text-background-dark py-6 sm:py-6 lg:py-6 rounded-2xl sm:rounded-3xl lg:rounded-[32px] text-[10px] font-black uppercase tracking-[0.3em] shadow-xl hover:shadow-primary/20 transition-all">
                       {isSubmittingReview ? 'Divulgando...' : 'Publicar Agora'}
                     </button>
                   </div>
@@ -295,13 +295,13 @@ const SalonPage: React.FC<SalonPageProps> = ({ salons, role, setBookingDraft }) 
 
               <div className="lg:col-span-8 space-y-6">
                 {salonReviews.length > 0 ? (
-                  <div className="grid sm:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                     {salonReviews.map((rev: any) => (
-                      <div key={rev.id} className="bg-[#121417]/40 border border-white/5 rounded-[40px] p-8 space-y-6 shadow-2xl backdrop-blur-md hover:border-primary/20 transition-all group">
+                      <div key={rev.id} className="bg-[#121417]/40 border border-white/5 rounded-2xl sm:rounded-3xl lg:rounded-[40px] p-8 sm:p-8 lg:p-8 space-y-6 shadow-2xl backdrop-blur-md hover:border-primary/20 transition-all group">
                         <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-4">
+                          <div className="flex items-center gap-4 lg:gap-4">
                             <div className="relative">
-                              <img src={rev.clientAvatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(rev.clientName)}&background=c1a571&color=0c0d10&bold=true`} className="size-12 rounded-2xl border border-white/10 object-cover" alt="Avatar" />
+                              <img src={rev.clientAvatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(rev.clientName)}&background=c1a571&color=0c0d10&bold=true`} className="size-10 sm:size-12 lg:size-12 rounded-2xl border border-white/10 object-cover" alt="Avatar" />
                               <div className="absolute inset-0 rounded-2xl ring-1 ring-white/10 ring-inset"></div>
                             </div>
                             <div>
@@ -309,7 +309,7 @@ const SalonPage: React.FC<SalonPageProps> = ({ salons, role, setBookingDraft }) 
                               <p className="text-[8px] text-slate-600 font-bold uppercase tracking-widest mt-0.5">{new Date(rev.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })}</p>
                             </div>
                           </div>
-                          <div className="flex gap-0.5">
+                          <div className="flex gap-0 lg:gap-0.5">
                             {[1, 2, 3, 4, 5].map(star => (
                               <span key={star} className={`material-symbols-outlined text-[10px] ${star <= rev.rating ? 'text-primary fill-1' : 'text-white/5'}`}>star</span>
                             ))}
@@ -320,50 +320,62 @@ const SalonPage: React.FC<SalonPageProps> = ({ salons, role, setBookingDraft }) 
                     ))}
                   </div>
                 ) : (
-                  <div className="bg-surface-dark/20 border border-white/5 rounded-[40px] py-32 text-center flex flex-col items-center">
-                    <div className="size-20 rounded-full bg-white/5 flex items-center justify-center mb-8 border border-white/10">
-                      <span className="material-symbols-outlined text-4xl text-white/20">reviews</span>
+                  <div className="bg-surface-dark/20 border border-white/5 rounded-2xl sm:rounded-3xl lg:rounded-[40px] py-32 sm:py-32 lg:py-32 text-center flex flex-col items-center">
+                    <div className="size-14 sm:size-16 lg:size-20 rounded-full bg-white/5 flex items-center justify-center mb-8 border border-white/10">
+                      <span className="material-symbols-outlined text-4xl lg:text-4xl text-white/20">reviews</span>
                     </div>
-                    <p className="text-[10px] font-black uppercase tracking-[0.4em] text-white/20 max-w-[200px] leading-relaxed">Inicie a música das avaliações detalhadas</p>
+                    <p className="text-[10px] font-black uppercase tracking-[0.4em] text-white/20 max-w-full max-w-[200px] leading-relaxed">Inicie a música das avaliações detalhadas</p>
                   </div>
                 )}
               </div>
             </div>
           )}
           {activeTab === 'services' && (
-            <div className="grid lg:grid-cols-2 gap-6 animate-fade-in">
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-2 gap-6 lg:gap-8 animate-fade-in">
               {salonServices.map(service => {
                 const isSelected = selectedServices.some(s => s.id === service.id);
                 return (
                   <button
                     key={service.id}
                     onClick={() => toggleService(service)}
-                    className={`bg-[#121417]/60 border-2 ${isSelected ? 'border-primary ring-4 ring-primary/10' : 'border-white/5'
-                      } p-6 rounded-[40px] flex items-center gap-6 shadow-2xl backdrop-blur-md group active:scale-[0.98] transition-all relative overflow-hidden text-left w-full hover:bg-[#1a1d21]/80 hover:border-white/10`}
+                    className={`group relative flex items-center gap-6 p-6 rounded-[32px] lg:rounded-[40px] border-2 transition-all duration-500 backdrop-blur-xl overflow-hidden
+                      ${isSelected
+                        ? 'bg-primary/10 border-primary ring-8 ring-primary/5 shadow-[0_20px_60px_rgba(193,165,113,0.2)]'
+                        : 'bg-surface-dark/40 border-white/5 hover:border-white/10 hover:bg-surface-dark/60 shadow-2xl'}
+                    `}
                   >
+                    {/* Glow Effect on Selection */}
+                    {isSelected && <div className="absolute inset-0 bg-gradient-to-tr from-primary/10 via-transparent to-transparent animate-pulse"></div>}
+
                     {/* Imagem do Ritual */}
-                    <div className="relative shrink-0">
-                      <img src={service.image} className="size-20 lg:size-24 rounded-[24px] object-cover shadow-2xl group-hover:scale-105 transition-transform" alt={service.name} />
-                      <div className="absolute inset-0 rounded-[24px] ring-1 ring-white/10 ring-inset"></div>
+                    <div className="relative shrink-0 z-10">
+                      <div className="size-20 lg:size-24 rounded-[24px] lg:rounded-[28px] overflow-hidden p-0.5 gold-gradient shadow-2xl group-hover:scale-105 transition-transform duration-700">
+                        <img src={service.image} className="w-full h-full object-cover rounded-[22px] lg:rounded-[26px] grayscale-[0.5] group-hover:grayscale-0 transition-all" alt={service.name} />
+                      </div>
+                      {isSelected && (
+                        <div className="absolute -top-2 -right-2 size-6 bg-primary rounded-full flex items-center justify-center text-background-dark shadow-gold animate-bounce">
+                          <span className="material-symbols-outlined text-[14px] font-black underline">check</span>
+                        </div>
+                      )}
                     </div>
 
                     {/* Informações Centrais */}
-                    <div className="flex-1 min-w-0 py-1">
-                      <h4 className="text-white font-black italic font-display uppercase tracking-widest leading-tight line-clamp-2 mb-2" style={{ fontSize: 'var(--step-0)' }}>{service.name}</h4>
-                      <div className="flex items-center gap-2 opacity-40">
-                        <span className="text-[8px] text-white font-black uppercase tracking-widest">{service.duration_min} MIN</span>
-                        <span className="text-white">•</span>
-                        <span className="text-[8px] text-white font-black uppercase tracking-widest">RITUAL</span>
+                    <div className="flex-1 min-w-0 z-10">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-[8px] font-black text-primary uppercase tracking-[0.3em] bg-primary/5 px-2 py-0.5 rounded-full border border-primary/10">Ritual Aura</span>
+                        {service.duration_min && <span className="text-[8px] font-black text-slate-500 uppercase tracking-[0.2em]">{service.duration_min} MIN</span>}
                       </div>
-                      <div className="mt-4">
-                        <span className="text-primary font-display font-black italic tracking-tight" style={{ fontSize: 'var(--step-2)' }}>R$ {service.price.toFixed(2)}</span>
-                      </div>
-                    </div>
+                      <h4 className="text-white font-display font-black italic uppercase tracking-widest text-lg lg:text-xl leading-tight group-hover:text-primary transition-colors line-clamp-1">{service.name}</h4>
+                      <p className="text-[10px] text-slate-500 font-medium italic mt-2 opacity-0 group-hover:opacity-100 transition-opacity line-clamp-1">Experiência sensorial completa</p>
 
-                    {/* Botão de Seleção (Indicador Premium) */}
-                    <div className={`size-12 lg:size-14 rounded-full flex items-center justify-center transition-all ${isSelected ? 'bg-primary text-background-dark shadow-[0_0_20px_rgba(193,165,113,0.4)]' : 'bg-white/5 text-white/10 border border-white/5'
-                      }`}>
-                      <span className="material-symbols-outlined text-2xl font-black">{isSelected ? 'check' : 'add'}</span>
+                      <div className="mt-5 flex items-center justify-between">
+                        <span className="text-xl lg:text-2xl font-display font-black text-white italic tracking-tighter">
+                          R$ {service.price.toFixed(2)}
+                        </span>
+                        <div className={`size-10 rounded-full flex items-center justify-center border transition-all ${isSelected ? 'bg-primary text-background-dark border-transparent rotate-0 scale-110' : 'bg-white/5 border-white/10 text-slate-500 -rotate-90 group-hover:rotate-0'}`}>
+                          <span className="material-symbols-outlined text-xl font-black">{isSelected ? 'check' : 'add'}</span>
+                        </div>
+                      </div>
                     </div>
                   </button>
                 );
@@ -372,20 +384,20 @@ const SalonPage: React.FC<SalonPageProps> = ({ salons, role, setBookingDraft }) 
           )}
 
           {activeTab === 'portfolio' && (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 animate-fade-in">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 animate-fade-in">
               {salonGallery.length > 0 ? (
                 salonGallery.map((url, idx) => (
-                  <div key={idx} className="aspect-square rounded-[32px] overflow-hidden border-2 border-white/5 shadow-2xl group relative">
+                  <div key={idx} className="aspect-square rounded-2xl sm:rounded-3xl lg:rounded-[32px] overflow-hidden border-2 border-white/5 shadow-2xl group relative">
                     <img src={url} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt="Portfolio" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-6">
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-6 sm:p-6 lg:p-6">
                       <span className="text-[8px] font-black text-white uppercase tracking-[0.3em]">Ambiente Original</span>
                     </div>
                   </div>
                 ))
               ) : (
-                <div className="col-span-full py-40 text-center flex flex-col items-center justify-center">
-                  <div className="size-20 rounded-full bg-white/5 flex items-center justify-center mb-8 border border-white/10">
-                    <span className="material-symbols-outlined text-4xl text-white/20">grid_view</span>
+                <div className="col-span-full py-40 sm:py-40 lg:py-40 text-center flex flex-col items-center justify-center">
+                  <div className="size-14 sm:size-16 lg:size-20 rounded-full bg-white/5 flex items-center justify-center mb-8 border border-white/10">
+                    <span className="material-symbols-outlined text-4xl lg:text-4xl text-white/20">grid_view</span>
                   </div>
                   <p className="text-[10px] font-black uppercase tracking-[0.4em] text-white/20">Galeria de Arte em Construção</p>
                 </div>
@@ -393,10 +405,10 @@ const SalonPage: React.FC<SalonPageProps> = ({ salons, role, setBookingDraft }) 
             </div>
           )}
           {activeTab === 'info' && (
-            <div className="grid lg:grid-cols-12 gap-10 animate-fade-in lg:items-start">
+            <div className="grid lg:grid-cols-12 gap-10 lg:gap-10 animate-fade-in lg:items-start">
               {/* Coluna Central com Infos principais */}
               <div className="lg:col-span-8 space-y-8">
-                <div className="bg-surface-dark/40 border border-white/5 rounded-[48px] p-10 lg:p-16 shadow-2xl backdrop-blur-sm grid sm:grid-cols-2 gap-12 lg:gap-20">
+                <div className="bg-surface-dark/40 border border-white/5 rounded-2xl sm:rounded-3xl lg:rounded-[48px] p-8 lg:p-16 shadow-2xl backdrop-blur-sm grid grid-cols-1 sm:grid-cols-2 gap-12 lg:gap-20">
 
                   {/* Endereço Centralizado */}
                   <button
@@ -406,13 +418,13 @@ const SalonPage: React.FC<SalonPageProps> = ({ salons, role, setBookingDraft }) 
                     }}
                     className="flex flex-col items-center group outline-none"
                   >
-                    <div className="size-20 lg:size-24 rounded-[32px] bg-white/5 border border-white/10 flex items-center justify-center shrink-0 group-hover:border-primary/30 group-active:scale-95 transition-all mb-8 shadow-2xl relative overflow-hidden">
+                    <div className="size-14 sm:size-16 lg:size-20 lg:size-18 sm:size-20 lg:size-24 rounded-2xl sm:rounded-3xl lg:rounded-[32px] bg-white/5 border border-white/10 flex items-center justify-center shrink-0 group-hover:border-primary/30 group-active:scale-95 transition-all mb-8 shadow-2xl relative overflow-hidden">
                       <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                      <span className="material-symbols-outlined text-primary text-4xl relative z-10">location_on</span>
+                      <span className="material-symbols-outlined text-primary text-4xl lg:text-4xl relative z-10">location_on</span>
                     </div>
                     <div className="flex flex-col items-center text-center">
                       <h4 className="text-[11px] font-black text-white uppercase tracking-[0.4em] mb-4">Localização</h4>
-                      <p className="text-base text-slate-400 font-medium leading-[1.8] max-w-[280px]">{salon.endereco}, {salon.cidade}</p>
+                      <p className="text-base text-slate-400 font-medium leading-[1.8] max-w-full max-w-[280px]">{salon.endereco}, {salon.cidade}</p>
                     </div>
                   </button>
 
@@ -425,14 +437,14 @@ const SalonPage: React.FC<SalonPageProps> = ({ salons, role, setBookingDraft }) 
                     }}
                     className="flex flex-col items-center group outline-none"
                   >
-                    <div className="size-20 lg:size-24 rounded-[32px] bg-white/5 border border-white/10 flex items-center justify-center shrink-0 group-hover:border-primary/30 group-active:scale-95 transition-all mb-8 shadow-2xl relative overflow-hidden">
+                    <div className="size-14 sm:size-16 lg:size-20 lg:size-18 sm:size-20 lg:size-24 rounded-2xl sm:rounded-3xl lg:rounded-[32px] bg-white/5 border border-white/10 flex items-center justify-center shrink-0 group-hover:border-primary/30 group-active:scale-95 transition-all mb-8 shadow-2xl relative overflow-hidden">
                       <div className="absolute inset-0 bg-emerald-500/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                      <WhatsAppIcon className="size-10 text-primary relative z-10" />
+                      <WhatsAppIcon className="size-10 sm:size-12 lg:size-10 text-primary relative z-10" />
                     </div>
                     <div className="flex flex-col items-center text-center space-y-6">
                       <h4 className="text-[11px] font-black text-white uppercase tracking-[0.4em] mb-2">Concierge Digital</h4>
-                      <p className="text-3xl font-display font-black text-white italic tracking-tighter">{salon.telefone || '(31) 99124-1598'}</p>
-                      <div className="bg-primary/10 border border-primary/20 px-8 py-3 rounded-full shadow-lg animate-pulse-slow">
+                      <p className="text-3xl lg:text-3xl font-display font-black text-white italic tracking-tighter">{salon.telefone || '(31) 99124-1598'}</p>
+                      <div className="bg-primary/10 border border-primary/20 px-8 sm:px-8 lg:px-8 py-3 sm:py-3 lg:py-3 rounded-full shadow-lg animate-pulse-slow">
                         <span className="text-[10px] font-black text-primary uppercase tracking-[0.3em]">
                           Canais Abertos
                         </span>
@@ -443,11 +455,11 @@ const SalonPage: React.FC<SalonPageProps> = ({ salons, role, setBookingDraft }) 
 
                 {/* Comodidades Estilo Original */}
                 {salon.amenities && salon.amenities.length > 0 && (
-                  <div className="bg-surface-dark/20 border border-white/5 rounded-[48px] p-10 lg:p-12">
+                  <div className="bg-surface-dark/20 border border-white/5 rounded-2xl sm:rounded-3xl lg:rounded-[48px] p-10 sm:p-10 lg:p-10 lg:p-12 sm:p-14 lg:p-16 sm:p-12 sm:p-14 lg:p-16 lg:p-12 sm:p-14 lg:p-16">
                     <h3 className="text-[10px] font-black text-slate-600 uppercase tracking-[0.4em] mb-10 text-center">Protocolos & Amenidades</h3>
-                    <div className="flex flex-wrap gap-4 justify-center">
+                    <div className="flex flex-wrap gap-4 lg:gap-4 justify-center">
                       {salon.amenities.map((item: string, idx: number) => (
-                        <span key={idx} className="bg-white/5 border border-white/5 px-8 py-4 rounded-[20px] text-[10px] font-black text-slate-400 uppercase tracking-widest shadow-lg hover:border-primary/20 hover:text-white transition-all cursor-default">
+                        <span key={idx} className="bg-white/5 border border-white/5 px-8 sm:px-8 lg:px-8 py-4 sm:py-4 lg:py-4 rounded-[20px] text-[10px] font-black text-slate-400 uppercase tracking-widest shadow-lg hover:border-primary/20 hover:text-white transition-all cursor-default">
                           {item}
                         </span>
                       ))}
@@ -458,10 +470,10 @@ const SalonPage: React.FC<SalonPageProps> = ({ salons, role, setBookingDraft }) 
 
               {/* Sidebar de Horários */}
               <aside className="lg:col-span-4 space-y-8">
-                <div className="bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20 rounded-[48px] p-10 shadow-2xl backdrop-blur-md">
-                  <div className="flex items-center gap-4 mb-10">
-                    <div className="size-14 rounded-2xl gold-gradient flex items-center justify-center shadow-lg">
-                      <span className="material-symbols-outlined text-background-dark text-2xl font-black">schedule</span>
+                <div className="bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20 rounded-2xl sm:rounded-3xl lg:rounded-[48px] p-10 sm:p-10 lg:p-10 shadow-2xl backdrop-blur-md">
+                  <div className="flex items-center gap-4 lg:gap-4 mb-10">
+                    <div className="size-10 sm:size-12 lg:size-14 rounded-2xl gold-gradient flex items-center justify-center shadow-lg">
+                      <span className="material-symbols-outlined text-background-dark text-2xl lg:text-2xl font-black">schedule</span>
                     </div>
                     <h3 className="text-white font-display font-black italic uppercase tracking-tight" style={{ fontSize: 'var(--step-1)' }}>Horários</h3>
                   </div>
@@ -501,7 +513,7 @@ const SalonPage: React.FC<SalonPageProps> = ({ salons, role, setBookingDraft }) 
                         const isToday = today.includes(day.label.toLowerCase());
 
                         return (
-                          <div key={day.key} className={`flex justify-between items-center p-4 rounded-2xl border transition-all ${isToday ? 'bg-primary/20 border-primary/30 shadow-lg scale-105' : 'bg-black/20 border-white/5'}`}>
+                          <div key={day.key} className={`flex justify-between items-center p-4 sm:p-4 lg:p-4 rounded-2xl border transition-all ${isToday ? 'bg-primary/20 border-primary/30 shadow-lg scale-105' : 'bg-black/20 border-white/5'}`}>
                             <span className={`text-[11px] font-black uppercase tracking-[0.2em] ${isToday ? 'text-white' : 'text-slate-600'}`}>
                               {day.label}
                             </span>
@@ -514,7 +526,7 @@ const SalonPage: React.FC<SalonPageProps> = ({ salons, role, setBookingDraft }) 
                     })()}
                   </div>
 
-                  <div className="mt-10 p-6 bg-background-dark/60 rounded-3xl border border-white/5">
+                  <div className="mt-10 p-6 sm:p-6 lg:p-6 bg-background-dark/60 rounded-3xl border border-white/5">
                     <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest leading-relaxed text-center">
                       {(() => {
                         const todayIndex = new Date().getDay();
@@ -537,17 +549,17 @@ const SalonPage: React.FC<SalonPageProps> = ({ salons, role, setBookingDraft }) 
       </div >
       {/* Footer Fixo com Botão Premium Centralizado */}
       {selectedServices.length > 0 && (
-        <footer className="fixed bottom-0 left-0 right-0 p-4 lg:p-6 bg-gradient-to-t from-background-dark via-background-dark/80 to-transparent z-[100] pb-safe flex justify-center animate-slide-up">
-          <div className="w-full max-w-[450px]">
+        <footer className="fixed bottom-0 left-0 right-0 p-4 sm:p-4 lg:p-4 lg:p-6 sm:p-6 lg:p-6 bg-gradient-to-t from-background-dark via-background-dark/80 to-transparent z-[100] pb-safe flex justify-center animate-slide-up">
+          <div className="w-full max-w-full max-w-[450px]">
             <button
               onClick={startBooking}
-              className="w-full gold-gradient text-background-dark p-4 lg:p-6 rounded-[24px] lg:rounded-[32px] shadow-[0_20px_50px_rgba(193,165,113,0.3)] flex items-center justify-between gap-4 active:scale-95 transition-all"
+              className="w-full gold-gradient text-background-dark p-4 sm:p-4 lg:p-4 lg:p-6 sm:p-6 lg:p-6 rounded-[24px] lg:rounded-2xl sm:rounded-3xl lg:rounded-[32px] shadow-[0_20px_50px_rgba(193,165,113,0.3)] flex items-center justify-between gap-4 lg:gap-4 active:scale-95 transition-all"
             >
               <div className="text-left">
                 <p className="font-black uppercase tracking-widest opacity-60" style={{ fontSize: 'var(--step-0)', transform: 'scale(0.7)', transformOrigin: 'left' }}>{selectedServices.length} {selectedServices.length === 1 ? 'Ritual Selecionado' : 'Rituais Selecionados'}</p>
                 <p className="font-display font-black italic tracking-tighter" style={{ fontSize: 'var(--step-2)' }}>R$ {selectedServices.reduce((acc, s) => acc + s.price, 0).toFixed(2)}</p>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 lg:gap-3">
                 <span className="font-black uppercase tracking-widest" style={{ fontSize: 'var(--step-0)', transform: 'scale(0.8)' }}>ESCOLHER HORÁRIO</span>
                 <span className="material-symbols-outlined text-lg lg:text-xl font-black">arrow_forward</span>
               </div>

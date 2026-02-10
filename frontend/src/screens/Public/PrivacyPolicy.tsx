@@ -5,21 +5,21 @@ const PrivacyPolicy: React.FC = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="flex-1 bg-background-dark min-h-screen flex flex-col p-8 overflow-y-auto no-scrollbar relative">
-      <header className="pt-[calc(env(safe-area-inset-top)+2rem)] pb-8 flex items-center justify-between sticky top-0 bg-background-dark/80 backdrop-blur-md z-10 -mx-8 px-8">
-        <button onClick={() => navigate(-1)} className="size-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-white active:scale-90 transition-transform">
+    <div className="flex-1 bg-background-dark min-h-screen flex flex-col p-8 sm:p-8 lg:p-8 overflow-y-auto no-scrollbar relative">
+      <header className="pt-[calc(env(safe-area-inset-top)+2rem)] pb-8 flex items-center justify-between sticky top-0 bg-background-dark/80 backdrop-blur-md z-10 -mx-8 px-8 sm:px-8 lg:px-8">
+        <button onClick={() => navigate(-1)} className="size-10 sm:size-12 lg:size-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-white active:scale-90 transition-transform">
           <span className="material-symbols-outlined">arrow_back</span>
         </button>
         <h1 className="font-display text-xs font-black text-white italic tracking-[0.3em] uppercase opacity-90 text-center">Privacidade</h1>
-        <div className="size-12"></div>
+        <div className="size-10 sm:size-12 lg:size-12"></div>
       </header>
 
-      <main className="max-w-2xl mx-auto w-full pb-32">
+      <main className="max-w-full sm:max-w-2xl mx-auto w-full pb-32">
         <div className="mb-12 text-center">
-          <div className="px-4 py-2 bg-primary/10 border border-primary/20 rounded-full inline-block mb-4">
+          <div className="px-4 sm:px-4 lg:px-4 py-2 sm:py-2 lg:py-2 bg-primary/10 border border-primary/20 rounded-full inline-block mb-4">
             <span className="text-[8px] font-black text-primary uppercase tracking-[0.3em]">Segurança Aura</span>
           </div>
-          <h2 className="text-4xl font-display font-black text-white italic tracking-tighter mb-4 leading-none">
+          <h2 className="text-4xl lg:text-4xl font-display font-black text-white italic tracking-tighter mb-4 leading-none">
             Política de <br /> <span className="text-primary tracking-[-0.05em]">Privacidade.</span>
           </h2>
           <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.3em]">Última atualização: Fevereiro 2026</p>
@@ -57,7 +57,7 @@ const PrivacyPolicy: React.FC = () => {
           <div className="mt-16 pt-12 border-t border-white/5 text-center">
             <p className="text-[9px] font-black text-slate-600 uppercase tracking-[0.3em]">Compromisso Luxe Aura Premium</p>
             <div className="flex justify-center mt-6">
-              <span className="material-symbols-outlined text-4xl text-primary/20">verified_user</span>
+              <span className="material-symbols-outlined text-4xl lg:text-4xl text-primary/20">verified_user</span>
             </div>
           </div>
         </section>

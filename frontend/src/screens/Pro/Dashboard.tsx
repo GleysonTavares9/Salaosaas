@@ -180,101 +180,90 @@ const Dashboard: React.FC<DashboardProps> = ({ role, salon, appointments, userId
     <div className="flex-1 h-full overflow-y-auto no-scrollbar bg-background-dark relative">
       <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.02] pointer-events-none"></div>
 
-      <header className="sticky top-0 bg-background-dark/80 backdrop-blur-3xl z-50 border-b border-white/5 py-6 lg:py-10">
-        <div className="max-w-[1400px] mx-auto w-full px-6 lg:px-12 flex items-center justify-between">
-          <div className="flex items-center gap-6 lg:gap-10">
+      <header className="sticky top-0 bg-background-dark/90 backdrop-blur-3xl z-50 border-b border-white/5 pt-2 pb-1 lg:py-10">
+        <div className="max-w-[1400px] mx-auto w-full px-4 lg:px-12 flex items-center justify-between">
+          <div className="flex items-center gap-3 lg:gap-10">
             <div className="relative group">
-              <div className="size-16 lg:size-24 rounded-[28px] lg:rounded-[40px] gold-gradient flex items-center justify-center text-background-dark shadow-[0_0_50px_rgba(193,165,113,0.2)] transition-all group-hover:scale-105 active:scale-95">
-                <span className="material-symbols-outlined text-4xl lg:text-6xl font-black">{role === 'admin' ? 'admin_panel_settings' : 'content_cut'}</span>
+              <div className="size-10 lg:size-24 rounded-[14px] lg:rounded-[40px] gold-gradient flex items-center justify-center text-background-dark shadow-[0_0_50px_rgba(193,165,113,0.2)] transition-all group-hover:scale-105 active:scale-95">
+                <span className="material-symbols-outlined text-xl lg:text-6xl font-black">{role === 'admin' ? 'admin_panel_settings' : 'content_cut'}</span>
               </div>
-              <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-12 h-1 bg-primary/30 rounded-full blur-[4px] animate-pulse"></div>
+              <div className="absolute -bottom-1 lg:-bottom-2 left-1/2 -translate-x-1/2 w-8 lg:w-10 h-0.5 bg-primary/30 rounded-full blur-[4px] animate-pulse"></div>
             </div>
 
             <div className="min-w-0">
-              <div className="flex items-center gap-4 mb-3">
-                <p className="text-[10px] lg:text-xs text-primary font-black uppercase tracking-[0.5em] leading-none shrink-0">
+              <div className="flex items-center gap-2 lg:gap-4 mb-0.5 lg:mb-3">
+                <p className="text-[7px] lg:text-xs text-primary font-black uppercase tracking-[0.4em] leading-none shrink-0">
                   {role === 'admin' ? 'Painel Executivo' : 'Dashboard do Artista'}
                 </p>
-                {salon?.segmento && (
-                  <span className="text-[8px] lg:text-[9px] bg-white/5 text-slate-400 border border-white/10 px-3 py-1.5 rounded-full font-black uppercase tracking-widest leading-none">
-                    {salon.segmento}
-                  </span>
-                )}
               </div>
-              <h2 className="text-xl lg:text-4xl font-display font-black text-white italic tracking-tighter leading-tight truncate uppercase">
+              <h2 className="text-sm lg:text-4xl font-display font-black text-white italic tracking-tighter leading-tight truncate uppercase">
                 {role === 'admin'
                   ? proProfile?.name || userProfile?.full_name || 'Gestor'
                   : proProfile?.name || userProfile?.full_name || 'Portal Aura'}
               </h2>
-              {role === 'admin' && (
-                <p className="text-[9px] lg:text-[11px] text-slate-500 font-bold uppercase tracking-[0.2em] mt-1 italic">
-                  Unidade {salon?.nome || 'Aura Signature'}
-                </p>
-              )}
             </div>
           </div>
 
           <button
             onClick={() => navigate('/profile')}
-            className="size-16 lg:size-24 rounded-[28px] lg:rounded-[40px] border-2 border-white/5 p-1 transition-all hover:border-primary/40 active:scale-95 group overflow-hidden shadow-3xl"
+            className="size-10 lg:size-24 rounded-[14px] lg:rounded-[40px] border-2 border-white/5 p-0.5 lg:p-1 transition-all hover:border-primary/40 active:scale-95 group overflow-hidden shadow-3xl"
           >
-            <div className="size-full rounded-[24px] lg:rounded-[36px] overflow-hidden bg-surface-dark relative">
+            <div className="size-full rounded-[12px] lg:rounded-[36px] overflow-hidden bg-surface-dark relative">
               <img
                 src={userProfile?.avatar_url || (role === 'admin' ? (salon?.logo_url || 'https://i.pravatar.cc/150?u=admin') : (proProfile?.image || 'https://i.pravatar.cc/150?u=pro'))}
                 className="size-full object-cover transition-transform group-hover:scale-110 duration-700"
                 alt="Profile"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
             </div>
           </button>
         </div>
       </header>
 
-      <main className="max-w-[1400px] mx-auto w-full px-6 lg:px-12 py-10 lg:py-16 space-y-16 pb-40 animate-fade-in">
+      <main className="max-w-[1400px] mx-auto w-full px-4 lg:px-12 py-6 lg:py-16 space-y-8 lg:space-y-16 pb-40 animate-fade-in">
 
         {/* Subscription Status Banner (Luxurious) */}
         {role === 'admin' && billingInfo?.is_trial_active && (
-          <div className="p-[1px] rounded-[32px] gold-gradient shadow-2xl animate-fade-in group">
-            <div className="bg-background-dark/95 backdrop-blur-3xl rounded-[31px] p-6 lg:p-10 flex items-center justify-between">
-              <div className="flex items-center gap-6">
-                <div className="size-14 lg:size-16 rounded-2xl lg:rounded-3xl gold-gradient flex items-center justify-center text-background-dark shadow-gold">
-                  <span className="material-symbols-outlined text-2xl lg:text-3xl font-black">lock_open</span>
+          <div className="p-[1px] rounded-[24px] lg:rounded-[32px] gold-gradient shadow-2xl animate-fade-in group">
+            <div className="bg-background-dark/95 backdrop-blur-3xl rounded-[23px] lg:rounded-[31px] p-4 lg:p-10 flex items-center justify-between">
+              <div className="flex items-center gap-4 lg:gap-6">
+                <div className="size-10 lg:size-16 rounded-xl lg:rounded-3xl gold-gradient flex items-center justify-center text-background-dark shadow-gold">
+                  <span className="material-symbols-outlined text-xl lg:text-3xl font-black">lock_open</span>
                 </div>
                 <div>
-                  <h3 className="text-xs lg:text-sm font-black text-white uppercase tracking-[0.3em] mb-2 leading-none">Acesso Pro Liberado</h3>
-                  <p className="text-[10px] lg:text-xs text-primary font-bold uppercase tracking-widest italic opacity-80">
+                  <h3 className="text-[10px] lg:text-sm font-black text-white uppercase tracking-[0.3em] mb-1 lg:mb-2 leading-none">Acesso Pro Liberado</h3>
+                  <p className="text-[8px] lg:text-xs text-primary font-bold uppercase tracking-widest italic opacity-80 leading-none">
                     {(() => {
                       const ends = new Date(billingInfo.trial_ends_at);
                       const now = new Date();
                       const diff = ends.getTime() - now.getTime();
                       const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
-                      return days > 0 ? `Sua experiência elite expira em ${days} dias` : 'Período encerrado. Assine agora.';
+                      return days > 0 ? `${days} dias restantes` : 'Período encerrado';
                     })()}
                   </p>
                 </div>
               </div>
               <button
                 onClick={() => navigate('/pro/billing')}
-                className="gold-gradient text-background-dark px-8 py-4 lg:py-5 rounded-2xl text-[10px] lg:text-[11px] font-black uppercase tracking-[0.4em] shadow-2xl active:scale-95 transition-all hover:brightness-110"
+                className="gold-gradient text-background-dark px-5 lg:px-8 py-3 lg:py-5 rounded-xl lg:rounded-2xl text-[8px] lg:text-[11px] font-black uppercase tracking-[0.4em] shadow-2xl active:scale-95 transition-all hover:brightness-110"
               >
-                EFETIVAR ASSINATURA
+                EFETIVAR
               </button>
             </div>
           </div>
         )}
 
         {role === 'admin' && (billingInfo?.plan === 'free' || billingInfo?.plan === 'starter') && !billingInfo?.is_trial_active && (
-          <div className="p-8 lg:p-12 bg-surface-dark/40 border border-white/5 rounded-[40px] flex flex-col lg:flex-row lg:items-center justify-between gap-8 transition-all hover:border-primary/20 shadow-3xl backdrop-blur-xl">
-            <div className="flex items-center gap-8">
-              <div className="size-16 lg:size-20 rounded-[28px] bg-white/5 flex items-center justify-center text-slate-600 border border-white/5 shadow-inner">
-                <span className="material-symbols-outlined text-3xl font-black">workspace_premium</span>
+          <div className="p-5 lg:p-12 bg-surface-dark/40 border border-white/5 rounded-[24px] lg:rounded-[40px] flex flex-col lg:flex-row lg:items-center justify-between gap-4 lg:gap-8 transition-all hover:border-primary/20 shadow-3xl backdrop-blur-xl">
+            <div className="flex items-center gap-5 lg:gap-8">
+              <div className="size-10 lg:size-20 rounded-2xl lg:rounded-[28px] bg-white/5 flex items-center justify-center text-slate-600 border border-white/5 shadow-inner shrink-0">
+                <span className="material-symbols-outlined text-xl lg:text-3xl font-black">workspace_premium</span>
               </div>
               <div>
-                <h3 className="text-xs lg:text-base font-black text-slate-400 uppercase tracking-[0.4em] mb-2">Desbloqueie o Poder da IA</h3>
-                <p className="text-[10px] lg:text-xs text-slate-600 font-bold uppercase tracking-widest leading-relaxed">Migre para o Plano PRO e tenha o Aura Concierge e relatórios financeiros premium.</p>
+                <h3 className="text-[10px] lg:text-base font-black text-slate-400 uppercase tracking-[0.4em] mb-1 lg:mb-2">Desbloqueie o Poder da IA</h3>
+                <p className="text-[8px] lg:text-xs text-slate-600 font-bold uppercase tracking-widest leading-relaxed">Aura Concierge e relatórios financeiros premium.</p>
               </div>
             </div>
-            <button onClick={() => navigate('/pro/billing')} className="gold-gradient text-background-dark px-10 py-5 lg:py-6 rounded-2xl text-[10px] lg:text-[11px] font-black uppercase tracking-[0.4em] shadow-gold-sm active:scale-95 transition-all">
+            <button onClick={() => navigate('/pro/billing')} className="gold-gradient text-background-dark px-6 lg:px-10 py-4 lg:py-6 rounded-xl lg:rounded-2xl text-[9px] lg:text-[11px] font-black uppercase tracking-[0.4em] shadow-gold-sm active:scale-95 transition-all">
               Ver Planos Elite
             </button>
           </div>
@@ -282,23 +271,23 @@ const Dashboard: React.FC<DashboardProps> = ({ role, salon, appointments, userId
 
         {/* Link de Agendamento Profissional Elite */}
         {salon?.slug_publico && (
-          <div className="gold-gradient p-[1px] rounded-[32px] lg:rounded-[40px] shadow-[0_30px_100px_rgba(0,0,0,0.5)] group transition-all hover:scale-[1.002]">
-            <div className="bg-background-dark/98 backdrop-blur-3xl rounded-[31px] lg:rounded-[39px] p-5 lg:p-7 flex flex-col lg:flex-row items-center justify-between gap-6 lg:gap-10 relative overflow-hidden">
+          <div className="gold-gradient p-[1px] rounded-[24px] lg:rounded-2xl sm:rounded-3xl lg:rounded-[40px] shadow-[0_30px_100px_rgba(0,0,0,0.5)] group transition-all hover:scale-[1.002]">
+            <div className="bg-background-dark/98 backdrop-blur-3xl rounded-[23px] lg:rounded-2xl sm:rounded-3xl lg:rounded-[39px] p-5 sm:p-5 lg:p-5 lg:p-7 sm:p-7 lg:p-7 flex flex-col lg:flex-row items-center justify-between gap-5 lg:gap-5 lg:gap-10 lg:gap-10 relative overflow-hidden text-center lg:text-left">
               <div className="absolute top-0 -left-1/2 w-full h-full bg-gradient-to-r from-transparent via-primary/10 to-transparent skew-x-[-25deg] group-hover:left-[120%] transition-all duration-1500 ease-in-out"></div>
 
-              <div className="relative z-10 flex-1 text-center lg:text-left">
-                <div className="flex flex-col lg:flex-row lg:items-center gap-4 mb-2">
-                  <span className="text-[9px] lg:text-[10px] bg-primary/10 text-primary border border-primary/20 px-4 py-1.5 rounded-full font-black uppercase tracking-[0.5em] w-fit mx-auto lg:mx-0">
+              <div className="relative z-10 flex-1">
+                <div className="flex flex-col lg:flex-row lg:items-center gap-3 lg:gap-3 lg:gap-4 lg:gap-4 mb-2 lg:mb-4">
+                  <span className="text-[8px] lg:text-[10px] bg-primary/10 text-primary border border-primary/20 px-4 sm:px-4 lg:px-4 py-1 sm:py-1 lg:py-1.5 rounded-full font-black uppercase tracking-[0.5em] w-fit mx-auto lg:mx-0">
                     Unidade Digital Ativa
                   </span>
                 </div>
-                <h3 className="text-lg lg:text-xl font-display font-black text-white italic uppercase tracking-tighter mb-2">Portal de Reservas Aura</h3>
-                <p className="text-[9px] lg:text-[11px] text-slate-500 font-bold uppercase tracking-[0.4em] italic mb-4 leading-relaxed">
+                <h3 className="text-sm lg:text-xl font-display font-black text-white italic uppercase tracking-tighter mb-1 lg:mb-2 leading-none">Portal de Reservas Aura</h3>
+                <p className="text-[8px] lg:text-[11px] text-slate-500 font-bold uppercase tracking-[0.4em] italic leading-relaxed">
                   Experiência premium instantânea para seus clientes.
                 </p>
 
-                {/* Link Visual Display */}
-                <div className="hidden lg:flex items-center gap-3 bg-black/40 border border-white/5 px-4 py-2 rounded-xl w-full max-w-sm group/link hover:border-primary/30 transition-all">
+                {/* Link Visual Display - Hidden on Mobile to save space */}
+                <div className="hidden lg:flex items-center gap-3 lg:gap-3 bg-black/40 border border-white/5 px-4 sm:px-4 lg:px-4 py-2 sm:py-2 lg:py-2 rounded-xl w-full max-w-sm group/link hover:border-primary/30 transition-all mt-4">
                   <span className="material-symbols-outlined text-primary text-base shrink-0">link</span>
                   <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest truncate">
                     {`${window.location.origin}/#/q/${salon.slug_publico}`}
@@ -315,7 +304,7 @@ const Dashboard: React.FC<DashboardProps> = ({ role, salon, appointments, userId
                 </div>
               </div>
 
-              <div className="flex items-center gap-4 relative z-10 w-full lg:w-auto">
+              <div className="flex items-center gap-4 lg:gap-4 relative z-10 w-full lg:w-auto mt-2 lg:mt-0">
                 <button
                   onClick={async () => {
                     const baseUrl = window.location.origin;
@@ -332,9 +321,9 @@ const Dashboard: React.FC<DashboardProps> = ({ role, salon, appointments, userId
                       showToast('Link copiado!', 'success');
                     }
                   }}
-                  className="flex-1 lg:flex-none gold-gradient text-background-dark h-14 lg:h-16 lg:px-10 rounded-[20px] lg:rounded-[24px] flex items-center justify-center gap-3 text-[9px] lg:text-[10px] font-black uppercase tracking-[0.4em] shadow-gold transition-all hover:brightness-110 active:scale-95"
+                  className="flex-1 lg:flex-none gold-gradient text-background-dark h-11 lg:h-14 lg:px-10 sm:px-10 lg:px-10 rounded-xl lg:rounded-[20px] flex items-center justify-center gap-3 lg:gap-3 text-[9px] lg:text-[10px] font-black uppercase tracking-[0.4em] shadow-gold transition-all hover:brightness-110 active:scale-95"
                 >
-                  <span className="material-symbols-outlined text-lg font-black">share</span>
+                  <span className="material-symbols-outlined text-base lg:text-lg font-black">share</span>
                   Compartilhar Link
                 </button>
               </div>
@@ -342,33 +331,33 @@ const Dashboard: React.FC<DashboardProps> = ({ role, salon, appointments, userId
           </div>
         )}
 
-        <section className="p-8 lg:p-12 bg-surface-dark border border-white/5 rounded-[40px] lg:rounded-[56px] shadow-[0_50px_100px_rgba(0,0,0,0.6)] overflow-hidden relative group">
-          <div className="absolute top-0 right-0 p-8">
-            <span className="text-[10px] font-black text-emerald-500 bg-emerald-500/10 px-5 py-2.5 rounded-full border border-emerald-500/20 shadow-[0_0_20px_rgba(16,185,129,0.2)]">LIVE MONITOR</span>
+        <section className="p-4 lg:p-10 bg-surface-dark border border-white/5 rounded-[24px] lg:rounded-[40px] shadow-[0_50px_100px_rgba(0,0,0,0.6)] overflow-hidden relative group">
+          <div className="absolute top-0 right-0 p-4 lg:p-6">
+            <span className="text-[8px] lg:text-[10px] font-black text-emerald-500 bg-emerald-500/10 px-3 lg:px-4 py-1 lg:py-2 rounded-full border border-emerald-500/20 shadow-[0_0_20px_rgba(16,185,129,0.2)]">LIVE MONITOR</span>
           </div>
 
-          <div className="flex flex-col lg:flex-row justify-between items-start gap-12 mb-12">
+          <div className="flex flex-col lg:flex-row justify-between items-start gap-4 lg:gap-8 mb-4 lg:mb-8">
             <div>
-              <p className="text-slate-500 font-black uppercase tracking-[0.5em] mb-4 text-[11px] lg:text-xs">{stats.label}</p>
-              <h1 className="font-display font-black text-white tracking-tighter italic" style={{ fontSize: 'var(--step-5)' }}>
+              <p className="text-slate-500 font-black uppercase tracking-[0.5em] mb-2 lg:mb-3 text-[9px] lg:text-[10px] shrink-0">{stats.label}</p>
+              <h1 className="font-display font-black text-white tracking-tighter italic text-4xl lg:text-6xl leading-none">
                 R$ {stats.gross.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
               </h1>
               {role === 'pro' && (
-                <div className="flex flex-col lg:flex-row lg:items-center gap-4 lg:gap-8 mt-8 p-6 bg-black/30 rounded-3xl border border-white/5">
+                <div className="flex flex-col lg:flex-row lg:items-center gap-2 lg:gap-6 mt-4 lg:mt-6 p-3 lg:p-5 bg-black/30 rounded-[20px] lg:rounded-2xl border border-white/5">
                   <div>
-                    <span className="text-slate-600 font-black uppercase tracking-widest block text-[9px] mb-1">Seu Net Income</span>
-                    <span className="text-emerald-500 font-display font-black text-2xl lg:text-3xl italic">
+                    <span className="text-slate-600 font-black uppercase tracking-widest block text-[8px] lg:text-[9px] mb-0.5">Seu Net Income</span>
+                    <span className="text-emerald-500 font-display font-black text-xl lg:text-2xl italic">
                       R$ {stats.net.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                     </span>
                   </div>
-                  <div className="h-px lg:h-12 w-full lg:w-px bg-white/5"></div>
-                  <p className="text-[9px] lg:text-[10px] text-slate-500 font-bold uppercase tracking-[0.2em]">Baseado em {proProfile?.comissao}% de comissão bruta</p>
+                  <div className="h-px lg:h-10 w-full lg:w-px bg-white/5"></div>
+                  <p className="text-[8px] lg:text-[9px] text-slate-500 font-bold uppercase tracking-[0.2em]">Baseado em {proProfile?.comissao}% de comissão bruta</p>
                 </div>
               )}
             </div>
           </div>
 
-          <div className="h-48 lg:h-64 w-full -mx-4 lg:-mx-10 scale-105 lg:scale-110 transition-transform duration-[2000ms] group-hover:scale-[1.12]">
+          <div className="h-40 lg:h-52 w-full -mx-4 lg:-mx-10 scale-105 lg:scale-110 transition-transform duration-[2000ms] group-hover:scale-[1.12]">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={chartData}>
                 <defs>
@@ -381,7 +370,7 @@ const Dashboard: React.FC<DashboardProps> = ({ role, salon, appointments, userId
                   type="monotone"
                   dataKey="rev"
                   stroke="#c1a571"
-                  strokeWidth={4}
+                  strokeWidth={3}
                   fillOpacity={1}
                   fill="url(#colorRev)"
                   animationDuration={2500}
@@ -392,20 +381,20 @@ const Dashboard: React.FC<DashboardProps> = ({ role, salon, appointments, userId
         </section>
 
         <section className="space-y-10 lg:space-y-16">
-          <div className="flex justify-between items-center px-4">
-            <div className="flex items-center gap-6">
+          <div className="flex justify-between items-center px-4 sm:px-4 lg:px-4">
+            <div className="flex items-center gap-6 lg:gap-6">
               <div className="h-0.5 w-12 bg-primary"></div>
               <h3 className="text-[11px] lg:text-xs font-black text-primary uppercase tracking-[0.6em]">Ecossistema Aura</h3>
             </div>
             {role === 'admin' && lowStockCount > 0 && (
-              <div className="flex items-center gap-3 px-6 py-2.5 bg-red-500/10 rounded-full border border-red-500/20 animate-pulse">
+              <div className="flex items-center gap-3 lg:gap-3 px-6 sm:px-6 lg:px-6 py-2 sm:py-2 lg:py-2.5 bg-red-500/10 rounded-full border border-red-500/20 animate-pulse">
                 <div className="size-2 rounded-full bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]"></div>
                 <span className="text-[9px] font-black text-red-500 uppercase tracking-widest">{lowStockCount} produtos críticos em estoque</span>
               </div>
             )}
           </div>
 
-          <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-5 gap-6 sm:gap-10">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 lg:gap-6">
             {menuItems.map(item => {
               let isLocked = false;
               if (item.path === '/pro/analytics' && billingInfo && !billingInfo.limits?.financial_enabled && !billingInfo.is_trial_active) isLocked = true;
@@ -423,31 +412,31 @@ const Dashboard: React.FC<DashboardProps> = ({ role, salon, appointments, userId
                     }
                     navigate(item.path);
                   }}
-                  className={`bg-surface-dark/40 p-8 rounded-[40px] border flex flex-col items-center gap-8 transition-all shadow-2xl text-center h-full relative group backdrop-blur-xl
+                  className={`bg-surface-dark/40 p-3 lg:p-6 rounded-2xl lg:rounded-3xl border flex flex-col items-center gap-2 lg:gap-4 transition-all shadow-2xl text-center h-full relative group backdrop-blur-xl
                     ${isLocked ? 'opacity-40 grayscale cursor-not-allowed border-red-500/10' : 'border-white/5 hover:border-primary/30 hover:bg-surface-dark/60 active:scale-95'}
                   `}
                 >
                   {item.badge && !isLocked && (
-                    <div className="absolute top-6 right-6 size-7 bg-red-600 rounded-full flex items-center justify-center text-[11px] font-black text-white border-2 border-background-dark shadow-[0_0_20px_rgba(220,38,38,0.5)] animate-bounce z-20">
+                    <div className="absolute top-3 right-3 lg:top-4 lg:right-4 size-5 lg:size-6 bg-red-600 rounded-full flex items-center justify-center text-[9px] lg:text-[10px] font-black text-white border-2 border-background-dark shadow-[0_0_20px_rgba(220,38,38,0.5)] animate-bounce z-20">
                       {item.badge}
                     </div>
                   )}
 
                   {isLocked && (
-                    <div className="absolute top-6 right-6 size-8 bg-background-dark rounded-full flex items-center justify-center text-primary shadow-2xl border border-primary/20">
-                      <span className="material-symbols-outlined text-[16px] font-black">lock</span>
+                    <div className="absolute top-3 right-3 lg:top-4 lg:right-4 size-6 lg:size-7 bg-background-dark rounded-full flex items-center justify-center text-primary shadow-2xl border border-primary/20">
+                      <span className="material-symbols-outlined text-[12px] lg:text-[14px] font-black">lock</span>
                     </div>
                   )}
 
-                  <div className={`size-16 lg:size-20 rounded-[28px] flex items-center justify-center transition-all duration-500 shadow-inner
+                  <div className={`size-10 lg:size-14 rounded-xl lg:rounded-2xl flex items-center justify-center transition-all duration-500 shadow-inner
                     ${isLocked ? 'bg-white/5 text-slate-700' : 'bg-white/5 text-primary group-hover:bg-primary group-hover:text-background-dark group-hover:shadow-[0_0_30px_rgba(193,165,113,0.4)]'}
                   `}>
-                    <span className="material-symbols-outlined text-3xl lg:text-4xl">{item.icon}</span>
+                    <span className="material-symbols-outlined text-lg lg:text-2xl">{item.icon}</span>
                   </div>
 
-                  <div className="space-y-3">
-                    <span className={`text-[11px] lg:text-xs font-black uppercase tracking-[0.2em] block leading-tight ${isLocked ? 'text-slate-600' : 'text-white'}`}>{item.label}</span>
-                    <p className="text-[9px] font-bold text-slate-600 uppercase tracking-[0.1em] leading-relaxed opacity-60">{item.desc}</p>
+                  <div className="space-y-1 lg:space-y-2">
+                    <span className={`text-[9px] lg:text-[10px] font-black uppercase tracking-[0.2em] block leading-tight ${isLocked ? 'text-slate-600' : 'text-white'}`}>{item.label}</span>
+                    <p className="text-[7px] font-bold text-slate-600 uppercase tracking-[0.1em] leading-relaxed opacity-60 hidden sm:block">{item.desc}</p>
                   </div>
                 </button>
               );
@@ -456,20 +445,20 @@ const Dashboard: React.FC<DashboardProps> = ({ role, salon, appointments, userId
         </section>
 
         {role === 'admin' && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 pt-10">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-6 pt-10">
             <button
               onClick={() => navigate('/pro/admin-bookings')}
-              className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 h-24 lg:h-28 rounded-[32px] flex items-center justify-center gap-6 font-black uppercase tracking-[0.5em] text-[10px] lg:text-[12px] active:scale-95 transition-all shadow-3xl group"
+              className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 h-14 lg:h-20 rounded-xl lg:rounded-2xl flex items-center justify-center gap-2 font-black uppercase tracking-[0.2em] text-[8px] lg:text-[10px] active:scale-95 transition-all shadow-3xl group"
             >
-              <span className="material-symbols-outlined group-hover:rotate-12 transition-transform">account_balance_wallet</span>
-              EFETUAR VENDA DIRETA
+              <span className="material-symbols-outlined text-sm lg:text-base group-hover:rotate-12 transition-transform">account_balance_wallet</span>
+              VENDA DIRETA
             </button>
             <button
               onClick={() => navigate('/pro/operating-hours')}
-              className="bg-primary/10 border border-primary/20 text-primary h-24 lg:h-28 rounded-[32px] flex items-center justify-center gap-6 font-black uppercase tracking-[0.5em] text-[10px] lg:text-[12px] active:scale-95 transition-all shadow-3xl group"
+              className="bg-primary/10 border border-primary/20 text-primary h-14 lg:h-20 rounded-xl lg:rounded-2xl flex items-center justify-center gap-2 font-black uppercase tracking-[0.2em] text-[8px] lg:text-[10px] active:scale-95 transition-all shadow-3xl group"
             >
-              <span className="material-symbols-outlined group-hover:scale-110 transition-transform">history</span>
-              CONFIGURAR HORÁRIOS
+              <span className="material-symbols-outlined text-sm lg:text-base group-hover:scale-110 transition-transform">history</span>
+              HORÁRIOS
             </button>
             <button
               onClick={async () => {
@@ -487,17 +476,17 @@ const Dashboard: React.FC<DashboardProps> = ({ role, salon, appointments, userId
                   showToast('Erro: ' + err.message, 'error');
                 }
               }}
-              className={`h-24 lg:h-32 rounded-[32px] flex items-center justify-center gap-6 font-black uppercase tracking-[0.6em] text-[11px] lg:text-[14px] active:scale-95 transition-all shadow-[0_30px_70px_rgba(0,0,0,0.5)] col-span-1 lg:col-span-2 relative overflow-hidden group
+              className={`h-14 lg:h-20 rounded-xl lg:rounded-2xl flex items-center justify-center gap-2 font-black uppercase tracking-[0.2em] text-[8px] lg:text-[10px] active:scale-95 transition-all shadow-3xl col-span-2 lg:col-span-2 relative overflow-hidden group
                 ${(billingInfo && !billingInfo.limits.ai_enabled && !billingInfo.is_trial_active)
                   ? 'bg-white/5 border border-white/10 text-slate-600 opacity-50 grayscale cursor-not-allowed'
                   : 'bg-indigo-500/10 border border-indigo-500/20 text-indigo-400'}
               `}
             >
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-indigo-500/5 to-transparent skew-x-[-25deg] group-hover:left-[100%] left-[-100%] transition-all duration-1000"></div>
-              <span className="material-symbols-outlined text-2xl lg:text-3xl font-black">
+              <span className="material-symbols-outlined text-sm font-black">
                 {(billingInfo && !billingInfo.limits.ai_enabled && !billingInfo.is_trial_active) ? 'lock' : 'bolt'}
               </span>
-              DISPARAR REMINDERS ELITE (AMANHÃ)
+              REMINDS ELITE
             </button>
           </div>
         )}

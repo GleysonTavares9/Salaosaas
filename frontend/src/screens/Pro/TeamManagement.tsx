@@ -368,40 +368,40 @@ const TeamManagement: React.FC<TeamManagementProps> = ({ salon, salonId: explici
     <div className="flex-1 overflow-y-auto h-full no-scrollbar bg-background-dark relative">
       <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.02] pointer-events-none"></div>
 
-      <header className="sticky top-0 z-50 bg-background-dark/80 backdrop-blur-3xl px-6 pt-12 pb-10 border-b border-white/5">
-        <div className="max-w-[1400px] mx-auto w-full flex items-center justify-between">
-          <button onClick={() => navigate('/pro')} className="size-12 rounded-2xl bg-black/40 border border-white/10 flex items-center justify-center text-white active:scale-95 transition-all">
+      <header className="sticky top-0 z-50 bg-background-dark/80 backdrop-blur-3xl px-4 lg:px-6 pt-2 lg:pt-12 pb-2 lg:pb-10 border-b border-white/5">
+        <div className="max-w-full max-w-[1400px] mx-auto w-full flex items-center justify-between px-2">
+          <button onClick={() => navigate('/pro')} className="size-9 lg:size-12 rounded-xl bg-black/40 border border-white/10 flex items-center justify-center text-white active:scale-95 transition-all">
             <span className="material-symbols-outlined text-xl">arrow_back</span>
           </button>
           <div className="text-center">
-            <h1 className="font-display font-black text-white italic tracking-widest uppercase leading-none" style={{ fontSize: 'var(--step-1)' }}>Gestão de Talentos</h1>
-            <p className="text-[7px] text-primary font-black uppercase tracking-[0.4em] mt-3">Artistas & Parceiros Aura</p>
+            <h1 className="font-display font-black text-white italic tracking-[0.2em] uppercase leading-none text-base lg:text-2xl">Gestão de Talentos</h1>
+            <p className="text-[7px] text-primary font-black uppercase tracking-[0.4em] mt-1 lg:mt-3">Artistas & Parceiros Aura</p>
           </div>
-          <div className="size-12"></div>
+          <div className="size-9 lg:size-12 opacity-0 pointer-events-none"></div>
         </div>
       </header>
 
-      <main className="max-w-[1400px] mx-auto w-full px-6 py-10 lg:py-16 space-y-16 pb-40 animate-fade-in relative z-10">
+      <main className="max-w-full max-w-[1400px] mx-auto w-full px-6 sm:px-6 lg:px-6 py-10 sm:py-10 lg:py-10 lg:py-16 sm:py-16 lg:py-16 space-y-16 pb-40 animate-fade-in relative z-10">
 
         {/* KPI da Equipe (Luxurious) */}
-        <section className="grid grid-cols-2 lg:grid-cols-4 gap-8">
-          <div className="bg-surface-dark/40 border border-white/5 rounded-[40px] p-8 shadow-3xl relative overflow-hidden group backdrop-blur-xl">
-            <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
-              <span className="material-symbols-outlined text-6xl">groups</span>
+        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 sm:grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-8">
+          <div className="bg-surface-dark/40 border border-white/5 rounded-2xl sm:rounded-3xl lg:rounded-[40px] p-8 sm:p-8 lg:p-8 shadow-3xl relative overflow-hidden group backdrop-blur-xl">
+            <div className="absolute top-0 right-0 p-6 sm:p-6 lg:p-6 opacity-5 group-hover:opacity-10 transition-opacity">
+              <span className="material-symbols-outlined text-4xl sm:text-5xl lg:text-6xl lg:text-4xl sm:text-5xl lg:text-6xl">groups</span>
             </div>
             <p className="text-[10px] uppercase font-black tracking-[0.4em] text-slate-500 mb-4">Time Ativo</p>
-            <div className="flex items-baseline gap-3">
-              <span className="text-4xl lg:text-5xl font-display font-black text-white tracking-tight italic">{team.length}</span>
+            <div className="flex items-baseline gap-3 lg:gap-3">
+              <span className="text-4xl lg:text-4xl lg:text-3xl sm:text-4xl lg:text-5xl lg:text-3xl sm:text-4xl lg:text-5xl font-display font-black text-white tracking-tight italic">{team.length}</span>
               <span className="text-[9px] font-black text-primary uppercase tracking-widest">Artistas</span>
             </div>
           </div>
-          <div className="bg-surface-dark/40 border border-white/5 rounded-[40px] p-8 shadow-3xl relative overflow-hidden group backdrop-blur-xl">
-            <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
-              <span className="material-symbols-outlined text-6xl">auto_graph</span>
+          <div className="bg-surface-dark/40 border border-white/5 rounded-2xl sm:rounded-3xl lg:rounded-[40px] p-8 sm:p-8 lg:p-8 shadow-3xl relative overflow-hidden group backdrop-blur-xl">
+            <div className="absolute top-0 right-0 p-6 sm:p-6 lg:p-6 opacity-5 group-hover:opacity-10 transition-opacity">
+              <span className="material-symbols-outlined text-4xl sm:text-5xl lg:text-6xl lg:text-4xl sm:text-5xl lg:text-6xl">auto_graph</span>
             </div>
             <p className="text-[10px] uppercase font-black tracking-[0.4em] text-slate-500 mb-4">Média Produtividade</p>
-            <div className="flex items-baseline gap-3">
-              <span className="text-4xl lg:text-5xl font-display font-black text-white tracking-tight italic">
+            <div className="flex items-baseline gap-3 lg:gap-3">
+              <span className="text-4xl lg:text-4xl lg:text-3xl sm:text-4xl lg:text-5xl lg:text-3xl sm:text-4xl lg:text-5xl font-display font-black text-white tracking-tight italic">
                 {team.length > 0 ? (team.reduce((acc, curr) => acc + (curr.productivity || 0), 0) / team.length).toFixed(0) : 0}%
               </span>
               <span className="text-[9px] font-black text-emerald-500 uppercase tracking-widest">Score</span>
@@ -424,24 +424,24 @@ const TeamManagement: React.FC<TeamManagementProps> = ({ salon, salonId: explici
                   }
                   setIsAdding(true);
                 }}
-                className={`w-full border-2 border-dashed rounded-[50px] py-16 flex flex-col items-center justify-center gap-6 group transition-all active:scale-[0.99] shadow-inner
+                className={`w-full border-2 border-dashed rounded-2xl sm:rounded-3xl lg:rounded-[50px] py-16 sm:py-16 lg:py-16 flex flex-col items-center justify-center gap-6 lg:gap-6 group transition-all active:scale-[0.99] shadow-inner
                   ${isCapReached
                     ? 'bg-red-500/[0.02] border-red-500/10 cursor-not-allowed opacity-60'
                     : 'bg-white/[0.02] border-white/5 hover:border-primary/20 hover:bg-white/[0.04]'}
                 `}
               >
-                <div className={`size-20 rounded-[32px] flex items-center justify-center text-background-dark shadow-2xl transition-all duration-500 ${!isCapReached && 'group-hover:scale-110 group-hover:rotate-12'} 
+                <div className={`size-14 sm:size-16 lg:size-20 rounded-2xl sm:rounded-3xl lg:rounded-[32px] flex items-center justify-center text-background-dark shadow-2xl transition-all duration-500 ${!isCapReached && 'group-hover:scale-110 group-hover:rotate-12'} 
                   ${isCapReached ? 'bg-slate-700' : 'gold-gradient shadow-gold'}`}>
-                  <span className="material-symbols-outlined text-3xl font-black">
+                  <span className="material-symbols-outlined text-3xl lg:text-3xl font-black">
                     {isCapReached ? 'lock' : 'person_add'}
                   </span>
                 </div>
-                <div className="flex flex-col items-center gap-3">
+                <div className="flex flex-col items-center gap-3 lg:gap-3">
                   <span className={`text-xs lg:text-sm font-black uppercase tracking-[0.6em] ${isCapReached ? 'text-slate-600' : 'text-white'}`}>
                     {isCapReached ? 'Capacidade Máxima atingida' : 'Integrar Novo Talento'}
                   </span>
                   {isCapReached && (
-                    <span className="text-[9px] font-black text-red-400 uppercase tracking-[0.4em] bg-red-500/10 px-4 py-2 rounded-full border border-red-500/10">
+                    <span className="text-[9px] font-black text-red-400 uppercase tracking-[0.4em] bg-red-500/10 px-4 sm:px-4 lg:px-4 py-2 sm:py-2 lg:py-2 rounded-full border border-red-500/10">
                       Liberar Slots no Combo Pro
                     </span>
                   )}
@@ -453,52 +453,52 @@ const TeamManagement: React.FC<TeamManagementProps> = ({ salon, salonId: explici
 
         {/* Lista de Profissionais (Elite Gallery) */}
         <section className="space-y-12">
-          <div className="flex items-center justify-between px-4">
-            <div className="flex items-center gap-6">
+          <div className="flex items-center justify-between px-4 sm:px-4 lg:px-4">
+            <div className="flex items-center gap-6 lg:gap-6">
               <div className="h-px w-10 bg-primary/30"></div>
               <h3 className="text-[11px] uppercase font-black tracking-[0.5em] text-primary">Galeria de Especialistas</h3>
             </div>
             <span className="text-[9px] font-black text-slate-600 uppercase tracking-[0.3em] italic">Curadoria Aura</span>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-10">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 xxl:grid-cols-5 gap-6 lg:gap-8">
             {isLoading ? (
-              <div className="py-40 text-center flex flex-col items-center col-span-full gap-6">
-                <div className="size-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+              <div className="py-20 lg:py-40 text-center flex flex-col items-center col-span-full gap-4 lg:gap-6">
+                <div className="size-10 lg:size-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
                 <p className="text-[10px] font-black text-primary uppercase tracking-[0.4em] animate-pulse">Sincronizando time...</p>
               </div>
             ) : (
               <>
                 {team.map(pro => (
-                  <div key={pro.id} onClick={() => setSelectedProId(pro.id)} className="relative group bg-surface-dark/40 rounded-[48px] border border-white/5 p-8 lg:p-10 shadow-[0_30px_80px_rgba(0,0,0,0.4)] transition-all active:scale-95 cursor-pointer hover:border-primary/20 backdrop-blur-xl overflow-hidden">
-                    <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div key={pro.id} onClick={() => setSelectedProId(pro.id)} className="relative group bg-surface-dark/40 rounded-2xl lg:rounded-[40px] border border-white/5 p-6 lg:p-8 shadow-2xl transition-all active:scale-95 cursor-pointer hover:border-primary/20 backdrop-blur-xl overflow-hidden">
+                    <div className="absolute top-0 right-0 p-4 sm:p-4 lg:p-4 opacity-0 group-hover:opacity-100 transition-opacity">
                       <span className="material-symbols-outlined text-primary/40">edit_square</span>
                     </div>
 
-                    <div className="flex gap-10">
+                    <div className="flex gap-6 lg:gap-10">
                       <div className="relative shrink-0">
-                        <div className="size-32 lg:size-40 rounded-[40px] border-2 border-white/5 p-1 transition-all group-hover:border-primary/20 shadow-2xl relative z-10">
+                        <div className="size-24 sm:size-28 lg:size-32 rounded-2xl lg:rounded-[32px] border-2 border-white/5 p-1 transition-all group-hover:border-primary/20 shadow-2xl relative z-10">
                           <img
                             src={pro.image || "https://i.pravatar.cc/150?u=pro"}
-                            className="size-full rounded-[38px] object-cover grayscale-[0.5] group-hover:grayscale-0 transition-all duration-1000"
+                            className="size-full rounded-2xl lg:rounded-[30px] object-cover grayscale-[0.5] group-hover:grayscale-0 transition-all duration-1000"
                             alt={pro.name}
                           />
                         </div>
-                        <div className="absolute -bottom-2 -right-2 bg-background-dark/90 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/10 z-20 shadow-xl">
+                        <div className="absolute -bottom-2 -right-2 bg-background-dark/90 backdrop-blur-md px-4 sm:px-4 lg:px-4 py-2 sm:py-2 lg:py-2 rounded-2xl border border-white/10 z-20 shadow-xl">
                           <p className={`text-[8px] font-black text-center uppercase tracking-widest leading-none ${pro.status === 'active' ? 'text-emerald-500' : 'text-amber-500'}`}>
                             {pro.status === 'active' ? 'ESTÚDIO ON' : 'AUSENTE'}
                           </p>
                         </div>
                       </div>
 
-                      <div className="flex-1 flex flex-col justify-center py-2 min-w-0">
+                      <div className="flex-1 flex flex-col justify-center py-2 sm:py-2 lg:py-2 min-w-0">
                         <div className="space-y-4">
                           <div>
-                            <h4 className="text-xl lg:text-2xl font-display font-black text-white tracking-tight uppercase leading-none italic truncate group-hover:text-primary transition-colors">{pro.name}</h4>
-                            <div className="flex items-center gap-3 mt-3">
+                            <h4 className="text-xl lg:text-2xl lg:text-2xl font-display font-black text-white tracking-tight uppercase leading-none italic truncate group-hover:text-primary transition-colors">{pro.name}</h4>
+                            <div className="flex items-center gap-3 lg:gap-3 mt-3">
                               <span className="text-[9px] uppercase font-black tracking-[0.3em] text-primary">{pro.role || 'Mestre Aura'}</span>
                               {!pro.user_id && (
-                                <span className="text-[7px] bg-red-500/10 text-red-500 px-3 py-1.5 rounded-full font-black uppercase border border-red-500/10">Acesso Pendente</span>
+                                <span className="text-[7px] bg-red-500/10 text-red-500 px-3 sm:px-3 lg:px-3 py-1 sm:py-1 lg:py-1.5 rounded-full font-black uppercase border border-red-500/10">Acesso Pendente</span>
                               )}
                             </div>
                           </div>
@@ -528,33 +528,33 @@ const TeamManagement: React.FC<TeamManagementProps> = ({ salon, salonId: explici
           if (!selectedPro) return null;
           return (
             <div className="fixed inset-0 z-[100] bg-background-dark/95 backdrop-blur-3xl animate-fade-in flex flex-col items-center overflow-hidden">
-              <div className="flex-1 flex flex-col max-w-[600px] w-full h-full relative">
-                <header className="px-10 pt-16 flex items-center justify-between shrink-0">
+              <div className="flex-1 flex flex-col max-w-full max-w-[600px] w-full h-full relative">
+                <header className="px-10 sm:px-10 lg:px-10 pt-16 flex items-center justify-between shrink-0">
                   <div>
-                    <h2 className="text-2xl lg:text-3xl font-display font-black text-white italic tracking-tighter uppercase">Editar Registro</h2>
+                    <h2 className="text-2xl lg:text-2xl lg:text-3xl lg:text-3xl font-display font-black text-white italic tracking-tighter uppercase">Editar Registro</h2>
                     <p className="text-[9px] text-primary font-black uppercase tracking-[0.4em] mt-2 leading-none">Perfil de {selectedPro.name}</p>
                   </div>
-                  <button onClick={() => setSelectedProId(null)} className="size-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-500 hover:text-white transition-all">
+                  <button onClick={() => setSelectedProId(null)} className="size-10 sm:size-12 lg:size-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-500 hover:text-white transition-all">
                     <span className="material-symbols-outlined font-black">close</span>
                   </button>
                 </header>
 
-                <div className="px-10 mt-10 shrink-0">
-                  <div className="flex bg-surface-dark/60 p-1.5 rounded-[24px] border border-white/5 backdrop-blur-md">
-                    <button onClick={() => setActiveEditTab('info')} className={`flex-1 py-4 lg:py-5 rounded-[18px] text-[10px] font-black uppercase tracking-[0.2em] transition-all ${activeEditTab === 'info' ? 'gold-gradient text-background-dark shadow-gold' : 'text-slate-500 hover:text-slate-300'}`}>DADOS DE ACESSO</button>
-                    <button onClick={() => setActiveEditTab('hours')} className={`flex-1 py-4 lg:py-5 rounded-[18px] text-[10px] font-black uppercase tracking-[0.2em] transition-all ${activeEditTab === 'hours' ? 'gold-gradient text-background-dark shadow-gold' : 'text-slate-500 hover:text-slate-300'}`}>AGENDAS ELITE</button>
+                <div className="px-10 sm:px-10 lg:px-10 mt-10 shrink-0">
+                  <div className="flex bg-surface-dark/60 p-1 sm:p-1 lg:p-1.5 rounded-[24px] border border-white/5 backdrop-blur-md">
+                    <button onClick={() => setActiveEditTab('info')} className={`flex-1 py-4 sm:py-4 lg:py-4 lg:py-5 sm:py-5 lg:py-5 rounded-[18px] text-[10px] font-black uppercase tracking-[0.2em] transition-all ${activeEditTab === 'info' ? 'gold-gradient text-background-dark shadow-gold' : 'text-slate-500 hover:text-slate-300'}`}>DADOS DE ACESSO</button>
+                    <button onClick={() => setActiveEditTab('hours')} className={`flex-1 py-4 sm:py-4 lg:py-4 lg:py-5 sm:py-5 lg:py-5 rounded-[18px] text-[10px] font-black uppercase tracking-[0.2em] transition-all ${activeEditTab === 'hours' ? 'gold-gradient text-background-dark shadow-gold' : 'text-slate-500 hover:text-slate-300'}`}>AGENDAS ELITE</button>
                   </div>
                 </div>
 
-                <div className="flex-1 overflow-y-auto p-10 space-y-10 pb-40 no-scrollbar min-h-0">
+                <div className="flex-1 overflow-y-auto p-10 sm:p-10 lg:p-10 space-y-10 pb-40 no-scrollbar min-h-0">
                   {activeEditTab === 'info' ? (
                     <div className="space-y-10 animate-fade-in">
-                      <div className="flex items-center gap-10">
+                      <div className="flex items-center gap-10 lg:gap-10">
                         <div className="relative group shrink-0">
-                          <div className="size-32 lg:size-40 rounded-[40px] border-2 border-primary/20 p-1 shadow-3xl overflow-hidden bg-surface-dark cursor-pointer relative">
-                            <img src={editData.image} className="size-full rounded-[35px] object-cover group-hover:scale-110 transition-transform duration-700" alt="Avatar" />
+                          <div className="size-26 sm:size-28 lg:size-32 lg:size-34 sm:size-36 lg:size-40 rounded-2xl sm:rounded-3xl lg:rounded-[40px] border-2 border-primary/20 p-1 sm:p-1 lg:p-1 shadow-3xl overflow-hidden bg-surface-dark cursor-pointer relative">
+                            <img src={editData.image} className="size-full rounded-2xl sm:rounded-3xl lg:rounded-[35px] object-cover group-hover:scale-110 transition-transform duration-700" alt="Avatar" />
                             <label htmlFor="edit-pro-photo" className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer z-10">
-                              <span className="material-symbols-outlined text-white text-3xl font-black">add_a_photo</span>
+                              <span className="material-symbols-outlined text-white text-3xl lg:text-3xl font-black">add_a_photo</span>
                             </label>
                           </div>
                           <input type="file" id="edit-pro-photo" accept="image/*" className="hidden" onChange={async (e) => {
@@ -571,59 +571,59 @@ const TeamManagement: React.FC<TeamManagementProps> = ({ salon, salonId: explici
                         <div className="flex-1 space-y-4">
                           <div className="relative">
                             <label className="text-[8px] font-black text-slate-600 uppercase tracking-widest absolute -top-5 left-0">NOME DO ARTISTA</label>
-                            <input type="text" value={editData.name} onChange={(e) => setEditData({ ...editData, name: e.target.value })} className="text-3xl font-display font-black text-white italic bg-transparent border-b border-white/20 outline-none w-full py-2 hover:border-primary/40 focus:border-primary transition-all" />
+                            <input type="text" value={editData.name} onChange={(e) => setEditData({ ...editData, name: e.target.value })} className="text-3xl lg:text-3xl font-display font-black text-white italic bg-transparent border-b border-white/20 outline-none w-full py-2 sm:py-2 lg:py-2 hover:border-primary/40 focus:border-primary transition-all" />
                           </div>
                           <div className="relative pt-4">
                             <label className="text-[8px] font-black text-primary/60 uppercase tracking-widest absolute top-1 left-0">CARGO / ESPECIALIDADE</label>
-                            <input type="text" value={editData.role} onChange={(e) => setEditData({ ...editData, role: e.target.value })} className="text-sm font-black text-primary uppercase tracking-widest bg-transparent border-b border-primary/20 outline-none w-full py-2 focus:border-primary transition-all" />
+                            <input type="text" value={editData.role} onChange={(e) => setEditData({ ...editData, role: e.target.value })} className="text-sm font-black text-primary uppercase tracking-widest bg-transparent border-b border-primary/20 outline-none w-full py-2 sm:py-2 lg:py-2 focus:border-primary transition-all" />
                           </div>
                         </div>
                       </div>
 
-                      <div className="bg-surface-dark border border-white/5 rounded-[40px] p-8 lg:p-10 space-y-8 shadow-2xl">
+                      <div className="bg-surface-dark border border-white/5 rounded-2xl sm:rounded-3xl lg:rounded-[40px] p-8 sm:p-8 lg:p-8 lg:p-10 sm:p-10 lg:p-10 space-y-8 shadow-2xl">
                         <div className="space-y-4">
-                          <p className="text-[10px] font-black text-white uppercase tracking-[0.3em] flex items-center gap-3">
+                          <p className="text-[10px] font-black text-white uppercase tracking-[0.3em] flex items-center gap-3 lg:gap-3">
                             <span className="material-symbols-outlined text-primary text-lg">key</span>
                             Credenciais de Logística
                           </p>
                           <div className="space-y-6">
                             <div className="space-y-2">
                               <label className="text-[8px] font-black text-slate-600 uppercase tracking-widest ml-2">E-mail Aura</label>
-                              <input type="email" value={editData.email} onChange={(e) => setEditData({ ...editData, email: e.target.value })} className="w-full bg-background-dark border border-white/5 rounded-2xl p-5 text-white text-sm font-bold italic outline-none focus:border-primary/40 transition-all" />
+                              <input type="email" value={editData.email} onChange={(e) => setEditData({ ...editData, email: e.target.value })} className="w-full bg-background-dark border border-white/5 rounded-2xl p-5 sm:p-5 lg:p-5 text-white text-sm font-bold italic outline-none focus:border-primary/40 transition-all" />
                             </div>
                             <div className="space-y-2">
                               <label className="text-[8px] font-black text-primary uppercase tracking-widest ml-2">Redefinir Senha</label>
-                              <input type="password" value={editData.password} onChange={(e) => setEditData({ ...editData, password: e.target.value })} placeholder="•••••••• (deixe vazio para manter)" className="w-full bg-background-dark border border-primary/10 rounded-2xl p-5 text-white text-sm font-bold italic outline-none focus:border-primary transition-all placeholder:text-white/10" />
+                              <input type="password" value={editData.password} onChange={(e) => setEditData({ ...editData, password: e.target.value })} placeholder="•••••••• (deixe vazio para manter)" className="w-full bg-background-dark border border-primary/10 rounded-2xl p-5 sm:p-5 lg:p-5 text-white text-sm font-bold italic outline-none focus:border-primary transition-all placeholder:text-white/10" />
                             </div>
                           </div>
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-2 gap-8">
-                        <div className="bg-surface-dark border border-white/5 rounded-[32px] p-8 shadow-xl">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 lg:gap-8">
+                        <div className="bg-surface-dark border border-white/5 rounded-2xl sm:rounded-3xl lg:rounded-[32px] p-8 sm:p-8 lg:p-8 shadow-xl">
                           <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-4">Meta Produtiva</p>
-                          <div className="flex items-center gap-4">
-                            <input type="number" value={editData.productivity} onChange={(e) => setEditData({ ...editData, productivity: parseInt(e.target.value) || 0 })} className="text-4xl font-display font-black text-primary italic bg-transparent outline-none w-full" />
-                            <span className="text-2xl font-display font-black text-primary/40 italic">%</span>
+                          <div className="flex items-center gap-4 lg:gap-4">
+                            <input type="number" value={editData.productivity} onChange={(e) => setEditData({ ...editData, productivity: parseInt(e.target.value) || 0 })} className="text-4xl lg:text-4xl font-display font-black text-primary italic bg-transparent outline-none w-full" />
+                            <span className="text-2xl lg:text-2xl font-display font-black text-primary/40 italic">%</span>
                           </div>
                         </div>
-                        <div className="bg-surface-dark border border-white/5 rounded-[32px] p-8 shadow-xl">
+                        <div className="bg-surface-dark border border-white/5 rounded-2xl sm:rounded-3xl lg:rounded-[32px] p-8 sm:p-8 lg:p-8 shadow-xl">
                           <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-4">Comissão Base</p>
-                          <div className="flex items-center gap-4">
-                            <input type="number" value={editData.comissao} onChange={(e) => setEditData({ ...editData, comissao: parseInt(e.target.value) || 0 })} className="text-4xl font-display font-black text-white italic bg-transparent outline-none w-full" />
-                            <span className="text-2xl font-display font-black text-white/20 italic">%</span>
+                          <div className="flex items-center gap-4 lg:gap-4">
+                            <input type="number" value={editData.comissao} onChange={(e) => setEditData({ ...editData, comissao: parseInt(e.target.value) || 0 })} className="text-4xl lg:text-4xl font-display font-black text-white italic bg-transparent outline-none w-full" />
+                            <span className="text-2xl lg:text-2xl font-display font-black text-white/20 italic">%</span>
                           </div>
                         </div>
                       </div>
 
-                      <div className="bg-surface-dark/60 border border-white/5 rounded-[40px] p-8 lg:p-10 shadow-2xl">
+                      <div className="bg-surface-dark/60 border border-white/5 rounded-2xl sm:rounded-3xl lg:rounded-[40px] p-8 sm:p-8 lg:p-8 lg:p-10 sm:p-10 lg:p-10 shadow-2xl">
                         <p className="text-[10px] font-black text-white uppercase tracking-[0.4em] mb-8 text-center lg:text-left">Status do Estúdio</p>
-                        <div className="flex gap-6">
-                          <button onClick={() => setEditData({ ...editData, status: 'active' })} className={`flex-1 h-20 rounded-3xl border-2 flex items-center justify-center gap-3 transition-all ${editData.status === 'active' ? 'bg-emerald-500/10 border-emerald-500 text-emerald-500 shadow-[0_0_30px_rgba(16,185,129,0.1)]' : 'border-white/5 text-slate-700 hover:border-white/10'}`}>
+                        <div className="flex gap-6 lg:gap-6">
+                          <button onClick={() => setEditData({ ...editData, status: 'active' })} className={`flex-1 h-20 rounded-3xl border-2 flex items-center justify-center gap-3 lg:gap-3 transition-all ${editData.status === 'active' ? 'bg-emerald-500/10 border-emerald-500 text-emerald-500 shadow-[0_0_30px_rgba(16,185,129,0.1)]' : 'border-white/5 text-slate-700 hover:border-white/10'}`}>
                             <span className="material-symbols-outlined text-xl">check_circle</span>
                             <span className="text-[11px] font-black uppercase tracking-widest">Ativo</span>
                           </button>
-                          <button onClick={() => setEditData({ ...editData, status: 'away' })} className={`flex-1 h-20 rounded-3xl border-2 flex items-center justify-center gap-3 transition-all ${editData.status === 'away' ? 'bg-red-500/10 border-red-500 text-red-500 shadow-[0_0_30px_rgba(239,68,68,0.1)]' : 'border-white/5 text-slate-700 hover:border-white/10'}`}>
+                          <button onClick={() => setEditData({ ...editData, status: 'away' })} className={`flex-1 h-20 rounded-3xl border-2 flex items-center justify-center gap-3 lg:gap-3 transition-all ${editData.status === 'away' ? 'bg-red-500/10 border-red-500 text-red-500 shadow-[0_0_30px_rgba(239,68,68,0.1)]' : 'border-white/5 text-slate-700 hover:border-white/10'}`}>
                             <span className="material-symbols-outlined text-xl">block</span>
                             <span className="text-[11px] font-black uppercase tracking-widest">Ausente</span>
                           </button>
@@ -632,10 +632,10 @@ const TeamManagement: React.FC<TeamManagementProps> = ({ salon, salonId: explici
                     </div>
                   ) : (
                     <div className="space-y-10 animate-fade-in pb-20">
-                      <div className="gold-gradient p-10 rounded-[40px] shadow-gold-sm">
-                        <div className="flex items-center gap-6 mb-4">
-                          <div className="size-12 rounded-2xl bg-background-dark/30 flex items-center justify-center text-background-dark">
-                            <span className="material-symbols-outlined text-2xl font-black">auto_awesome</span>
+                      <div className="gold-gradient p-10 sm:p-10 lg:p-10 rounded-2xl sm:rounded-3xl lg:rounded-[40px] shadow-gold-sm">
+                        <div className="flex items-center gap-6 lg:gap-6 mb-4">
+                          <div className="size-10 sm:size-12 lg:size-12 rounded-2xl bg-background-dark/30 flex items-center justify-center text-background-dark">
+                            <span className="material-symbols-outlined text-2xl lg:text-2xl font-black">auto_awesome</span>
                           </div>
                           <h4 className="text-sm font-black text-background-dark uppercase tracking-[0.4em]">Agenda de Alta Performance</h4>
                         </div>
@@ -659,7 +659,7 @@ const TeamManagement: React.FC<TeamManagementProps> = ({ salon, salonId: explici
                           };
 
                           return (
-                            <div key={key} className={`bg-surface-dark border p-8 rounded-[40px] transition-all ${!dayData.closed ? 'border-primary/20 shadow-3xl' : 'border-white/5 opacity-40 shadow-none'}`}>
+                            <div key={key} className={`bg-surface-dark border p-8 sm:p-8 lg:p-8 rounded-2xl sm:rounded-3xl lg:rounded-[40px] transition-all ${!dayData.closed ? 'border-primary/20 shadow-3xl' : 'border-white/5 opacity-40 shadow-none'}`}>
                               <div className="flex items-center justify-between">
                                 <span className={`text-[11px] font-black uppercase tracking-[0.3em] ${!dayData.closed ? 'text-white' : 'text-slate-700'}`}>{label}</span>
                                 <button
@@ -672,14 +672,14 @@ const TeamManagement: React.FC<TeamManagementProps> = ({ salon, salonId: explici
                               </div>
 
                               {!dayData.closed && (
-                                <div className="grid grid-cols-2 gap-8 mt-8 animate-slide-up">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 lg:gap-8 mt-8 animate-slide-up">
                                   <div className="space-y-3">
                                     <label className="text-[8px] font-black text-primary uppercase tracking-[0.2em] ml-2">Abertura Elite</label>
                                     <input
                                       type="time"
                                       value={dayData.open}
                                       onChange={(e) => updateTime('open', e.target.value)}
-                                      className="w-full bg-background-dark border border-white/10 rounded-2xl p-5 text-white text-sm font-bold outline-none focus:border-primary"
+                                      className="w-full bg-background-dark border border-white/10 rounded-2xl p-5 sm:p-5 lg:p-5 text-white text-sm font-bold outline-none focus:border-primary"
                                     />
                                   </div>
                                   <div className="space-y-3">
@@ -688,7 +688,7 @@ const TeamManagement: React.FC<TeamManagementProps> = ({ salon, salonId: explici
                                       type="time"
                                       value={dayData.close}
                                       onChange={(e) => updateTime('close', e.target.value)}
-                                      className="w-full bg-background-dark border border-white/10 rounded-2xl p-5 text-white text-sm font-bold outline-none focus:border-primary"
+                                      className="w-full bg-background-dark border border-white/10 rounded-2xl p-5 sm:p-5 lg:p-5 text-white text-sm font-bold outline-none focus:border-primary"
                                     />
                                   </div>
                                 </div>
@@ -701,7 +701,7 @@ const TeamManagement: React.FC<TeamManagementProps> = ({ salon, salonId: explici
                   )}
                 </div>
 
-                <div className="absolute bottom-0 left-0 right-0 p-10 bg-gradient-to-t from-background-dark via-background-dark to-transparent flex flex-col gap-6">
+                <div className="absolute bottom-0 left-0 right-0 p-10 sm:p-10 lg:p-10 bg-gradient-to-t from-background-dark via-background-dark to-transparent flex flex-col gap-6 lg:gap-6">
                   <button onClick={handleUpdate} className="w-full gold-gradient text-background-dark h-20 rounded-[28px] font-black uppercase tracking-[0.5em] text-[11px] lg:text-[12px] shadow-gold-sm active:scale-95 transition-all hover:brightness-110">
                     Sincronizar Atualizações
                   </button>
@@ -719,24 +719,24 @@ const TeamManagement: React.FC<TeamManagementProps> = ({ salon, salonId: explici
         {/* Modal de Cadastro Completo Refinado */}
         {isAdding && (
           <div className="fixed inset-0 z-[100] bg-background-dark/95 backdrop-blur-3xl animate-fade-in flex flex-col items-center overflow-hidden">
-            <div className="flex-1 flex flex-col max-w-[600px] w-full h-full relative">
-              <header className="px-10 pt-16 flex items-center justify-between shrink-0">
+            <div className="flex-1 flex flex-col max-w-full max-w-[600px] w-full h-full relative">
+              <header className="px-10 sm:px-10 lg:px-10 pt-16 flex items-center justify-between shrink-0">
                 <div>
-                  <h2 className="text-2xl lg:text-3xl font-display font-black text-white italic tracking-tighter uppercase">Integrar Especialista</h2>
+                  <h2 className="text-2xl lg:text-2xl lg:text-3xl lg:text-3xl font-display font-black text-white italic tracking-tighter uppercase">Integrar Especialista</h2>
                   <p className="text-[9px] text-primary font-black uppercase tracking-[0.4em] mt-2 leading-none">Novos Talentos Aura</p>
                 </div>
-                <button onClick={() => setIsAdding(false)} className="size-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-500 hover:text-white transition-all">
+                <button onClick={() => setIsAdding(false)} className="size-10 sm:size-12 lg:size-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-500 hover:text-white transition-all">
                   <span className="material-symbols-outlined font-black">close</span>
                 </button>
               </header>
 
-              <form onSubmit={handleCreate} className="flex-1 overflow-y-auto p-10 space-y-12 pb-60 no-scrollbar min-h-0">
-                <div className="flex flex-col items-center gap-6">
+              <form onSubmit={handleCreate} className="flex-1 overflow-y-auto p-10 sm:p-10 lg:p-10 space-y-12 pb-60 no-scrollbar min-h-0">
+                <div className="flex flex-col items-center gap-6 lg:gap-6">
                   <div className="relative group shrink-0">
-                    <div className="size-40 rounded-[50px] bg-cover bg-center border-2 border-dashed border-white/10 shadow-2xl overflow-hidden bg-surface-dark flex items-center justify-center relative" style={{ backgroundImage: newPro.image ? `url('${newPro.image}')` : 'none' }}>
-                      {!newPro.image && <span className="material-symbols-outlined text-slate-700 text-6xl">person_add</span>}
+                    <div className="size-34 sm:size-36 lg:size-40 rounded-2xl sm:rounded-3xl lg:rounded-[50px] bg-cover bg-center border-2 border-dashed border-white/10 shadow-2xl overflow-hidden bg-surface-dark flex items-center justify-center relative" style={{ backgroundImage: newPro.image ? `url('${newPro.image}')` : 'none' }}>
+                      {!newPro.image && <span className="material-symbols-outlined text-slate-700 text-4xl sm:text-5xl lg:text-6xl lg:text-4xl sm:text-5xl lg:text-6xl">person_add</span>}
                       <label htmlFor="new-pro-photo" className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer z-10">
-                        <span className="material-symbols-outlined text-white text-3xl font-black">add_a_photo</span>
+                        <span className="material-symbols-outlined text-white text-3xl lg:text-3xl font-black">add_a_photo</span>
                       </label>
                     </div>
                     <input type="file" id="new-pro-photo" accept="image/*" className="hidden" onChange={async (e) => {
@@ -757,22 +757,22 @@ const TeamManagement: React.FC<TeamManagementProps> = ({ salon, salonId: explici
                 <div className="space-y-10">
                   <div className="relative">
                     <label className="text-[8px] font-black text-slate-600 uppercase tracking-widest absolute -top-5 left-0">NOME COMPLETO</label>
-                    <input type="text" required value={newPro.name} onChange={e => setNewPro({ ...newPro, name: e.target.value })} className="w-full bg-transparent border-b-2 border-white/5 p-4 text-white text-2xl font-display font-black italic outline-none focus:border-primary transition-all" placeholder="MASTER NOME" />
+                    <input type="text" required value={newPro.name} onChange={e => setNewPro({ ...newPro, name: e.target.value })} className="w-full bg-transparent border-b-2 border-white/5 p-4 sm:p-4 lg:p-4 text-white text-2xl lg:text-2xl font-display font-black italic outline-none focus:border-primary transition-all" placeholder="MASTER NOME" />
                   </div>
 
-                  <div className="bg-primary/5 border border-primary/20 rounded-[40px] p-8 lg:p-10 space-y-8 shadow-2xl">
+                  <div className="bg-primary/5 border border-primary/20 rounded-2xl sm:rounded-3xl lg:rounded-[40px] p-8 sm:p-8 lg:p-8 lg:p-10 sm:p-10 lg:p-10 space-y-8 shadow-2xl">
                     <div className="space-y-3">
                       <p className="text-[10px] font-black text-primary uppercase tracking-[0.4em] mb-4 text-center">Protocolo de Acesso Digital</p>
                       <div className="space-y-8">
                         <div className="space-y-2">
                           <label className="text-[8px] font-black text-primary/60 uppercase tracking-widest ml-4">E-mail Corporativo</label>
-                          <input type="email" required value={newPro.email} onChange={e => setNewPro({ ...newPro, email: e.target.value })} className="w-full bg-background-dark border border-primary/10 rounded-2xl p-6 text-white text-sm font-bold italic outline-none focus:border-primary" placeholder="artista@aura.com" />
+                          <input type="email" required value={newPro.email} onChange={e => setNewPro({ ...newPro, email: e.target.value })} className="w-full bg-background-dark border border-primary/10 rounded-2xl p-6 sm:p-6 lg:p-6 text-white text-sm font-bold italic outline-none focus:border-primary" placeholder="artista@aura.com" />
                         </div>
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div className="grid grid-cols-1 lg:grid-cols-1 sm:grid-cols-2 gap-6 lg:gap-6">
                           <div className="space-y-2">
                             <label className="text-[8px] font-black text-primary/60 uppercase tracking-widest ml-4">Senha Segura</label>
                             <div className="relative">
-                              <input type={showPassword ? "text" : "password"} required value={newPro.password} onChange={e => setNewPro({ ...newPro, password: e.target.value })} className="w-full bg-background-dark border border-primary/10 rounded-2xl p-6 text-white text-sm font-bold italic outline-none focus:border-primary" placeholder="••••••••" />
+                              <input type={showPassword ? "text" : "password"} required value={newPro.password} onChange={e => setNewPro({ ...newPro, password: e.target.value })} className="w-full bg-background-dark border border-primary/10 rounded-2xl p-6 sm:p-6 lg:p-6 text-white text-sm font-bold italic outline-none focus:border-primary" placeholder="••••••••" />
                               <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-500">
                                 <span className="material-symbols-outlined text-sm">{showPassword ? 'visibility' : 'visibility_off'}</span>
                               </button>
@@ -781,7 +781,7 @@ const TeamManagement: React.FC<TeamManagementProps> = ({ salon, salonId: explici
                           <div className="space-y-2">
                             <label className="text-[8px] font-black text-primary/60 uppercase tracking-widest ml-4">Validar Senha</label>
                             <div className="relative">
-                              <input type={showConfirmPassword ? "text" : "password"} required value={newPro.confirmPassword} onChange={e => setNewPro({ ...newPro, confirmPassword: e.target.value })} className="w-full bg-background-dark border border-primary/10 rounded-2xl p-6 text-white text-sm font-bold italic outline-none focus:border-primary" placeholder="••••••••" />
+                              <input type={showConfirmPassword ? "text" : "password"} required value={newPro.confirmPassword} onChange={e => setNewPro({ ...newPro, confirmPassword: e.target.value })} className="w-full bg-background-dark border border-primary/10 rounded-2xl p-6 sm:p-6 lg:p-6 text-white text-sm font-bold italic outline-none focus:border-primary" placeholder="••••••••" />
                               <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-500">
                                 <span className="material-symbols-outlined text-sm">{showConfirmPassword ? 'visibility' : 'visibility_off'}</span>
                               </button>
@@ -794,23 +794,23 @@ const TeamManagement: React.FC<TeamManagementProps> = ({ salon, salonId: explici
 
                   <div className="relative pt-6">
                     <label className="text-[8px] font-black text-slate-600 uppercase tracking-widest absolute top-0 left-0">CARGO / ESPECIALIDADE</label>
-                    <input type="text" required value={newPro.role} onChange={e => setNewPro({ ...newPro, role: e.target.value })} className="w-full bg-transparent border-b-2 border-white/5 p-4 text-white text-xl font-display font-black italic outline-none focus:border-primary" placeholder="EX: DESIGNER DE OLHARES" />
+                    <input type="text" required value={newPro.role} onChange={e => setNewPro({ ...newPro, role: e.target.value })} className="w-full bg-transparent border-b-2 border-white/5 p-4 sm:p-4 lg:p-4 text-white text-xl font-display font-black italic outline-none focus:border-primary" placeholder="EX: DESIGNER DE OLHARES" />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-8">
-                    <div className="bg-surface-dark border border-white/5 rounded-[32px] p-8">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 lg:gap-8">
+                    <div className="bg-surface-dark border border-white/5 rounded-2xl sm:rounded-3xl lg:rounded-[32px] p-8 sm:p-8 lg:p-8">
                       <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-4">Comissão %</p>
-                      <input type="number" required value={newPro.comissao} onChange={e => setNewPro({ ...newPro, comissao: parseInt(e.target.value) })} className="text-4xl font-display font-black text-white italic bg-transparent outline-none w-full" />
+                      <input type="number" required value={newPro.comissao} onChange={e => setNewPro({ ...newPro, comissao: parseInt(e.target.value) })} className="text-4xl lg:text-4xl font-display font-black text-white italic bg-transparent outline-none w-full" />
                     </div>
-                    <div className="bg-surface-dark border border-white/5 rounded-[32px] p-8">
+                    <div className="bg-surface-dark border border-white/5 rounded-2xl sm:rounded-3xl lg:rounded-[32px] p-8 sm:p-8 lg:p-8">
                       <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-4">Meta Prod %</p>
-                      <input type="number" required value={newPro.productivity} onChange={e => setNewPro({ ...newPro, productivity: parseInt(e.target.value) })} className="text-4xl font-display font-black text-primary italic bg-transparent outline-none w-full" />
+                      <input type="number" required value={newPro.productivity} onChange={e => setNewPro({ ...newPro, productivity: parseInt(e.target.value) })} className="text-4xl lg:text-4xl font-display font-black text-primary italic bg-transparent outline-none w-full" />
                     </div>
                   </div>
                 </div>
 
-                <div className="absolute bottom-0 left-0 right-0 p-10 bg-gradient-to-t from-background-dark via-background-dark to-transparent">
-                  <button type="submit" disabled={isLoading} className="w-full gold-gradient text-background-dark h-24 rounded-[32px] font-black shadow-[0_30px_70px_rgba(0,0,0,0.5)] uppercase tracking-[0.6em] text-[11px] lg:text-[13px] active:scale-95 transition-all hover:brightness-110">
+                <div className="absolute bottom-0 left-0 right-0 p-10 sm:p-10 lg:p-10 bg-gradient-to-t from-background-dark via-background-dark to-transparent">
+                  <button type="submit" disabled={isLoading} className="w-full gold-gradient text-background-dark h-24 rounded-2xl sm:rounded-3xl lg:rounded-[32px] font-black shadow-[0_30px_70px_rgba(0,0,0,0.5)] uppercase tracking-[0.6em] text-[11px] lg:text-[13px] active:scale-95 transition-all hover:brightness-110">
                     {isLoading ? 'SINCRONIZANDO...' : 'FINALIZAR E ATIVAR ACESSO'}
                   </button>
                 </div>
@@ -822,14 +822,14 @@ const TeamManagement: React.FC<TeamManagementProps> = ({ salon, salonId: explici
       </main>
 
       {confirmDialog.show && (
-        <div className="fixed inset-0 z-[200] bg-black/90 backdrop-blur-md flex items-center justify-center p-8 animate-fade-in text-center">
-          <div className="bg-surface-dark border border-white/10 rounded-[48px] p-12 max-w-sm w-full shadow-3xl">
-            <div className="size-20 rounded-3xl bg-red-500/10 flex items-center justify-center text-red-500 mx-auto mb-8 animate-pulse">
-              <span className="material-symbols-outlined text-4xl">warning</span>
+        <div className="fixed inset-0 z-[200] bg-black/90 backdrop-blur-md flex items-center justify-center p-8 sm:p-8 lg:p-8 animate-fade-in text-center">
+          <div className="bg-surface-dark border border-white/10 rounded-2xl sm:rounded-3xl lg:rounded-[48px] p-12 sm:p-14 lg:p-16 sm:p-12 sm:p-14 lg:p-16 lg:p-12 sm:p-14 lg:p-16 max-w-sm w-full shadow-3xl">
+            <div className="size-14 sm:size-16 lg:size-20 rounded-3xl bg-red-500/10 flex items-center justify-center text-red-500 mx-auto mb-8 animate-pulse">
+              <span className="material-symbols-outlined text-4xl lg:text-4xl">warning</span>
             </div>
-            <h3 className="text-2xl font-display font-black text-white italic mb-4 uppercase tracking-tighter">{confirmDialog.title}</h3>
+            <h3 className="text-2xl lg:text-2xl font-display font-black text-white italic mb-4 uppercase tracking-tighter">{confirmDialog.title}</h3>
             <p className="text-slate-500 text-[11px] font-bold uppercase tracking-widest leading-relaxed mb-10">{confirmDialog.message}</p>
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-4 lg:gap-4">
               <button onClick={confirmDialog.onConfirm} className="w-full bg-red-500 text-white h-16 rounded-2xl font-black uppercase tracking-[0.4em] text-[10px] shadow-2xl active:scale-95 transition-all">Revogar e Excluir</button>
               <button onClick={() => setConfirmDialog({ ...confirmDialog, show: false })} className="w-full bg-white/5 border border-white/10 text-white h-16 rounded-2xl font-black uppercase tracking-[0.4em] text-[10px]">Cancelar</button>
             </div>
@@ -839,7 +839,7 @@ const TeamManagement: React.FC<TeamManagementProps> = ({ salon, salonId: explici
 
       {notification.show && (
         <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[300] animate-slide-up">
-          <div className={`px-10 py-5 rounded-full border shadow-3xl backdrop-blur-xl flex items-center gap-4 ${notification.type === 'success' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500' : 'bg-red-500/10 border-red-500/20 text-red-500'}`}>
+          <div className={`px-10 sm:px-10 lg:px-10 py-5 sm:py-5 lg:py-5 rounded-full border shadow-3xl backdrop-blur-xl flex items-center gap-4 lg:gap-4 ${notification.type === 'success' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500' : 'bg-red-500/10 border-red-500/20 text-red-500'}`}>
             <span className="material-symbols-outlined font-black">
               {notification.type === 'success' ? 'verified' : 'error'}
             </span>

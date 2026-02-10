@@ -79,18 +79,18 @@ const ResetPassword: React.FC = () => {
                 <div className="absolute inset-0 bg-gradient-to-b from-background-dark via-transparent to-background-dark"></div>
             </div>
 
-            <header className="relative z-10 p-8 flex items-center justify-between">
-                <button onClick={() => navigate('/login')} className="size-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-white">
+            <header className="relative z-10 p-8 sm:p-8 lg:p-8 flex items-center justify-between">
+                <button onClick={() => navigate('/login')} className="size-10 sm:size-12 lg:size-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-white">
                     <span className="material-symbols-outlined">close</span>
                 </button>
-                <div className="px-4 py-2 rounded-xl bg-primary/10 border border-primary/20">
+                <div className="px-4 sm:px-4 lg:px-4 py-2 sm:py-2 lg:py-2 rounded-xl bg-primary/10 border border-primary/20">
                     <span className="text-[9px] font-black text-primary uppercase tracking-[0.2em]">Nova Senha Aura</span>
                 </div>
             </header>
 
-            <main className="relative z-10 flex-1 flex flex-col justify-center px-8 pb-20">
+            <main className="relative z-10 flex-1 flex flex-col justify-center px-8 sm:px-8 lg:px-8 pb-20">
                 <div className="space-y-2 mb-10 text-center">
-                    <h1 className="text-4xl font-display font-black text-white italic tracking-tighter leading-none">Definir <br /> <span className="text-primary uppercase">Nova Senha.</span></h1>
+                    <h1 className="text-4xl lg:text-4xl font-display font-black text-white italic tracking-tighter leading-none">Definir <br /> <span className="text-primary uppercase">Nova Senha.</span></h1>
                     <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.3em] mt-4 text-center">Digite sua nova credencial de acesso.</p>
                 </div>
 
@@ -104,7 +104,7 @@ const ResetPassword: React.FC = () => {
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 placeholder="••••••••"
-                                className="w-full bg-surface-dark border border-white/5 rounded-2xl py-5 px-6 text-white text-sm outline-none focus:border-primary/50 transition-all shadow-inner"
+                                className="w-full bg-surface-dark border border-white/5 rounded-2xl py-5 sm:py-5 lg:py-5 px-6 sm:px-6 lg:px-6 text-white text-sm outline-none focus:border-primary/50 transition-all shadow-inner"
                             />
                             <button
                                 type="button"
@@ -126,14 +126,14 @@ const ResetPassword: React.FC = () => {
                             value={confirmPassword}
                             onChange={(e) => setConfirmPassword(e.target.value)}
                             placeholder="••••••••"
-                            className="w-full bg-surface-dark border border-white/5 rounded-2xl py-5 px-6 text-white text-sm outline-none focus:border-primary/50 transition-all shadow-inner"
+                            className="w-full bg-surface-dark border border-white/5 rounded-2xl py-5 sm:py-5 lg:py-5 px-6 sm:px-6 lg:px-6 text-white text-sm outline-none focus:border-primary/50 transition-all shadow-inner"
                         />
                     </div>
 
                     <button
                         type="submit"
                         disabled={isLoading}
-                        className="w-full gold-gradient text-background-dark font-black py-5 rounded-2xl shadow-2xl uppercase tracking-[0.3em] text-[11px] flex items-center justify-center gap-3 active:scale-95 transition-all mt-4"
+                        className="w-full gold-gradient text-background-dark font-black py-5 sm:py-5 lg:py-5 rounded-2xl shadow-2xl uppercase tracking-[0.3em] text-[11px] flex items-center justify-center gap-3 lg:gap-3 active:scale-95 transition-all mt-4"
                     >
                         {isLoading ? (
                             <div className="size-5 border-2 border-background-dark/30 border-t-background-dark rounded-full animate-spin"></div>
@@ -148,9 +148,9 @@ const ResetPassword: React.FC = () => {
             </main>
 
             {isVerifying && (
-                <div className="fixed inset-0 z-[100] bg-background-dark/90 backdrop-blur-xl flex flex-col items-center justify-center p-8 animate-fade-in">
-                    <div className="size-20 rounded-full bg-primary/10 border-2 border-primary border-t-transparent animate-spin mb-6"></div>
-                    <h2 className="text-2xl font-display font-black text-white italic tracking-tighter mb-2">Validando Link...</h2>
+                <div className="fixed inset-0 z-[100] bg-background-dark/90 backdrop-blur-xl flex flex-col items-center justify-center p-8 sm:p-8 lg:p-8 animate-fade-in">
+                    <div className="size-14 sm:size-16 lg:size-20 rounded-full bg-primary/10 border-2 border-primary border-t-transparent animate-spin mb-6"></div>
+                    <h2 className="text-2xl lg:text-2xl font-display font-black text-white italic tracking-tighter mb-2">Validando Link...</h2>
                     <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.3em] text-center max-w-xs">Aguarde um momento enquanto preparamos seu acesso seguro.</p>
                 </div>
             )}

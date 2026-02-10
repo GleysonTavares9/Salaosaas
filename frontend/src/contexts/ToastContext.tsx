@@ -25,10 +25,10 @@ export const ToastProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         <ToastContext.Provider value={{ showToast }}>
             {children}
             {toast.show && (
-                <div className="fixed inset-x-0 bottom-24 flex justify-center px-6 z-[9999] pointer-events-none">
+                <div className="fixed inset-x-0 bottom-24 flex justify-center px-6 sm:px-6 lg:px-6 z-[9999] pointer-events-none">
                     <div className={`
-            max-w-[400px] w-full p-5 rounded-[24px] shadow-2xl animate-slide-up 
-            flex items-center gap-4 border backdrop-blur-xl pointer-events-auto
+            max-w-full max-w-[400px] w-full p-5 sm:p-5 lg:p-5 rounded-[24px] shadow-2xl animate-slide-up 
+            flex items-center gap-4 lg:gap-4 border backdrop-blur-xl pointer-events-auto
             ${toast.type === 'success' ? 'bg-emerald-500/20 border-emerald-500/30 text-emerald-400' :
                             toast.type === 'error' ? 'bg-red-500/20 border-red-500/30 text-red-400' :
                                 'bg-primary/20 border-primary/30 text-primary'}

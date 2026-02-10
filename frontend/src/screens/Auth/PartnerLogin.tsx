@@ -115,11 +115,11 @@ const PartnerLogin: React.FC<PartnerLoginProps> = ({ onLogin }) => {
 
   if (redirectInfo) {
     return (
-      <div className="fixed inset-0 z-[9999] bg-background-dark/70 backdrop-blur-xl flex flex-col items-center justify-center p-8 animate-fade-in text-center">
-        <div className="size-20 rounded-full bg-primary/10 border-2 border-primary flex items-center justify-center mb-6 animate-pulse">
-          <span className="material-symbols-outlined text-4xl text-primary">sync_alt</span>
+      <div className="fixed inset-0 z-[9999] bg-background-dark/70 backdrop-blur-xl flex flex-col items-center justify-center p-8 sm:p-8 lg:p-8 animate-fade-in text-center">
+        <div className="size-14 sm:size-16 lg:size-20 rounded-full bg-primary/10 border-2 border-primary flex items-center justify-center mb-6 animate-pulse">
+          <span className="material-symbols-outlined text-4xl lg:text-4xl text-primary">sync_alt</span>
         </div>
-        <h2 className="text-3xl font-display font-black text-white italic tracking-tighter mb-2">Redirecionando...</h2>
+        <h2 className="text-3xl lg:text-3xl font-display font-black text-white italic tracking-tighter mb-2">Redirecionando...</h2>
         <p className="text-slate-400 text-xs font-bold uppercase tracking-widest max-w-xs">{redirectInfo.message}</p>
         <div className="w-48 h-1 bg-white/10 rounded-full mt-8 overflow-hidden">
           <div className="h-full bg-primary animate-progress-bar"></div>
@@ -139,50 +139,50 @@ const PartnerLogin: React.FC<PartnerLoginProps> = ({ onLogin }) => {
         <div className="absolute inset-0 bg-gradient-to-b from-background-dark/50 via-transparent to-background-dark/80"></div>
       </div>
 
-      <header className="relative z-10 p-8 pt-[calc(env(safe-area-inset-top)+1rem)] flex items-center justify-between">
-        <button onClick={() => navigate('/')} className="size-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-white">
+      <header className="relative z-10 p-8 sm:p-8 lg:p-8 pt-[calc(env(safe-area-inset-top)+1rem)] flex items-center justify-between">
+        <button onClick={() => navigate('/')} className="size-10 sm:size-12 lg:size-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-white">
           <span className="material-symbols-outlined">close</span>
         </button>
-        <div className="px-4 py-2 rounded-xl bg-primary/10 border border-primary/20">
+        <div className="px-4 sm:px-4 lg:px-4 py-2 sm:py-2 lg:py-2 rounded-xl bg-primary/10 border border-primary/20">
           <span className="text-[9px] font-black text-primary uppercase tracking-[0.2em]">Painel de Profissional</span>
         </div>
       </header>
 
-      <main className="relative z-10 flex-1 flex flex-col justify-center px-8 pb-32">
-        <div className="space-y-4 mb-8 text-center max-w-lg mx-auto">
-          <div className="size-20 lg:size-24 rounded-[28px] lg:rounded-[32px] gold-gradient flex items-center justify-center text-background-dark shadow-[0_0_50px_rgba(193,165,113,0.4)] mx-auto mb-6 transform hover:rotate-6 transition-transform">
-            <span className="material-symbols-outlined text-4xl lg:text-5xl font-black">spa</span>
+      <main className="relative z-10 flex-1 flex flex-col justify-center px-8 sm:px-8 lg:px-8 pb-32">
+        <div className="space-y-4 mb-8 text-center max-w-full sm:max-w-lg mx-auto">
+          <div className="size-14 sm:size-16 lg:size-20 lg:size-18 sm:size-20 lg:size-24 rounded-[28px] lg:rounded-2xl sm:rounded-3xl lg:rounded-[32px] gold-gradient flex items-center justify-center text-background-dark shadow-[0_0_50px_rgba(193,165,113,0.4)] mx-auto mb-6 transform hover:rotate-6 transition-transform">
+            <span className="material-symbols-outlined text-4xl lg:text-4xl lg:text-3xl sm:text-4xl lg:text-5xl lg:text-3xl sm:text-4xl lg:text-5xl font-black">spa</span>
           </div>
           <h1 className="font-display font-black text-white italic tracking-tighter leading-none uppercase" style={{ fontSize: 'var(--step-5)' }}>Luxe Aura</h1>
           <p className="text-secondary text-[11px] lg:text-xs font-black uppercase tracking-[0.5em] mt-6 opacity-80" style={{ fontSize: 'var(--step-0)' }}>Management Experience</p>
         </div>
 
         {errorMessage && (
-          <div className="bg-red-500/10 border border-red-500/20 p-5 rounded-[24px] text-red-500 text-[10px] font-black uppercase tracking-widest text-center animate-shake mb-8">
+          <div className="bg-red-500/10 border border-red-500/20 p-5 sm:p-5 lg:p-5 rounded-[24px] text-red-500 text-[10px] font-black uppercase tracking-widest text-center animate-shake mb-8">
             {errorMessage}
           </div>
         )}
 
         {successMessage && (
-          <div className="bg-emerald-500/10 border border-emerald-500/20 p-5 rounded-[24px] text-emerald-500 text-[10px] font-black uppercase tracking-widest text-center animate-fade-in mb-8">
+          <div className="bg-emerald-500/10 border border-emerald-500/20 p-5 sm:p-5 lg:p-5 rounded-[24px] text-emerald-500 text-[10px] font-black uppercase tracking-widest text-center animate-fade-in mb-8">
             {successMessage}
           </div>
         )}
 
         {!isForgotPassword ? (
           <>
-            <div className="flex bg-surface-dark p-2 rounded-2xl border border-white/5 mb-10 shadow-2xl max-w-sm mx-auto w-full">
+            <div className="flex bg-surface-dark p-2 sm:p-2 lg:p-2 rounded-2xl border border-white/5 mb-10 shadow-2xl max-w-sm mx-auto w-full">
               <button
                 type="button"
                 onClick={() => setLoginRole('pro')}
-                className={`flex-1 py-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${loginRole === 'pro' ? 'gold-gradient text-background-dark shadow-xl' : 'text-slate-500 hover:text-white'}`}
+                className={`flex-1 py-4 sm:py-4 lg:py-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${loginRole === 'pro' ? 'gold-gradient text-background-dark shadow-xl' : 'text-slate-500 hover:text-white'}`}
               >
                 Barbeiro
               </button>
               <button
                 type="button"
                 onClick={() => setLoginRole('admin')}
-                className={`flex-1 py-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${loginRole === 'admin' ? 'gold-gradient text-background-dark shadow-xl' : 'text-slate-500 hover:text-white'}`}
+                className={`flex-1 py-4 sm:py-4 lg:py-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${loginRole === 'admin' ? 'gold-gradient text-background-dark shadow-xl' : 'text-slate-500 hover:text-white'}`}
               >
                 Gestor
               </button>
@@ -197,7 +197,7 @@ const PartnerLogin: React.FC<PartnerLoginProps> = ({ onLogin }) => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="seu@email.com"
-                  className="w-full bg-surface-dark border border-white/5 rounded-2xl py-5 px-6 text-white text-sm outline-none focus:border-primary/50 transition-all shadow-inner"
+                  className="w-full bg-surface-dark border border-white/5 rounded-2xl py-5 sm:py-5 lg:py-5 px-6 sm:px-6 lg:px-6 text-white text-sm outline-none focus:border-primary/50 transition-all shadow-inner"
                 />
               </div>
 
@@ -219,7 +219,7 @@ const PartnerLogin: React.FC<PartnerLoginProps> = ({ onLogin }) => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full bg-surface-dark border border-white/5 rounded-2xl py-5 px-6 text-white text-sm outline-none focus:border-primary/50 transition-all shadow-inner"
+                    className="w-full bg-surface-dark border border-white/5 rounded-2xl py-5 sm:py-5 lg:py-5 px-6 sm:px-6 lg:px-6 text-white text-sm outline-none focus:border-primary/50 transition-all shadow-inner"
                   />
                   <button
                     type="button"
@@ -236,7 +236,7 @@ const PartnerLogin: React.FC<PartnerLoginProps> = ({ onLogin }) => {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full gold-gradient text-background-dark font-black py-6 rounded-3xl shadow-[0_20px_50px_rgba(193,165,113,0.3)] uppercase tracking-[0.4em] text-[11px] flex items-center justify-center gap-4 active:scale-95 transition-all mt-8 border border-white/20"
+                className="w-full gold-gradient text-background-dark font-black py-6 sm:py-6 lg:py-6 rounded-3xl shadow-[0_20px_50px_rgba(193,165,113,0.3)] uppercase tracking-[0.4em] text-[11px] flex items-center justify-center gap-4 lg:gap-4 active:scale-95 transition-all mt-8 border border-white/20"
               >
                 {isLoading ? (
                   <div className="size-5 border-2 border-background-dark/30 border-t-background-dark rounded-full animate-spin"></div>
@@ -259,14 +259,14 @@ const PartnerLogin: React.FC<PartnerLoginProps> = ({ onLogin }) => {
                 value={resetEmail}
                 onChange={(e) => setResetEmail(e.target.value)}
                 placeholder="seu@email.com"
-                className="w-full bg-surface-dark border border-white/5 rounded-2xl py-5 px-6 text-white text-sm outline-none focus:border-primary/50 transition-all shadow-inner"
+                className="w-full bg-surface-dark border border-white/5 rounded-2xl py-5 sm:py-5 lg:py-5 px-6 sm:px-6 lg:px-6 text-white text-sm outline-none focus:border-primary/50 transition-all shadow-inner"
               />
             </div>
 
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full gold-gradient text-background-dark font-black py-5 rounded-2xl shadow-2xl uppercase tracking-[0.3em] text-[11px] flex items-center justify-center gap-3 active:scale-95 transition-all mt-4"
+              className="w-full gold-gradient text-background-dark font-black py-5 sm:py-5 lg:py-5 rounded-2xl shadow-2xl uppercase tracking-[0.3em] text-[11px] flex items-center justify-center gap-3 lg:gap-3 active:scale-95 transition-all mt-4"
             >
               {isLoading ? (
                 <div className="size-5 border-2 border-background-dark/30 border-t-background-dark rounded-full animate-spin"></div>
@@ -281,7 +281,7 @@ const PartnerLogin: React.FC<PartnerLoginProps> = ({ onLogin }) => {
             <button
               type="button"
               onClick={() => setIsForgotPassword(false)}
-              className="w-full py-4 text-[9px] font-black text-slate-500 uppercase tracking-widest"
+              className="w-full py-4 sm:py-4 lg:py-4 text-[9px] font-black text-slate-500 uppercase tracking-widest"
             >
               Voltar para o Login
             </button>

@@ -44,6 +44,7 @@ const Billing = lazy(() => import('./screens/Pro/Billing'));
 const PrivacyPolicy = lazy(() => import('./screens/Public/PrivacyPolicy'));
 const TermsOfUse = lazy(() => import('./screens/Public/TermsOfUse'));
 const AISettings = lazy(() => import('./screens/Pro/AISettings'));
+const Tasks = lazy(() => import('./screens/Pro/Tasks'));
 
 import { ToastProvider, useToast } from './contexts/ToastContext.tsx';
 
@@ -419,16 +420,16 @@ const AppContent: React.FC = () => {
   const isSalon = location.pathname.startsWith('/salon/');
   const isQuickSchedule = location.pathname.startsWith('/q/');
   const isGallery = location.pathname === '/gallery';
-  const isBookingFlow = ['/select-service', '/choose-time', '/checkout'].includes(location.pathname);
+  const isCheckoutFlow = ['/select-service', '/choose-time', '/checkout'].some(p => location.pathname.startsWith(p));
 
-  const shouldShowNav = !isFullView && !isChat && !isSalon && !isGallery && !isBookingFlow && !isQuickSchedule;
+  const shouldShowNav = !isFullView && !isChat && !isSalon && !isGallery && !isCheckoutFlow && !isQuickSchedule;
   const shouldShowAI = (isSalon || location.pathname.startsWith('/pro')) && !isQuickSchedule;
 
   // Loading Screen
   if (isLoading) {
     return (
       <div className="flex-1 bg-background-dark min-h-screen flex flex-col items-center justify-center">
-        <div className="size-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin mb-6"></div>
+        <div className="size-10 sm:size-12 lg:size-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin mb-6"></div>
         <p className="text-[10px] font-black uppercase tracking-[0.3em] text-primary animate-pulse">
           Carregando experiência premium...
         </p>
@@ -483,8 +484,8 @@ const AppContent: React.FC = () => {
 
       {/* Native Email Confirmation Banner */}
       {currentUserId && !isEmailConfirmed && (
-        <div className="mobile-constrained top-[env(safe-area-inset-top)] border-b border-primary/30 p-4 px-6 flex items-center justify-between animate-fade-in z-[1001] bg-background-dark/80 backdrop-blur-md shrink-0">
-          <div className="flex items-center gap-3">
+        <div className="mobile-constrained top-[env(safe-area-inset-top)] border-b border-primary/30 p-4 sm:p-4 lg:p-4 px-6 sm:px-6 lg:px-6 flex items-center justify-between animate-fade-in z-[1001] bg-background-dark/80 backdrop-blur-md shrink-0">
+          <div className="flex items-center gap-3 lg:gap-3">
             <span className="material-symbols-outlined text-primary text-xl">mark_email_unread</span>
             <div>
               <p className="text-[10px] font-black text-white uppercase tracking-widest leading-none mb-1">Confirmação Pendente</p>
@@ -493,14 +494,14 @@ const AppContent: React.FC = () => {
           </div>
           <button
             onClick={resendEmail}
-            className="bg-primary text-background-dark text-[7px] font-black px-4 py-2 rounded-lg uppercase tracking-widest shadow-lg active:scale-95 transition-all"
+            className="bg-primary text-background-dark text-[7px] font-black px-4 sm:px-4 lg:px-4 py-2 sm:py-2 lg:py-2 rounded-lg uppercase tracking-widest shadow-lg active:scale-95 transition-all"
           >
             Reenviar Link
           </button>
         </div>
       )}
 
-      <div className={`flex-1 flex flex-col min-h-0 ${shouldShowNav ? 'pb-24 lg:pb-0 lg:pl-[260px]' : ''}`}>
+      <div className={`flex-1 overflow-y-auto no-scrollbar ${shouldShowNav ? 'pb-24 lg:pb-0 lg:pl-[280px]' : ''}`}>
         <Suspense fallback={
           <div className="flex-1 bg-background-dark flex flex-col items-center justify-center">
             <div className="size-8 border-2 border-primary/20 border-t-primary rounded-full animate-spin mb-4"></div>
@@ -572,6 +573,12 @@ const AppContent: React.FC = () => {
             <Route path="/pro/analytics" element={
               (role === 'admin' || role === 'pro')
                 ? (isSubscriptionValid(salons[0]) ? <Analytics appointments={appointments} role={role} salon={salons[0]} userId={currentUserId} /> : <Navigate to="/pro/billing" replace />)
+                : <Navigate to="/login" replace />
+            } />
+
+            <Route path="/pro/tasks" element={
+              (role === 'admin' || role === 'pro')
+                ? (isSubscriptionValid(salons[0]) ? <Tasks /> : <Navigate to="/pro/billing" replace />)
                 : <Navigate to="/login" replace />
             } />
 

@@ -40,17 +40,17 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
     // Fixed: 'this.state' is now correctly recognized as part of the React.Component instance.
     if (this.state.hasError) {
       return (
-        <div className="flex flex-col items-center justify-center h-screen bg-background-dark text-white p-8 text-center">
-          <span className="material-symbols-outlined text-5xl text-danger mb-6">sentiment_broken</span>
+        <div className="flex flex-col items-center justify-center h-screen bg-background-dark text-white p-8 sm:p-8 lg:p-8 text-center">
+          <span className="material-symbols-outlined text-3xl sm:text-4xl lg:text-5xl lg:text-3xl sm:text-4xl lg:text-5xl text-danger mb-6">sentiment_broken</span>
           <h1 className="text-xl font-display font-bold mb-2">Ops! Falha na Montagem.</h1>
           <p className="text-sm text-slate-400 mb-6">Encontramos um problema ao iniciar a interface.</p>
-          <pre className="text-[10px] text-left text-slate-500 bg-surface-dark p-4 rounded-xl overflow-auto w-full max-h-40 border border-white/5 mb-6">
+          <pre className="text-[10px] text-left text-slate-500 bg-surface-dark p-4 sm:p-4 lg:p-4 rounded-xl overflow-auto w-full max-h-40 border border-white/5 mb-6">
             {/* Fixed: Correctly accessing state.error. */}
             {this.state.error?.message}
           </pre>
           <button
             onClick={() => window.location.reload()}
-            className="px-8 py-4 bg-primary text-background-dark font-black uppercase tracking-widest text-[10px] rounded-xl shadow-lg active:scale-95 transition-all"
+            className="px-8 sm:px-8 lg:px-8 py-4 sm:py-4 lg:py-4 bg-primary text-background-dark font-black uppercase tracking-widest text-[10px] rounded-xl shadow-lg active:scale-95 transition-all"
           >
             Reiniciar Aplicativo
           </button>

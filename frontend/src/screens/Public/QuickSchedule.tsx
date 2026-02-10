@@ -69,7 +69,7 @@ const TypewriterText = React.memo(({ text }: { text: string }) => {
 
 const TypingIndicator = () => (
     <div className="flex justify-start animate-fade-in">
-        <div className="bg-[#1c1c1f] px-5 py-4 rounded-[24px] rounded-tl-sm border border-[#c1a571]/20 shadow-[#c1a571]/5 flex gap-1 items-center">
+        <div className="bg-[#1c1c1f] px-5 sm:px-5 lg:px-5 py-4 sm:py-4 lg:py-4 rounded-[24px] rounded-tl-sm border border-[#c1a571]/20 shadow-[#c1a571]/5 flex gap-1 lg:gap-1 items-center">
             <div className="w-1.5 h-1.5 bg-[#ecd3a5] rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
             <div className="w-1.5 h-1.5 bg-[#ecd3a5] rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
             <div className="w-1.5 h-1.5 bg-[#ecd3a5] rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
@@ -674,30 +674,30 @@ const QuickSchedule: React.FC = () => {
     };
 
     return (
-        <div className="bg-[#0a0a0b] h-[100dvh] w-full flex items-center justify-center p-0 sm:p-6 overflow-hidden fixed inset-0 sm:relative">
-            <div className="w-full max-w-[500px] lg:max-w-[850px] h-full lg:h-[95vh] bg-[#121214] lg:rounded-[40px] border border-white/5 shadow-2xl flex flex-col overflow-hidden relative font-sans pt-[env(safe-area-inset-top)]">
+        <div className="bg-[#0a0a0b] h-[100dvh] w-full flex items-center justify-center p-0 sm:p-0 lg:p-0 sm:p-6 sm:p-6 lg:p-6 overflow-hidden fixed inset-0 sm:relative">
+            <div className="w-full max-w-full max-w-[500px] lg:max-w-full max-w-[850px] h-full lg:h-[95vh] bg-[#121214] lg:rounded-2xl sm:rounded-3xl lg:rounded-[40px] border border-white/5 shadow-2xl flex flex-col overflow-hidden relative font-sans pt-[env(safe-area-inset-top)]">
 
                 {/* Header Premium Aura */}
-                <div className="px-6 py-5 bg-[#18181b] border-b border-white/5 flex items-center justify-between z-10 shrink-0">
-                    <div className="flex items-center gap-3">
+                <div className="px-6 sm:px-6 lg:px-6 py-5 sm:py-5 lg:py-5 bg-[#18181b] border-b border-white/5 flex items-center justify-between z-10 shrink-0">
+                    <div className="flex items-center gap-3 lg:gap-3">
                         <div className="relative">
                             <img src={salon?.logo_url || `https://api.dicebear.com/7.x/initials/svg?seed=${salon?.nome || 'Salon'}`} className="w-11 h-11 rounded-full border-2 object-cover transition-colors" style={{ borderColor: auraGold }} />
                             <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-[#18181b]"></div>
                         </div>
                         <div>
                             <h1 className="font-bold text-white leading-tight" style={{ fontSize: 'var(--step-1)' }}>{salon?.nome || 'Carregando...'}</h1>
-                            <div className="flex items-center gap-1.5 mt-0.5">
+                            <div className="flex items-center gap-1 lg:gap-1.5 mt-0.5">
                                 <span className="font-black uppercase tracking-[0.1em]" style={{ color: auraGold, fontSize: '9px' }}>LUXE CONCIERGE</span>
                                 <span className="w-1 h-1 bg-white/20 rounded-full"></span>
                                 <span className="text-[9px] text-green-500 font-bold uppercase">Online</span>
                             </div>
                         </div>
                     </div>
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-4 lg:gap-4">
                         {userAppointments.length > 0 && (
                             <button
                                 onClick={() => setShowMyAppointments(true)}
-                                className="size-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-primary animate-pulse"
+                                className="size-10 sm:size-12 lg:size-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-primary animate-pulse"
                             >
                                 <span className="material-symbols-outlined text-[20px]">calendar_month</span>
                             </button>
@@ -714,22 +714,22 @@ const QuickSchedule: React.FC = () => {
                 {showMyAppointments && (
                     <div className="absolute inset-0 z-[60] flex items-end">
                         <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowMyAppointments(false)}></div>
-                        <div className="w-full bg-[#1c1c1f] rounded-t-[40px] border-t border-white/10 p-8 shadow-2xl relative z-70 animate-fade-in-up">
+                        <div className="w-full bg-[#1c1c1f] rounded-t-[40px] border-t border-white/10 p-8 sm:p-8 lg:p-8 shadow-2xl relative z-70 animate-fade-in-up">
                             <div className="flex items-center justify-between mb-8">
                                 <h3 className="font-display font-black italic text-white text-xl uppercase tracking-widest text-primary">Meus Agendamentos</h3>
-                                <button onClick={() => setShowMyAppointments(false)} className="size-10 rounded-full bg-white/5 flex items-center justify-center text-slate-500">
+                                <button onClick={() => setShowMyAppointments(false)} className="size-10 sm:size-12 lg:size-10 rounded-full bg-white/5 flex items-center justify-center text-slate-500">
                                     <span className="material-symbols-outlined">close</span>
                                 </button>
                             </div>
                             <div className="space-y-4 max-h-[50vh] overflow-y-auto no-scrollbar pb-10">
                                 {userAppointments.map(appt => (
-                                    <div key={appt.id} className="bg-white/5 border border-white/5 rounded-3xl p-5 flex items-center justify-between group">
+                                    <div key={appt.id} className="bg-white/5 border border-white/5 rounded-3xl p-5 sm:p-5 lg:p-5 flex items-center justify-between group">
                                         <div className="space-y-1">
                                             <p className="text-[10px] font-black text-primary uppercase tracking-widest">{appt.date} • {appt.time}</p>
                                             <p className="text-sm font-bold text-white uppercase">{appt.service_names}</p>
                                             <p className="text-[9px] text-slate-500 font-bold uppercase tracking-widest italic">{appt.status === 'confirmed' ? '✅ Confirmado' : '⏳ Aguardando'}</p>
                                         </div>
-                                        <div className="size-12 rounded-2xl bg-white/5 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+                                        <div className="size-10 sm:size-12 lg:size-12 rounded-2xl bg-white/5 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
                                             <span className="material-symbols-outlined">check_circle</span>
                                         </div>
                                     </div>
@@ -755,10 +755,10 @@ const QuickSchedule: React.FC = () => {
                 )}
 
                 {/* Chat Area */}
-                <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5 scrollbar-hide bg-[#121214]">
+                <div className="flex-1 overflow-y-auto p-4 sm:p-4 lg:p-4 sm:p-6 sm:p-6 lg:p-6 space-y-5 scrollbar-hide bg-[#121214]">
                     {messages.map(msg => (
                         <div key={msg.id} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in-up`}>
-                            <div className={`max-w-[90%] sm:max-w-[85%] px-5 py-4 rounded-[24px] leading-relaxed shadow-xl ${msg.sender === 'bot'
+                            <div className={`max-w-[90%] sm:max-w-[85%] px-5 sm:px-5 lg:px-5 py-4 sm:py-4 lg:py-4 rounded-[24px] leading-relaxed shadow-xl ${msg.sender === 'bot'
                                 ? 'bg-[#1c1c1f] text-slate-100 rounded-tl-sm border border-[#c1a571]/20 shadow-[#c1a571]/5'
                                 : `text-black font-bold rounded-tr-sm`
                                 }`} style={{
@@ -781,19 +781,19 @@ const QuickSchedule: React.FC = () => {
                                 <div
                                     ref={servicesScrollRef}
                                     {...servicesDrag}
-                                    className="mt-4 flex overflow-x-auto gap-4 pb-4 scrollbar-hide px-1 cursor-grab active:cursor-grabbing select-none"
+                                    className="mt-4 flex overflow-x-auto gap-4 lg:gap-4 pb-4 scrollbar-hide px-1 sm:px-1 lg:px-1 cursor-grab active:cursor-grabbing select-none"
                                 >
                                     {services.map(svc => {
                                         const isSelected = selectedServices.some(s => s.id === svc.id);
                                         return (
                                             <div key={svc.id} onClick={() => toggleService(svc)}
-                                                className={`shrink-0 w-44 bg-[#1c1c1f] rounded-[24px] border-2 p-3 flex flex-col gap-3 cursor-pointer transition-all active:scale-95 ${isSelected ? 'shadow-lg bg-[#c1a571]/10' : 'border-white/5'}`}
+                                                className={`shrink-0 w-44 bg-[#1c1c1f] rounded-[24px] border-2 p-3 sm:p-3 lg:p-3 flex flex-col gap-3 lg:gap-3 cursor-pointer transition-all active:scale-95 ${isSelected ? 'shadow-lg bg-[#c1a571]/10' : 'border-white/5'}`}
                                                 style={{ borderColor: isSelected ? auraGold : 'transparent' }}>
                                                 <div className="h-28 w-full bg-black/40 rounded-2xl overflow-hidden relative">
-                                                    {svc.image ? <img src={svc.image} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-white/10 text-3xl">✂️</div>}
-                                                    {isSelected && <div className="absolute top-2 right-2 rounded-full p-1" style={{ backgroundColor: auraGold }}><span className="material-symbols-outlined text-xs text-black font-black">check</span></div>}
+                                                    {svc.image ? <img src={svc.image} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-white/10 text-3xl lg:text-3xl">✂️</div>}
+                                                    {isSelected && <div className="absolute top-2 right-2 rounded-full p-1 sm:p-1 lg:p-1" style={{ backgroundColor: auraGold }}><span className="material-symbols-outlined text-xs text-black font-black">check</span></div>}
                                                 </div>
-                                                <div className="px-1">
+                                                <div className="px-1 sm:px-1 lg:px-1">
                                                     <h3 className="font-bold text-xs truncate text-white mb-1">{svc.name}</h3>
                                                     <p className="font-black text-sm" style={{ color: auraGold }}>R$ {svc.price}</p>
                                                 </div>
@@ -801,7 +801,7 @@ const QuickSchedule: React.FC = () => {
                                         )
                                     })}
                                 </div>
-                                <div className="flex items-center justify-center gap-2 pb-2 opacity-40 animate-pulse">
+                                <div className="flex items-center justify-center gap-2 lg:gap-2 pb-2 opacity-40 animate-pulse">
                                     <span className="material-symbols-outlined text-xs text-white">swipe_left</span>
                                     <span className="text-[9px] uppercase tracking-[0.2em] text-slate-300 font-black">Deslize para ver mais</span>
                                     <span className="material-symbols-outlined text-xs text-white">swipe_right</span>
@@ -813,11 +813,11 @@ const QuickSchedule: React.FC = () => {
                             <div
                                 ref={proScrollRef}
                                 {...proDrag}
-                                className="mt-4 flex overflow-x-auto gap-5 pb-4 scrollbar-hide px-1 cursor-grab active:cursor-grabbing select-none"
+                                className="mt-4 flex overflow-x-auto gap-5 lg:gap-5 pb-4 scrollbar-hide px-1 sm:px-1 lg:px-1 cursor-grab active:cursor-grabbing select-none"
                             >
                                 {professionals.map(pro => (
-                                    <div key={pro.id} onClick={() => setSelectedPro(pro)} className="shrink-0 flex flex-col items-center gap-3 cursor-pointer active:scale-95 transition-transform p-1">
-                                        <div className={`size-20 rounded-[28px] p-1 border-2 transition-all ${selectedPro?.id === pro.id ? 'shadow-xl' : 'border-white/5'}`} style={{ borderColor: selectedPro?.id === pro.id ? auraGold : 'transparent' }}>
+                                    <div key={pro.id} onClick={() => setSelectedPro(pro)} className="shrink-0 flex flex-col items-center gap-3 lg:gap-3 cursor-pointer active:scale-95 transition-transform p-1 sm:p-1 lg:p-1">
+                                        <div className={`size-14 sm:size-16 lg:size-20 rounded-[28px] p-1 sm:p-1 lg:p-1 border-2 transition-all ${selectedPro?.id === pro.id ? 'shadow-xl' : 'border-white/5'}`} style={{ borderColor: selectedPro?.id === pro.id ? auraGold : 'transparent' }}>
                                             <img src={pro.image || `https://api.dicebear.com/7.x/initials/svg?seed=${pro.name}`} className="w-full h-full rounded-[22px] object-cover" />
                                         </div>
                                         <div className="text-center">
@@ -833,7 +833,7 @@ const QuickSchedule: React.FC = () => {
                             <div
                                 ref={dateScrollRef}
                                 {...dateDrag}
-                                className="mt-4 flex overflow-x-auto gap-3 pb-4 scrollbar-hide px-1 cursor-grab active:cursor-grabbing select-none"
+                                className="mt-4 flex overflow-x-auto gap-3 lg:gap-3 pb-4 scrollbar-hide px-1 sm:px-1 lg:px-1 cursor-grab active:cursor-grabbing select-none"
                             >
                                 {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
                                     .map(offset => {
@@ -872,7 +872,7 @@ const QuickSchedule: React.FC = () => {
                                                 <span className={`text-[8px] font-black uppercase tracking-[0.2em] mb-0.5 ${isHighlight ? 'text-black/70' : 'text-slate-500'}`}>
                                                     {index === 0 ? 'HOJE' : index === 1 ? 'AMANHÃ' : d.dayShort}
                                                 </span>
-                                                <div className="flex items-baseline gap-0.5">
+                                                <div className="flex items-baseline gap-0 lg:gap-0.5">
                                                     <span className={`text-xl font-display font-black italic tracking-tighter ${isHighlight ? 'text-black' : 'text-white'}`}>
                                                         {d.dayNum}
                                                     </span>
@@ -888,14 +888,14 @@ const QuickSchedule: React.FC = () => {
                         )}
 
                         {showElements && step === 'TIME' && (
-                            <div className="mt-4 grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-3 px-1">
+                            <div className="mt-4 grid grid-cols-1 sm:grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 sm:grid-cols-1 sm:grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 lg:grid-cols-1 sm:grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 lg:gap-3 px-1 sm:px-1 lg:px-1">
                                 {availableSlots.map(slot => (
-                                    <button key={slot} onClick={() => setSelectedTime(slot)} className={`py-3.5 border rounded-2xl text-[10px] font-black transition-all active:scale-95 uppercase tracking-widest text-center ${selectedTime === slot ? 'gold-gradient text-black' : 'bg-[#1c1c1f] border-white/5 text-slate-400 hover:text-white'}`}>
+                                    <button key={slot} onClick={() => setSelectedTime(slot)} className={`py-3 sm:py-3 lg:py-3.5 border rounded-2xl text-[10px] font-black transition-all active:scale-95 uppercase tracking-widest text-center ${selectedTime === slot ? 'gold-gradient text-black' : 'bg-[#1c1c1f] border-white/5 text-slate-400 hover:text-white'}`}>
                                         {slot}
                                     </button>
                                 ))}
                                 {availableSlots.length === 0 && (
-                                    <div className="col-span-4 p-8 text-center bg-white/5 rounded-3xl border border-white/5">
+                                    <div className="col-span-4 p-8 sm:p-8 lg:p-8 text-center bg-white/5 rounded-3xl border border-white/5">
                                         <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Sem horários para esta data</p>
                                     </div>
                                 )}
@@ -903,12 +903,12 @@ const QuickSchedule: React.FC = () => {
                         )}
 
                         {step === 'SUCCESS' && (
-                            <div className="mt-6 space-y-3 animate-fade-in px-1">
-                                <button onClick={handleWhatsAppNotification} className="w-full bg-[#25D366] text-white font-black py-4 rounded-2xl uppercase text-[10px] tracking-widest flex items-center justify-center gap-2 shadow-lg shadow-green-500/20 active:scale-95 transition-all">
+                            <div className="mt-6 space-y-3 animate-fade-in px-1 sm:px-1 lg:px-1">
+                                <button onClick={handleWhatsAppNotification} className="w-full bg-[#25D366] text-white font-black py-4 sm:py-4 lg:py-4 rounded-2xl uppercase text-[10px] tracking-widest flex items-center justify-center gap-2 lg:gap-2 shadow-lg shadow-green-500/20 active:scale-95 transition-all">
                                     <svg className="size-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.025 3.23l-.693 2.536 2.603-.683c.894.49 1.83.749 2.828.75h.003c3.181 0 5.77-2.587 5.77-5.767 0-3.18-2.585-5.766-5.768-5.766zm3.321 8.201c-.137.385-.689.702-1.032.744-.312.039-.718.063-1.15-.078-.291-.096-.649-.221-1.115-.421-1.99-.854-3.268-2.885-3.367-3.018-.098-.133-.715-.951-.715-1.815a1.86 1.86 0 0 1 .59-1.402c.191-.184.412-.231.547-.231.134 0 .268.001.385.006.12.005.281-.045.44.331.166.388.564 1.369.613 1.468.049.1.082.216.016.348-.063.133-.122.216-.245.351-.122.134-.257.299-.366.402-.121.116-.247.243-.106.485.14.241.624 1.031 1.341 1.67.925.823 1.701 1.077 1.943 1.197.242.12.385.101.528-.063.142-.164.613-.715.777-.951.164-.236.327-.197.551-.115.222.083 1.411.666 1.652.784s.403.177.461.278c.058.1.058.58-.137.965z" /></svg>
                                     Notificar no WhatsApp
                                 </button>
-                                <button onClick={() => window.location.reload()} className="w-full bg-gold-gradient text-black font-black py-4 rounded-2xl uppercase text-[10px] tracking-widest shadow-xl active:scale-95 transition-all" style={{ background: `linear-gradient(135deg, ${auraGold} 0%, ${auraGoldDark} 100%)` }}>
+                                <button onClick={() => window.location.reload()} className="w-full bg-gold-gradient text-black font-black py-4 sm:py-4 lg:py-4 rounded-2xl uppercase text-[10px] tracking-widest shadow-xl active:scale-95 transition-all" style={{ background: `linear-gradient(135deg, ${auraGold} 0%, ${auraGoldDark} 100%)` }}>
                                     Novo Agendamento
                                 </button>
                             </div>
@@ -918,65 +918,65 @@ const QuickSchedule: React.FC = () => {
                 </div>
 
                 {/* Bottom Footer */}
-                <div className="p-6 bg-[#18181b]/95 backdrop-blur-xl border-t border-white/5 z-20 shrink-0">
+                <div className="p-6 sm:p-6 lg:p-6 bg-[#18181b]/95 backdrop-blur-xl border-t border-white/5 z-20 shrink-0">
                     {step === 'SERVICES' && (
-                        <button onClick={confirmServices} disabled={selectedServices.length === 0} className="w-full text-black font-black py-4 rounded-2xl shadow-xl uppercase text-xs tracking-[0.2em] disabled:opacity-30 active:scale-95 transition-all flex items-center justify-center gap-2" style={{ background: `linear-gradient(135deg, ${auraGold} 0%, ${auraGoldDark} 100%)` }}>
+                        <button onClick={confirmServices} disabled={selectedServices.length === 0} className="w-full text-black font-black py-4 sm:py-4 lg:py-4 rounded-2xl shadow-xl uppercase text-xs tracking-[0.2em] disabled:opacity-30 active:scale-95 transition-all flex items-center justify-center gap-2 lg:gap-2" style={{ background: `linear-gradient(135deg, ${auraGold} 0%, ${auraGoldDark} 100%)` }}>
                             CONTINUAR {selectedServices.length > 0 && `(${selectedServices.length})`}
                             <span className="material-symbols-outlined text-sm">arrow_forward</span>
                         </button>
                     )}
                     {showElements && step === 'PROFESSIONAL' && (
-                        <div className="flex gap-3">
-                            <button onClick={() => setStep('SERVICES')} className="size-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-500 hover:text-white transition-all">
+                        <div className="flex gap-3 lg:gap-3">
+                            <button onClick={() => setStep('SERVICES')} className="size-10 sm:size-12 lg:size-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-500 hover:text-white transition-all">
                                 <span className="material-symbols-outlined">undo</span>
                             </button>
-                            <button onClick={confirmPro} disabled={!selectedPro} className="flex-1 text-black font-black py-4 rounded-2xl shadow-xl uppercase text-xs tracking-[0.2em] disabled:opacity-30 active:scale-95 transition-all flex items-center justify-center gap-2" style={{ background: `linear-gradient(135deg, ${auraGold} 0%, ${auraGoldDark} 100%)` }}>
+                            <button onClick={confirmPro} disabled={!selectedPro} className="flex-1 text-black font-black py-4 sm:py-4 lg:py-4 rounded-2xl shadow-xl uppercase text-xs tracking-[0.2em] disabled:opacity-30 active:scale-95 transition-all flex items-center justify-center gap-2 lg:gap-2" style={{ background: `linear-gradient(135deg, ${auraGold} 0%, ${auraGoldDark} 100%)` }}>
                                 ESCOLHER PROFISSIONAL
                                 <span className="material-symbols-outlined text-sm">arrow_forward</span>
                             </button>
                         </div>
                     )}
                     {showElements && step === 'DATE' && (
-                        <div className="flex gap-3">
-                            <button onClick={() => setStep('PROFESSIONAL')} className="size-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-500 hover:text-white transition-all">
+                        <div className="flex gap-3 lg:gap-3">
+                            <button onClick={() => setStep('PROFESSIONAL')} className="size-10 sm:size-12 lg:size-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-500 hover:text-white transition-all">
                                 <span className="material-symbols-outlined">undo</span>
                             </button>
-                            <button onClick={confirmDate} disabled={!selectedDate} className="flex-1 text-black font-black py-4 rounded-2xl shadow-xl uppercase text-xs tracking-[0.2em] disabled:opacity-30 active:scale-95 transition-all flex items-center justify-center gap-2" style={{ background: `linear-gradient(135deg, ${auraGold} 0%, ${auraGoldDark} 100%)` }}>
+                            <button onClick={confirmDate} disabled={!selectedDate} className="flex-1 text-black font-black py-4 sm:py-4 lg:py-4 rounded-2xl shadow-xl uppercase text-xs tracking-[0.2em] disabled:opacity-30 active:scale-95 transition-all flex items-center justify-center gap-2 lg:gap-2" style={{ background: `linear-gradient(135deg, ${auraGold} 0%, ${auraGoldDark} 100%)` }}>
                                 ESCOLHER DATA
                                 <span className="material-symbols-outlined text-sm">arrow_forward</span>
                             </button>
                         </div>
                     )}
                     {showElements && step === 'TIME' && (
-                        <div className="flex gap-3">
-                            <button onClick={() => setStep('DATE')} className="size-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-500 hover:text-white transition-all">
+                        <div className="flex gap-3 lg:gap-3">
+                            <button onClick={() => setStep('DATE')} className="size-10 sm:size-12 lg:size-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-500 hover:text-white transition-all">
                                 <span className="material-symbols-outlined">undo</span>
                             </button>
-                            <button onClick={confirmTime} disabled={!selectedTime} className="flex-1 text-black font-black py-4 rounded-2xl shadow-xl uppercase text-xs tracking-[0.2em] disabled:opacity-30 active:scale-95 transition-all flex items-center justify-center gap-2" style={{ background: `linear-gradient(135deg, ${auraGold} 0%, ${auraGoldDark} 100%)` }}>
+                            <button onClick={confirmTime} disabled={!selectedTime} className="flex-1 text-black font-black py-4 sm:py-4 lg:py-4 rounded-2xl shadow-xl uppercase text-xs tracking-[0.2em] disabled:opacity-30 active:scale-95 transition-all flex items-center justify-center gap-2 lg:gap-2" style={{ background: `linear-gradient(135deg, ${auraGold} 0%, ${auraGoldDark} 100%)` }}>
                                 REVISAR AGENDAMENTO
                                 <span className="material-symbols-outlined text-sm">arrow_forward</span>
                             </button>
                         </div>
                     )}
                     {showElements && step === 'CONFIRM' && (
-                        <div className="flex gap-3">
-                            <button onClick={() => setStep('TIME')} className="size-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-500 hover:text-white transition-all">
+                        <div className="flex gap-3 lg:gap-3">
+                            <button onClick={() => setStep('TIME')} className="size-10 sm:size-12 lg:size-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-500 hover:text-white transition-all">
                                 <span className="material-symbols-outlined">undo</span>
                             </button>
-                            <button onClick={finalize} className="flex-1 bg-emerald-500 text-white font-black py-4 rounded-2xl shadow-xl uppercase text-xs tracking-[0.2em] active:scale-95 transition-all">
+                            <button onClick={finalize} className="flex-1 bg-emerald-500 text-white font-black py-4 sm:py-4 lg:py-4 rounded-2xl shadow-xl uppercase text-xs tracking-[0.2em] active:scale-95 transition-all">
                                 FINALIZAR AGORA
                             </button>
                         </div>
                     )}
                     {['PHONE', 'AUTH_CHECK', 'PASSWORD', 'REGISTER_NAME', 'REGISTER_EMAIL', 'REGISTER_PASSWORD'].includes(step) && (
-                        <div className="flex gap-3 relative">
+                        <div className="flex gap-3 lg:gap-3 relative">
                             <input type={step.includes('PASSWORD') ? 'password' : 'text'}
                                 value={inputValue}
                                 onChange={handleInputChange}
                                 onKeyDown={handleKeyDown}
                                 placeholder="Digite aqui..."
                                 autoFocus
-                                className="flex-1 bg-[#0a0a0b] border border-white/10 rounded-2xl px-5 py-4 text-white text-sm focus:outline-none placeholder-slate-600 transition-colors"
+                                className="flex-1 bg-[#0a0a0b] border border-white/10 rounded-2xl px-5 sm:px-5 lg:px-5 py-4 sm:py-4 lg:py-4 text-white text-sm focus:outline-none placeholder-slate-600 transition-colors"
                                 style={inputValue ? { borderColor: auraGold } : {}}
                             />
                             <button onClick={handleSend} disabled={!inputValue.trim()} className="w-14 rounded-2xl flex items-center justify-center shadow-lg disabled:opacity-30 active:scale-95 transition-all" style={{ backgroundColor: auraGold }}>

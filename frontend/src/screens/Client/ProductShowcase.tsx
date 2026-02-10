@@ -128,10 +128,10 @@ const ProductShowcase: React.FC<ProductShowcaseProps> = ({ bookingDraft, setBook
     <div className="flex-1 overflow-y-auto h-full no-scrollbar bg-background-dark relative">
       <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.02] pointer-events-none"></div>
 
-      <header className="sticky top-0 z-50 bg-background-dark/80 backdrop-blur-3xl px-6 pt-12 pb-10 border-b border-white/5">
-        <div className="max-w-[1400px] mx-auto w-full">
+      <header className="sticky top-0 z-50 bg-background-dark/80 backdrop-blur-3xl px-6 sm:px-6 lg:px-6 pt-12 pb-10 border-b border-white/5">
+        <div className="max-w-full max-w-[1400px] mx-auto w-full">
           <div className="flex items-center justify-between mb-12">
-            <button onClick={() => navigate(-1)} className="size-12 rounded-2xl bg-black/40 border border-white/10 flex items-center justify-center text-white active:scale-95 transition-all">
+            <button onClick={() => navigate(-1)} className="size-10 sm:size-12 lg:size-12 rounded-2xl bg-black/40 border border-white/10 flex items-center justify-center text-white active:scale-95 transition-all">
               <span className="material-symbols-outlined text-xl">arrow_back</span>
             </button>
             <div className="text-center">
@@ -140,22 +140,22 @@ const ProductShowcase: React.FC<ProductShowcaseProps> = ({ bookingDraft, setBook
               </h1>
               <p className="text-[7px] text-primary font-black uppercase tracking-[0.4em] mt-3">Curadoria de Ativos de Luxo</p>
             </div>
-            <div className="size-12 opacity-0 pointer-events-none"></div>
+            <div className="size-10 sm:size-12 lg:size-12 opacity-0 pointer-events-none"></div>
           </div>
 
-          <div className="flex flex-col items-center gap-6">
-            <div className="relative group w-full max-w-2xl">
+          <div className="flex flex-col items-center gap-6 lg:gap-6">
+            <div className="relative group w-full max-w-full sm:max-w-2xl">
               <span className="material-symbols-outlined absolute left-6 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors text-xl">search</span>
               <input
                 type="text"
                 placeholder="PROCURAR POR ITEM..."
-                className="w-full bg-surface-dark/40 border border-white/10 rounded-3xl py-6 pl-16 pr-8 text-white text-[11px] font-black uppercase tracking-[0.3em] outline-none focus:border-primary/40 focus:bg-surface-dark/60 transition-all shadow-inner"
+                className="w-full bg-surface-dark/40 border border-white/10 rounded-3xl py-6 sm:py-6 lg:py-6 pl-16 pr-8 text-white text-[11px] font-black uppercase tracking-[0.3em] outline-none focus:border-primary/40 focus:bg-surface-dark/60 transition-all shadow-inner"
               />
             </div>
 
             <button
               onClick={handleGetLocation}
-              className="flex items-center gap-3 px-6 py-3 rounded-full bg-primary/10 border border-primary/20 text-primary active:scale-95 transition-all group"
+              className="flex items-center gap-3 lg:gap-3 px-6 sm:px-6 lg:px-6 py-3 sm:py-3 lg:py-3 rounded-full bg-primary/10 border border-primary/20 text-primary active:scale-95 transition-all group"
             >
               {itemCount > 0 && <span className="absolute -top-1 -right-1 size-5 bg-primary text-background-dark text-[10px] font-black rounded-full flex items-center justify-center shadow-2xl animate-bounce">{itemCount}</span>}
             </button>
@@ -163,21 +163,21 @@ const ProductShowcase: React.FC<ProductShowcaseProps> = ({ bookingDraft, setBook
         </div>
       </header>
 
-      <main className="max-w-[1400px] mx-auto w-full px-6 py-12 lg:py-20 animate-fade-in relative z-10">
+      <main className="max-w-full max-w-[1400px] mx-auto w-full px-6 sm:px-6 lg:px-6 py-12 sm:py-12 lg:py-12 lg:py-20 sm:py-20 lg:py-20 animate-fade-in relative z-10">
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-40">
-            <div className="size-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin mb-10"></div>
+          <div className="flex flex-col items-center justify-center py-40 sm:py-40 lg:py-40">
+            <div className="size-10 sm:size-12 lg:size-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin mb-10"></div>
             <p className="text-[11px] font-black uppercase tracking-[0.5em] text-primary animate-pulse">Consultando Acervo Elite...</p>
           </div>
         ) : enrichedProducts.length === 0 ? (
-          <div className="py-40 text-center flex flex-col items-center gap-8">
-            <div className="size-24 rounded-[32px] bg-white/[0.02] border border-white/5 flex items-center justify-center text-slate-700">
-              <span className="material-symbols-outlined text-5xl">shopping_bag</span>
+          <div className="py-40 sm:py-40 lg:py-40 text-center flex flex-col items-center gap-8 lg:gap-8">
+            <div className="size-18 sm:size-20 lg:size-24 rounded-2xl sm:rounded-3xl lg:rounded-[32px] bg-white/[0.02] border border-white/5 flex items-center justify-center text-slate-700">
+              <span className="material-symbols-outlined text-3xl sm:text-4xl lg:text-5xl lg:text-3xl sm:text-4xl lg:text-5xl">shopping_bag</span>
             </div>
             <p className="text-[11px] font-black uppercase tracking-[0.5em] text-slate-600">Boutique temporariamente fechada</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-10 lg:gap-14 pb-40">
+          <div className="grid grid-cols-1 sm:grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 sm:grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-1 sm:grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-10 lg:gap-14 lg:gap-14 pb-40">
             {enrichedProducts.map(product => {
               const isSelected = selectedProductIds.includes(product.id);
               const isOutOfStock = product.stock <= 0;
@@ -186,48 +186,48 @@ const ProductShowcase: React.FC<ProductShowcaseProps> = ({ bookingDraft, setBook
               return (
                 <div
                   key={product.id}
-                  className={`group relative bg-surface-dark/40 rounded-[56px] border border-white/5 p-8 shadow-[0_30px_80px_rgba(0,0,0,0.4)] transition-all backdrop-blur-3xl overflow-hidden active:scale-[0.99]
+                  className={`group relative bg-surface-dark/40 rounded-2xl sm:rounded-3xl lg:rounded-[56px] border border-white/5 p-8 sm:p-8 lg:p-8 shadow-[0_30px_80px_rgba(0,0,0,0.4)] transition-all backdrop-blur-3xl overflow-hidden active:scale-[0.99]
                     ${isOutOfStock ? 'opacity-40 grayscale pointer-events-none' : 'hover:border-primary/20'}
                     ${isSelected ? 'ring-2 ring-primary ring-offset-4 ring-offset-background-dark' : ''}
                   `}
                   onClick={() => !isOutOfStock && toggleProduct(product)}
                 >
-                  <div className="relative aspect-[4/5] rounded-[40px] overflow-hidden border-2 border-white/5 shadow-2xl bg-black/20 mb-8 cursor-pointer">
+                  <div className="relative aspect-[4/5] rounded-2xl sm:rounded-3xl lg:rounded-[40px] overflow-hidden border-2 border-white/5 shadow-2xl bg-black/20 mb-8 cursor-pointer">
                     <img src={product.image} className="size-full object-cover grayscale-[0.3] group-hover:grayscale-0 group-hover:scale-110 transition-all duration-1000" alt={product.name} />
                     <div className="absolute inset-0 bg-gradient-to-t from-background-dark/80 via-transparent to-transparent"></div>
 
                     {salon && (
-                      <div className="absolute top-6 left-6 flex flex-col gap-2">
-                        <span className="bg-black/60 backdrop-blur-md border border-white/10 px-4 py-2 rounded-full text-[8px] font-black text-white uppercase tracking-widest">{salon.nome}</span>
-                        <span className="bg-primary/20 backdrop-blur-md border border-primary/30 px-4 py-2 rounded-full text-[8px] font-black text-primary uppercase tracking-widest self-start">{salon.distancia}</span>
+                      <div className="absolute top-6 left-6 flex flex-col gap-2 lg:gap-2">
+                        <span className="bg-black/60 backdrop-blur-md border border-white/10 px-4 sm:px-4 lg:px-4 py-2 sm:py-2 lg:py-2 rounded-full text-[8px] font-black text-white uppercase tracking-widest">{salon.nome}</span>
+                        <span className="bg-primary/20 backdrop-blur-md border border-primary/30 px-4 sm:px-4 lg:px-4 py-2 sm:py-2 lg:py-2 rounded-full text-[8px] font-black text-primary uppercase tracking-widest self-start">{salon.distancia}</span>
                       </div>
                     )}
 
                     {isOutOfStock && (
                       <div className="absolute inset-0 bg-background-dark/80 flex items-center justify-center">
-                        <span className="text-[10px] font-black text-white uppercase tracking-[0.3em] border-2 border-white/20 px-6 py-3 rounded-full">Indisponível</span>
+                        <span className="text-[10px] font-black text-white uppercase tracking-[0.3em] border-2 border-white/20 px-6 sm:px-6 lg:px-6 py-3 sm:py-3 lg:py-3 rounded-full">Indisponível</span>
                       </div>
                     )}
 
-                    <div className={`absolute bottom-6 right-6 size-16 rounded-[24px] flex items-center justify-center shadow-gold transition-all duration-500
+                    <div className={`absolute bottom-6 right-6 size-10 sm:size-12 lg:size-16 rounded-[24px] flex items-center justify-center shadow-gold transition-all duration-500
                       ${isSelected ? 'gold-gradient text-background-dark scale-110' : 'bg-white/10 text-white backdrop-blur-md border border-white/10 group-hover:gold-gradient group-hover:text-background-dark group-hover:scale-110'}
                     `}>
-                      <span className="material-symbols-outlined text-2xl font-black">{isSelected ? 'check' : 'shopping_bag'}</span>
+                      <span className="material-symbols-outlined text-2xl lg:text-2xl font-black">{isSelected ? 'check' : 'shopping_bag'}</span>
                     </div>
                   </div>
 
                   <div className="space-y-6">
                     <div>
-                      <h4 className="font-display text-2xl font-black text-white italic tracking-tighter uppercase leading-none truncate group-hover:text-primary transition-colors">{product.name}</h4>
-                      <div className="flex items-center gap-3 mt-4">
-                        <span className="text-[8px] font-black text-slate-600 uppercase tracking-widest bg-white/5 px-3 py-1.5 rounded-xl border border-white/5">{product.stock} UNIDADES</span>
+                      <h4 className="font-display text-2xl lg:text-2xl font-black text-white italic tracking-tighter uppercase leading-none truncate group-hover:text-primary transition-colors">{product.name}</h4>
+                      <div className="flex items-center gap-3 lg:gap-3 mt-4">
+                        <span className="text-[8px] font-black text-slate-600 uppercase tracking-widest bg-white/5 px-3 sm:px-3 lg:px-3 py-1 sm:py-1 lg:py-1.5 rounded-xl border border-white/5">{product.stock} UNIDADES</span>
                       </div>
                     </div>
 
                     <div className="flex items-center justify-between pt-6 border-t border-white/5">
                       <div className="flex flex-col">
                         <span className="text-[8px] font-black text-slate-600 uppercase tracking-widest leading-none mb-2">Valor de Investimento</span>
-                        <span className="text-3xl font-display font-black text-white italic tracking-tight">R$ {product.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                        <span className="text-3xl lg:text-3xl font-display font-black text-white italic tracking-tight">R$ {product.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                       </div>
                     </div>
                   </div>
@@ -239,24 +239,24 @@ const ProductShowcase: React.FC<ProductShowcaseProps> = ({ bookingDraft, setBook
       </main>
 
       {itemCount > 0 && (
-        <div className="fixed bottom-12 left-1/2 -translate-x-1/2 z-[100] w-full max-w-xl px-6 animate-fade-in">
+        <div className="fixed bottom-12 left-1/2 -translate-x-1/2 z-[100] w-full max-w-full sm:max-w-xl px-6 sm:px-6 lg:px-6 animate-fade-in">
           <button
             onClick={() => setShowCart(true)}
-            className="w-full gold-gradient text-background-dark h-24 rounded-[32px] flex items-center justify-between px-10 shadow-gold active:scale-95 transition-all group overflow-hidden relative"
+            className="w-full gold-gradient text-background-dark h-24 rounded-2xl sm:rounded-3xl lg:rounded-[32px] flex items-center justify-between px-10 sm:px-10 lg:px-10 shadow-gold active:scale-95 transition-all group overflow-hidden relative"
           >
             <div className="absolute inset-0 bg-white/10 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
-            <div className="relative z-10 flex items-center gap-6 text-left">
-              <div className="size-14 rounded-2xl bg-background-dark/10 flex items-center justify-center">
-                <span className="material-symbols-outlined text-3xl font-black">shopping_cart</span>
+            <div className="relative z-10 flex items-center gap-6 lg:gap-6 text-left">
+              <div className="size-10 sm:size-12 lg:size-14 rounded-2xl bg-background-dark/10 flex items-center justify-center">
+                <span className="material-symbols-outlined text-3xl lg:text-3xl font-black">shopping_cart</span>
               </div>
               <div>
                 <p className="text-[9px] uppercase tracking-[0.4em] font-black opacity-60 mb-1">{itemCount} ATIVOS SELECIONADOS</p>
-                <p className="text-2xl font-display font-black italic">R$ {totalPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                <p className="text-2xl lg:text-2xl font-display font-black italic">R$ {totalPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
               </div>
             </div>
-            <div className="relative z-10 flex items-center gap-4">
+            <div className="relative z-10 flex items-center gap-4 lg:gap-4">
               <span className="text-[10px] uppercase font-black tracking-[0.4em]">RESGATAR</span>
-              <span className="material-symbols-outlined text-2xl font-black">arrow_forward</span>
+              <span className="material-symbols-outlined text-2xl lg:text-2xl font-black">arrow_forward</span>
             </div>
           </button>
         </div>
@@ -265,27 +265,27 @@ const ProductShowcase: React.FC<ProductShowcaseProps> = ({ bookingDraft, setBook
       {/* Cart Summary Modal Refinado */}
       {showCart && (
         <div className="fixed inset-0 z-[120] bg-background-dark/95 backdrop-blur-3xl animate-fade-in flex flex-col items-center overflow-hidden">
-          <div className="flex-1 flex flex-col max-w-[600px] w-full h-full relative">
-            <header className="px-10 pt-16 flex items-center justify-between shrink-0">
+          <div className="flex-1 flex flex-col max-w-full max-w-[600px] w-full h-full relative">
+            <header className="px-10 sm:px-10 lg:px-10 pt-16 flex items-center justify-between shrink-0">
               <div>
-                <h2 className="text-2xl lg:text-3xl font-display font-black text-white italic tracking-tighter uppercase">Sua Sacola</h2>
+                <h2 className="text-2xl lg:text-2xl lg:text-3xl lg:text-3xl font-display font-black text-white italic tracking-tighter uppercase">Sua Sacola</h2>
                 <p className="text-[10px] text-primary font-black uppercase tracking-[0.4em] mt-2 leading-none">Revisão Curada do Ritual</p>
               </div>
               <button
                 onClick={() => setShowCart(false)}
-                className="size-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-500 hover:text-white transition-all"
+                className="size-10 sm:size-12 lg:size-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-500 hover:text-white transition-all"
               >
                 <span className="material-symbols-outlined font-black">close</span>
               </button>
             </header>
 
-            <div className="flex-1 overflow-y-auto p-10 space-y-10 pb-60 no-scrollbar min-h-0">
+            <div className="flex-1 overflow-y-auto p-10 sm:p-10 lg:p-10 space-y-10 pb-60 no-scrollbar min-h-0">
               {/* Serviços */}
               {(bookingDraft?.services || []).map((svc: any) => (
-                <div key={svc.id} className="flex items-center justify-between p-6 bg-surface-dark/40 border border-white/5 rounded-[32px] shadow-2xl backdrop-blur-xl group">
-                  <div className="flex items-center gap-6">
-                    <div className="size-16 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
-                      <span className="material-symbols-outlined text-3xl font-black">content_cut</span>
+                <div key={svc.id} className="flex items-center justify-between p-6 sm:p-6 lg:p-6 bg-surface-dark/40 border border-white/5 rounded-2xl sm:rounded-3xl lg:rounded-[32px] shadow-2xl backdrop-blur-xl group">
+                  <div className="flex items-center gap-6 lg:gap-6">
+                    <div className="size-10 sm:size-12 lg:size-16 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
+                      <span className="material-symbols-outlined text-3xl lg:text-3xl font-black">content_cut</span>
                     </div>
                     <div>
                       <p className="text-[11px] font-black text-white uppercase tracking-[0.4em] mb-1">{svc.name}</p>
@@ -300,9 +300,9 @@ const ProductShowcase: React.FC<ProductShowcaseProps> = ({ bookingDraft, setBook
 
               {/* Produtos */}
               {productsInDraft.map((prod: Product) => (
-                <div key={prod.id} className="flex items-center justify-between p-6 bg-surface-dark/40 border border-white/5 rounded-[32px] shadow-2xl backdrop-blur-xl group">
-                  <div className="flex items-center gap-6">
-                    <div className="size-16 rounded-2xl overflow-hidden border border-white/10">
+                <div key={prod.id} className="flex items-center justify-between p-6 sm:p-6 lg:p-6 bg-surface-dark/40 border border-white/5 rounded-2xl sm:rounded-3xl lg:rounded-[32px] shadow-2xl backdrop-blur-xl group">
+                  <div className="flex items-center gap-6 lg:gap-6">
+                    <div className="size-10 sm:size-12 lg:size-16 rounded-2xl overflow-hidden border border-white/10">
                       <img src={prod.image} className="size-full object-cover grayscale-[0.3] group-hover:grayscale-0 transition-all" />
                     </div>
                     <div>
@@ -310,13 +310,13 @@ const ProductShowcase: React.FC<ProductShowcaseProps> = ({ bookingDraft, setBook
                       <p className="text-[9px] text-slate-500 font-bold uppercase tracking-widest">Aura Boutique</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-6">
+                  <div className="flex items-center gap-6 lg:gap-6">
                     <div className="text-right">
                       <p className="text-xl font-display font-black text-primary italic">R$ {prod.price.toFixed(2)}</p>
                     </div>
                     <button
                       onClick={() => toggleProduct(prod)}
-                      className="size-12 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 flex items-center justify-center active:scale-90 transition-all"
+                      className="size-10 sm:size-12 lg:size-12 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 flex items-center justify-center active:scale-90 transition-all"
                     >
                       <span className="material-symbols-outlined text-xl font-black">delete</span>
                     </button>
@@ -325,25 +325,25 @@ const ProductShowcase: React.FC<ProductShowcaseProps> = ({ bookingDraft, setBook
               ))}
 
               {itemCount === 0 && (
-                <div className="py-20 text-center flex flex-col items-center gap-6">
-                  <div className="size-20 rounded-[32px] bg-white/[0.02] border border-white/5 flex items-center justify-center text-slate-700">
-                    <span className="material-symbols-outlined text-4xl">shopping_cart</span>
+                <div className="py-20 sm:py-20 lg:py-20 text-center flex flex-col items-center gap-6 lg:gap-6">
+                  <div className="size-14 sm:size-16 lg:size-20 rounded-2xl sm:rounded-3xl lg:rounded-[32px] bg-white/[0.02] border border-white/5 flex items-center justify-center text-slate-700">
+                    <span className="material-symbols-outlined text-4xl lg:text-4xl">shopping_cart</span>
                   </div>
                   <p className="text-[11px] font-black uppercase tracking-[0.4em] text-slate-600">Sua sacola está vazia</p>
                 </div>
               )}
             </div>
 
-            <div className="absolute bottom-0 left-0 right-0 p-10 bg-gradient-to-t from-background-dark via-background-dark to-transparent">
-              <div className="bg-surface-dark border border-white/10 rounded-[40px] p-8 shadow-3xl space-y-8">
-                <div className="flex items-center justify-between px-2">
+            <div className="absolute bottom-0 left-0 right-0 p-10 sm:p-10 lg:p-10 bg-gradient-to-t from-background-dark via-background-dark to-transparent">
+              <div className="bg-surface-dark border border-white/10 rounded-2xl sm:rounded-3xl lg:rounded-[40px] p-8 sm:p-8 lg:p-8 shadow-3xl space-y-8">
+                <div className="flex items-center justify-between px-2 sm:px-2 lg:px-2">
                   <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.5em]">Consolidado Geral</p>
-                  <p className="text-3xl font-display font-black text-white italic tracking-tighter">R$ {totalPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                  <p className="text-3xl lg:text-3xl font-display font-black text-white italic tracking-tighter">R$ {totalPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                 </div>
 
                 <button
                   onClick={handleCheckout}
-                  className="w-full gold-gradient text-background-dark h-20 rounded-[28px] flex items-center justify-center gap-6 text-[11px] font-black uppercase tracking-[0.4em] shadow-gold active:scale-95 transition-all hover:brightness-110"
+                  className="w-full gold-gradient text-background-dark h-20 rounded-[28px] flex items-center justify-center gap-6 lg:gap-6 text-[11px] font-black uppercase tracking-[0.4em] shadow-gold active:scale-95 transition-all hover:brightness-110"
                 >
                   <span>{role ? 'EFETIVAR RITUAL' : 'ACESSO PARA RESERVAR'}</span>
                   <span className="material-symbols-outlined font-black">arrow_forward</span>

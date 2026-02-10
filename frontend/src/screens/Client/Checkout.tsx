@@ -184,15 +184,27 @@ const Checkout: React.FC<CheckoutProps> = ({ bookingDraft, salons, onConfirm, se
           if (!mpObject.payer.email) mpObject.payer.email = userEmail;
 
           const mpResponse = await api.payments.createOrder(activeSalon, mpObject);
+          // Normaliza a resposta (pode vir aninhada em response ou data dependendo do wrapper)
+          const actualResponse = mpResponse.response || mpResponse.data || mpResponse;
+
+          // Tenta encontrar point_of_interaction em varios niveis
+          const poi = actualResponse.point_of_interaction || mpResponse.point_of_interaction;
 
           // Captura dados do PIX se existirem
-          if (mpResponse.point_of_interaction?.transaction_data) {
-            const tData = mpResponse.point_of_interaction.transaction_data;
+          if (poi && poi.transaction_data) {
+            const tData = poi.transaction_data;
             pixData = {
               qrCodeBase64: tData.qr_code_base64,
               copyPaste: tData.qr_code,
               ticketUrl: tData.ticket_url,
-              id: mpResponse.id
+              id: actualResponse.id || mpResponse.id
+            };
+          } else if (actualResponse.id) {
+            // Fallback se tiver ID mas não tiver QR code explícito agora
+            pixData = {
+              id: actualResponse.id,
+              copyPaste: '',
+              qrCodeBase64: ''
             };
           }
         } catch (payErr: any) {
@@ -297,27 +309,27 @@ const Checkout: React.FC<CheckoutProps> = ({ bookingDraft, salons, onConfirm, se
 
 
   return (
-    <div className="flex-1 overflow-y-auto h-full no-scrollbar bg-background-dark relative">
+    <div className="flex-1 flex flex-col min-h-screen bg-background-dark relative">
       <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.02] pointer-events-none"></div>
 
       {step !== 'success' && (
-        <header className="sticky top-0 z-50 bg-background-dark/80 backdrop-blur-3xl px-6 pt-12 pb-10 border-b border-white/5">
+        <header className="sticky top-0 z-50 bg-background-dark/80 backdrop-blur-3xl px-4 lg:px-6 pt-10 lg:pt-12 pb-6 lg:pb-10 border-b border-white/5">
           <div className="max-w-[1400px] mx-auto w-full text-center">
-            <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center justify-between mb-6 lg:mb-8">
               <button
                 onClick={() => step === 'payment_detail' ? setStep('summary') : navigate(-1)}
-                className="size-12 rounded-2xl bg-black/40 border border-white/10 flex items-center justify-center text-white active:scale-95 transition-all"
+                className="size-9 lg:size-12 rounded-xl lg:rounded-2xl bg-black/40 border border-white/10 flex items-center justify-center text-white active:scale-95 transition-all"
               >
-                <span className="material-symbols-outlined text-xl">arrow_back</span>
+                <span className="material-symbols-outlined text-base lg:text-xl">arrow_back</span>
               </button>
               <div className="text-center">
-                <h1 className="font-display font-black text-white italic tracking-[0.2em] uppercase leading-none" style={{ fontSize: 'var(--step-1)' }}>
+                <h1 className="font-display font-black text-white italic tracking-[0.2em] uppercase leading-none text-sm lg:text-3xl">
                   Finalização Elite
                 </h1>
-                <p className="text-[7px] text-primary font-black uppercase tracking-[0.4em] mt-3">{step === 'summary' ? 'Revisão do Ritual' : 'Pagamento Seguro'}</p>
+                <p className="text-[6px] lg:text-[7px] text-primary font-black uppercase tracking-[0.4em] mt-2">{step === 'summary' ? 'Revisão do Ritual' : 'Pagamento Seguro'}</p>
               </div>
-              <div className="size-12 flex items-center justify-center text-primary">
-                <span className="material-symbols-outlined text-xl">verified_user</span>
+              <div className="size-9 lg:size-12 flex items-center justify-center text-primary">
+                <span className="material-symbols-outlined text-lg lg:text-xl">verified_user</span>
               </div>
             </div>
           </div>
@@ -325,55 +337,55 @@ const Checkout: React.FC<CheckoutProps> = ({ bookingDraft, salons, onConfirm, se
       )}
 
       {(!services.length && !products.length && step !== 'success' && step !== 'waiting_pix') ? (
-        <div className="h-full flex flex-col items-center justify-center p-8 text-center animate-fade-in relative z-10 py-60">
-          <div className="size-24 rounded-[32px] bg-white/[0.02] border border-white/5 flex items-center justify-center text-slate-700 mb-8">
-            <span className="material-symbols-outlined text-5xl">shopping_bag</span>
+        <div className="h-full flex flex-col items-center justify-center p-8 sm:p-8 lg:p-8 text-center animate-fade-in relative z-10 py-60 sm:py-60 lg:py-60">
+          <div className="size-18 sm:size-20 lg:size-24 rounded-2xl sm:rounded-3xl lg:rounded-[32px] bg-white/[0.02] border border-white/5 flex items-center justify-center text-slate-700 mb-8">
+            <span className="material-symbols-outlined text-3xl sm:text-4xl lg:text-5xl lg:text-3xl sm:text-4xl lg:text-5xl">shopping_bag</span>
           </div>
-          <h2 className="text-2xl lg:text-3xl font-display font-black text-white italic mb-8 uppercase tracking-tighter">Sua Sacola está vazia</h2>
+          <h2 className="text-2xl lg:text-2xl lg:text-3xl lg:text-3xl font-display font-black text-white italic mb-8 uppercase tracking-tighter">Sua Sacola está vazia</h2>
           <button
             onClick={() => navigate('/products')}
-            className="gold-gradient text-background-dark h-20 px-12 rounded-2xl font-black uppercase text-[11px] tracking-[0.4em] active:scale-95 transition-all shadow-gold"
+            className="gold-gradient text-background-dark h-20 px-12 sm:px-12 lg:px-12 rounded-2xl font-black uppercase text-[11px] tracking-[0.4em] active:scale-95 transition-all shadow-gold"
           >
             EXPLORAR ACERVO
           </button>
         </div>
       ) : (
-        <main className="max-w-[1400px] mx-auto w-full px-6 py-12 lg:py-20 animate-fade-in relative z-10">
+        <main className={`max-w-[1400px] mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-20 animate-fade-in relative z-10 flex-1 ${step !== 'waiting_pix' ? 'flex flex-col items-center justify-center' : ''}`}>
           {step === 'summary' && (
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-20 items-start pb-48">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-20 items-start w-full lg:mb-20">
               {/* Coluna Principal: Itens Selecionados */}
               <div className="lg:col-span-7 space-y-16">
                 {/* 1. SERVIÇOS SELECIONADOS */}
                 {services.length > 0 && (
-                  <div className="space-y-10">
-                    <div className="flex items-center gap-6 px-4">
-                      <div className="h-0.5 w-12 bg-primary"></div>
-                      <h2 className="text-[11px] lg:text-xs font-black uppercase tracking-[0.5em] text-primary">Rituais Escolhidos</h2>
+                  <div className="space-y-6 lg:space-y-10">
+                    <div className="flex items-center gap-4 lg:gap-6 px-2 lg:px-4">
+                      <div className="h-[1px] w-8 lg:w-12 bg-primary"></div>
+                      <h2 className="text-[9px] lg:text-xs font-black uppercase tracking-[0.5em] text-primary">Rituais Escolhidos</h2>
                     </div>
-                    <div className="space-y-6">
+                    <div className="space-y-4 lg:space-y-6">
                       {services.map((s: Service) => (
-                        <div key={s.id} className="group relative bg-surface-dark/40 rounded-[48px] border border-white/5 p-6 lg:p-8 shadow-[0_30px_80px_rgba(0,0,0,0.4)] transition-all backdrop-blur-3xl overflow-hidden active:scale-[0.99] flex items-center gap-8">
+                        <div key={s.id} className="group relative bg-surface-dark/40 rounded-2xl lg:rounded-[48px] border border-white/5 p-4 lg:p-8 shadow-2xl transition-all backdrop-blur-3xl overflow-hidden active:scale-[0.99] flex items-center gap-4 lg:gap-8">
                           <div className="relative shrink-0">
-                            <div className="size-20 lg:size-24 rounded-[32px] overflow-hidden border-2 border-white/5 shadow-2xl relative">
+                            <div className="size-12 lg:size-24 rounded-xl lg:rounded-[32px] overflow-hidden border border-white/5 shadow-2xl relative">
                               <img src={s.image} className="size-full object-cover grayscale-[0.2] group-hover:grayscale-0 group-hover:scale-110 transition-all duration-1000" alt={s.name} />
                               <div className="absolute inset-0 bg-gradient-to-t from-background-dark/40 to-transparent"></div>
                             </div>
                           </div>
                           <div className="flex-1 min-w-0">
-                            <h4 className="font-display text-xl lg:text-2xl font-black text-white italic tracking-tighter uppercase leading-none truncate group-hover:text-primary transition-colors">{s.name}</h4>
-                            <div className="flex items-center gap-4 mt-3">
-                              <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest bg-white/5 px-2.5 py-1.5 rounded-xl border border-white/5">{s.duration_min} MIN</span>
-                              <span className="text-[8px] font-black text-primary uppercase tracking-widest bg-primary/10 px-2.5 py-1.5 rounded-xl border border-primary/10">RITUAL</span>
+                            <h4 className="font-display text-base lg:text-2xl font-black text-white italic tracking-tighter uppercase leading-none truncate group-hover:text-primary transition-colors">{s.name}</h4>
+                            <div className="flex items-center gap-2 lg:gap-4 mt-2 lg:mt-3">
+                              <span className="text-[6px] lg:text-[8px] font-black text-slate-500 uppercase tracking-widest bg-white/5 px-1.5 py-0.5 lg:px-2.5 lg:py-1.5 rounded-lg border border-white/5">{s.duration_min} MIN</span>
+                              <span className="text-[6px] lg:text-[8px] font-black text-primary uppercase tracking-widest bg-primary/10 px-1.5 py-0.5 lg:px-2.5 lg:py-1.5 rounded-lg border border-primary/10">RITUAL</span>
                             </div>
-                            <div className="mt-4">
-                              <span className="text-2xl font-display font-black text-white italic tracking-tight">R$ {s.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                            <div className="mt-2 lg:mt-4">
+                              <span className="text-lg lg:text-2xl font-display font-black text-white italic tracking-tight">R$ {s.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                             </div>
                           </div>
                           <button
                             onClick={() => removeItem(s.id, 'service')}
-                            className="size-12 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-500 flex items-center justify-center active:scale-90 transition-all shrink-0"
+                            className="size-8 lg:size-12 rounded-xl lg:rounded-2xl bg-red-500/10 border border-red-500/20 text-red-500 flex items-center justify-center active:scale-90 transition-all shrink-0"
                           >
-                            <span className="material-symbols-outlined text-xl font-black">close</span>
+                            <span className="material-symbols-outlined text-base lg:text-xl font-black underline">close</span>
                           </button>
                         </div>
                       ))}
@@ -383,34 +395,34 @@ const Checkout: React.FC<CheckoutProps> = ({ bookingDraft, salons, onConfirm, se
 
                 {/* 1.1 PRODUTOS SELECIONADOS */}
                 {products.length > 0 && (
-                  <div className="space-y-10">
-                    <div className="flex items-center gap-6 px-4">
-                      <div className="h-0.5 w-12 bg-slate-800"></div>
-                      <h2 className="text-[11px] lg:text-xs font-black uppercase tracking-[0.5em] text-slate-600">Ativos Adicionados</h2>
+                  <div className="space-y-8 lg:space-y-10">
+                    <div className="flex items-center gap-6 lg:gap-6 px-2 sm:px-2 lg:px-2 lg:px-4 sm:px-4 lg:px-4">
+                      <div className="h-0.5 w-10 lg:w-12 bg-slate-800"></div>
+                      <h2 className="text-[10px] lg:text-xs font-black uppercase tracking-[0.5em] text-slate-600 opacity-80">Ativos Adicionados</h2>
                     </div>
                     <div className="space-y-6">
                       {products.map((p: Product) => (
-                        <div key={p.id} className="group relative bg-surface-dark/40 rounded-[48px] border border-white/5 p-6 lg:p-8 shadow-[0_30px_80px_rgba(0,0,0,0.4)] transition-all backdrop-blur-3xl overflow-hidden active:scale-[0.99] flex items-center gap-8">
+                        <div key={p.id} className="group relative bg-surface-dark/40 rounded-2xl sm:rounded-3xl lg:rounded-[32px] lg:rounded-2xl sm:rounded-3xl lg:rounded-[48px] border border-white/5 p-5 sm:p-5 lg:p-5 lg:p-8 sm:p-8 lg:p-8 shadow-2xl transition-all backdrop-blur-3xl overflow-hidden active:scale-[0.99] flex items-center gap-6 lg:gap-6 lg:gap-8 lg:gap-8">
                           <div className="relative shrink-0">
-                            <div className="size-20 lg:size-24 rounded-[32px] overflow-hidden border-2 border-white/5 shadow-2xl relative">
+                            <div className="size-10 sm:size-12 lg:size-16 lg:size-18 sm:size-20 lg:size-24 rounded-2xl lg:rounded-2xl sm:rounded-3xl lg:rounded-[32px] overflow-hidden border-2 border-white/5 shadow-2xl relative">
                               <img src={p.image} className="size-full object-cover grayscale-[0.2] group-hover:grayscale-0 group-hover:scale-110 transition-all duration-1000" alt={p.name} />
                               <div className="absolute inset-0 bg-gradient-to-t from-background-dark/40 to-transparent"></div>
                             </div>
                           </div>
                           <div className="flex-1 min-w-0">
-                            <h4 className="font-display text-xl lg:text-2xl font-black text-white italic tracking-tighter uppercase leading-none truncate group-hover:text-primary transition-colors">{p.name}</h4>
-                            <div className="flex items-center gap-4 mt-3">
-                              <span className="text-[8px] font-black text-primary uppercase tracking-widest bg-primary/10 px-2.5 py-1.5 rounded-xl border border-primary/10">BOUTIQUE</span>
+                            <h4 className="font-display text-lg lg:text-2xl lg:text-2xl font-black text-white italic tracking-tighter uppercase leading-none truncate group-hover:text-primary transition-colors">{p.name}</h4>
+                            <div className="flex items-center gap-3 lg:gap-3 lg:gap-4 lg:gap-4 mt-3">
+                              <span className="text-[7px] lg:text-[8px] font-black text-primary uppercase tracking-widest bg-primary/10 px-2 sm:px-2 lg:px-2 py-1 sm:py-1 lg:py-1 lg:px-2 sm:px-2 lg:px-2.5 lg:py-1 sm:py-1 lg:py-1.5 rounded-lg lg:rounded-xl border border-primary/10">BOUTIQUE</span>
                             </div>
                             <div className="mt-4">
-                              <span className="text-2xl font-display font-black text-white italic tracking-tight">R$ {p.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                              <span className="text-xl lg:text-2xl lg:text-2xl font-display font-black text-white italic tracking-tight">R$ {p.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                             </div>
                           </div>
                           <button
                             onClick={() => removeItem(p.id, 'product')}
-                            className="size-12 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-500 flex items-center justify-center active:scale-90 transition-all shrink-0"
+                            className="size-10 sm:size-12 lg:size-10 lg:size-10 sm:size-12 lg:size-12 rounded-xl lg:rounded-2xl bg-red-500/10 border border-red-500/20 text-red-500 flex items-center justify-center active:scale-90 transition-all shrink-0"
                           >
-                            <span className="material-symbols-outlined text-xl font-black">close</span>
+                            <span className="material-symbols-outlined text-lg lg:text-xl font-black">close</span>
                           </button>
                         </div>
                       ))}
@@ -420,31 +432,29 @@ const Checkout: React.FC<CheckoutProps> = ({ bookingDraft, salons, onConfirm, se
               </div>
 
               {/* Coluna Lateral: Resumo, Upsell e Checkout */}
-              <div className="lg:col-span-5 space-y-12 lg:sticky lg:top-40">
+              <div className="lg:col-span-5 space-y-10 lg:space-y-12">
                 {/* 2. CARD DE UPSELL */}
                 {availableProducts.length > 0 && products.length === 0 && (
-                  <div className="gold-gradient p-[1px] rounded-[48px] shadow-[0_30px_100px_rgba(0,0,0,0.5)] group transition-all hover:scale-[1.01]">
-                    <div className="bg-background-dark/98 backdrop-blur-3xl rounded-[47px] p-8 lg:p-10 relative overflow-hidden">
+                  <div className="gold-gradient p-[1px] rounded-2xl lg:rounded-[48px] shadow-[0_30px_100px_rgba(0,0,0,0.5)] group transition-all hover:scale-[1.01]">
+                    <div className="bg-background-dark/98 backdrop-blur-3xl rounded-2xl lg:rounded-[47px] p-5 lg:p-10 relative overflow-hidden">
                       <div className="absolute top-0 -left-1/2 w-full h-full bg-gradient-to-r from-transparent via-primary/10 to-transparent skew-x-[-25deg] group-hover:left-[120%] transition-all duration-1500 ease-in-out"></div>
-                      <div className="relative z-10 space-y-8">
+                      <div className="relative z-10 space-y-4 lg:space-y-8">
                         <div className="text-center">
-                          <span className="bg-primary/20 text-primary border border-primary/30 px-5 py-2 rounded-full text-[9px] font-black uppercase tracking-[0.5em]">Oferta Especial</span>
-                          <h3 className="text-2xl font-display font-black text-white italic uppercase tracking-tighter mt-6">Complete o Ritual</h3>
-                          <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-2">{availableProducts[0]?.name.split(' ')[0]} Select</p>
+                          <span className="bg-primary/20 text-primary border border-primary/30 px-3 lg:px-5 py-1 lg:py-2 rounded-full text-[7px] lg:text-[9px] font-black uppercase tracking-[0.5em]">Oferta Especial</span>
+                          <h3 className="text-base lg:text-2xl font-display font-black text-white italic uppercase tracking-tighter mt-3 lg:mt-6">Complete o Ritual</h3>
                         </div>
-
-                        <div className="space-y-4">
+                        <div className="space-y-3">
                           {availableProducts.slice(0, 2).map((product) => (
-                            <div key={product.id} className="bg-surface-dark border border-white/5 rounded-[32px] p-4 flex items-center gap-6 group/item hover:border-primary/40 transition-all">
-                              <div className="size-16 rounded-2xl overflow-hidden border border-white/10 shrink-0">
+                            <div key={product.id} className="bg-surface-dark border border-white/5 rounded-xl lg:rounded-[32px] p-3 lg:p-4 flex items-center gap-3 lg:gap-6 group/item hover:border-primary/40 transition-all">
+                              <div className="size-10 lg:size-16 rounded-xl lg:rounded-2xl overflow-hidden border border-white/10 shrink-0">
                                 <img src={product.image} className="size-full object-cover grayscale-[0.3] group-hover/item:grayscale-0 transition-all" />
                               </div>
                               <div className="flex-1 min-w-0">
-                                <h4 className="text-sm font-black text-white uppercase tracking-widest truncate">{product.name}</h4>
-                                <span className="text-primary font-display font-black text-lg italic mt-1 block">R$ {product.price.toFixed(2)}</span>
+                                <h4 className="text-[10px] lg:text-sm font-black text-white uppercase tracking-widest truncate">{product.name}</h4>
+                                <span className="text-primary font-display font-black text-sm lg:text-lg italic mt-1 block">R$ {product.price.toFixed(2)}</span>
                               </div>
-                              <button onClick={() => addProduct(product)} className="size-10 rounded-2xl gold-gradient text-background-dark flex items-center justify-center shadow-gold group-hover/item:scale-110 transition-all">
-                                <span className="material-symbols-outlined font-black">add</span>
+                              <button onClick={() => addProduct(product)} className="size-7 lg:size-10 rounded-lg lg:rounded-2xl gold-gradient text-background-dark flex items-center justify-center shadow-gold group-hover/item:scale-110 transition-all">
+                                <span className="material-symbols-outlined text-xs lg:text-base font-black">add</span>
                               </button>
                             </div>
                           ))}
@@ -455,82 +465,112 @@ const Checkout: React.FC<CheckoutProps> = ({ bookingDraft, salons, onConfirm, se
                 )}
 
                 {/* Resumo Consolidado */}
-                <div className="bg-surface-dark border border-white/5 rounded-[56px] p-10 shadow-3xl space-y-10 relative overflow-hidden">
-                  <div className="absolute top-0 right-0 p-8 opacity-5">
-                    <span className="material-symbols-outlined text-8xl text-white">receipt_long</span>
+                <div className="bg-surface-dark border border-white/5 rounded-[32px] lg:rounded-[56px] p-6 lg:p-10 shadow-3xl space-y-6 lg:space-y-10 relative overflow-hidden">
+                  <div className="absolute top-0 right-0 p-6 lg:p-8 opacity-5">
+                    <span className="material-symbols-outlined text-5xl lg:text-8xl text-white">receipt_long</span>
                   </div>
-
-                  <div className="relative z-10 space-y-10">
-                    <div className="flex items-center gap-6">
-                      <div className="size-16 rounded-[24px] gold-gradient flex items-center justify-center text-background-dark shadow-gold">
-                        <span className="material-symbols-outlined text-3xl font-black">checklist</span>
+                  <div className="relative z-10 space-y-6 lg:space-y-10">
+                    <div className="flex items-center gap-4 lg:gap-6">
+                      <div className="size-10 lg:size-16 rounded-2xl lg:rounded-[24px] gold-gradient flex items-center justify-center text-background-dark shadow-gold">
+                        <span className="material-symbols-outlined text-2xl lg:text-3xl font-black">checklist</span>
                       </div>
                       <div>
-                        <p className="text-[10px] text-slate-500 font-black uppercase tracking-[0.5em]">SÍNTESE DA RESERVA</p>
-                        <h3 className="text-2xl font-display font-black text-white italic uppercase tracking-tighter">Manifesto Aura</h3>
+                        <p className="text-[8px] lg:text-[10px] text-slate-500 font-black uppercase tracking-[0.5em]">SÍNTESE DA RESERVA</p>
+                        <h3 className="text-lg lg:text-2xl font-display font-black text-white italic uppercase tracking-tighter">Manifesto Aura</h3>
                       </div>
                     </div>
-
-                    <div className="space-y-6">
+                    <div className="space-y-3 lg:space-y-6">
                       {bookingDraft.date && (
-                        <div className="bg-background-dark/40 border border-white/5 p-6 rounded-[32px] flex items-center gap-6 group hover:border-primary/20 transition-all">
-                          <span className="material-symbols-outlined text-primary text-2xl">calendar_today</span>
+                        <div className="bg-background-dark/40 border border-white/5 p-4 lg:p-6 rounded-2xl lg:rounded-[32px] flex items-center gap-4 lg:gap-6 group hover:border-primary/20 transition-all">
+                          <span className="material-symbols-outlined text-primary text-xl lg:text-2xl">calendar_today</span>
                           <div>
-                            <p className="text-[8px] text-slate-600 font-black uppercase tracking-widest mb-1">DATA DO RITUAL</p>
-                            <p className="text-sm font-black text-white uppercase tracking-widest">{new Date(bookingDraft.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long' })}</p>
+                            <p className="text-[7px] lg:text-[8px] text-slate-600 font-black uppercase tracking-widest mb-1">DATA DO RITUAL</p>
+                            <p className="text-xs lg:text-sm font-black text-white uppercase tracking-widest">{new Date(bookingDraft.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long' })}</p>
                           </div>
                         </div>
                       )}
                       {bookingDraft.time && (
-                        <div className="bg-background-dark/40 border border-white/5 p-6 rounded-[32px] flex items-center gap-6 group hover:border-primary/20 transition-all">
-                          <span className="material-symbols-outlined text-primary text-2xl">schedule</span>
+                        <div className="bg-background-dark/40 border border-white/5 p-4 lg:p-6 rounded-2xl lg:rounded-[32px] flex items-center gap-4 lg:gap-6 group hover:border-primary/20 transition-all">
+                          <span className="material-symbols-outlined text-primary text-xl lg:text-2xl">schedule</span>
                           <div>
-                            <p className="text-[8px] text-slate-600 font-black uppercase tracking-widest mb-1">HORÁRIO MARCADO</p>
-                            <p className="text-sm font-black text-white uppercase tracking-widest">{bookingDraft.time}</p>
+                            <p className="text-[7px] lg:text-[8px] text-slate-600 font-black uppercase tracking-widest mb-1">HORÁRIO MARCADO</p>
+                            <p className="text-xs lg:text-sm font-black text-white uppercase tracking-widest">{bookingDraft.time}</p>
                           </div>
                         </div>
                       )}
                       {bookingDraft.professionalName && (
-                        <div className="bg-background-dark/40 border border-white/5 p-6 rounded-[32px] flex items-center gap-6 group hover:border-primary/20 transition-all">
-                          <span className="material-symbols-outlined text-primary text-2xl">person</span>
+                        <div className="bg-background-dark/40 border border-white/5 p-4 lg:p-6 rounded-2xl lg:rounded-[32px] flex items-center gap-4 lg:gap-6 group hover:border-primary/20 transition-all">
+                          <span className="material-symbols-outlined text-primary text-xl lg:text-2xl">person</span>
                           <div>
-                            <p className="text-[8px] text-slate-600 font-black uppercase tracking-widest mb-1">ARTISTA RESPONSÁVEL</p>
-                            <p className="text-sm font-black text-white uppercase tracking-widest">{bookingDraft.professionalName}</p>
+                            <p className="text-[7px] lg:text-[8px] text-slate-600 font-black uppercase tracking-widest mb-1">ARTISTA RESPONSÁVEL</p>
+                            <p className="text-xs lg:text-sm font-black text-white uppercase tracking-widest">{bookingDraft.professionalName}</p>
                           </div>
                         </div>
                       )}
                     </div>
-
-                    <div className="pt-10 border-t border-white/5 space-y-6">
-                      <div className="flex justify-between items-center text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">
+                    <div className="pt-6 lg:pt-10 border-t border-white/5 space-y-4 lg:space-y-6">
+                      <div className="flex justify-between items-center text-[8px] lg:text-[10px] font-black text-slate-500 uppercase tracking-widest px-1">
                         <span>Rituais & Ativos</span>
                         <span className="text-white">R$ {subtotal.toFixed(2)}</span>
                       </div>
-                      <div className="flex justify-between items-center text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">
+                      <div className="flex justify-between items-center text-[8px] lg:text-[10px] font-black text-slate-500 uppercase tracking-widest px-1">
                         <span>Taxa Concierge (5%)</span>
                         <span className="text-white">R$ {tax.toFixed(2)}</span>
                       </div>
                       {promoDiscount > 0 && (
-                        <div className="flex justify-between items-center text-[10px] font-black text-emerald-400 uppercase tracking-widest px-2 group">
-                          <span className="flex items-center gap-2">PLATINUM DISCOUNT <span className="material-symbols-outlined text-[14px]">auto_awesome</span></span>
+                        <div className="flex justify-between items-center text-[8px] lg:text-[10px] font-black text-emerald-400 uppercase tracking-widest px-1 group">
+                          <span className="flex items-center gap-1.5 lg:gap-2">PLATINUM DISCOUNT <span className="material-symbols-outlined text-[12px] lg:text-[14px]">auto_awesome</span></span>
                           <span>- R$ {calculatedDiscount.toFixed(2)}</span>
                         </div>
                       )}
-                      <div className="pt-8 flex justify-between items-center px-2">
-                        <span className="text-[11px] font-black text-primary uppercase tracking-[0.5em]">INVESTIMENTO TOTAL</span>
-                        <span className="text-4xl font-display font-black text-white italic tracking-tighter">R$ {total.toFixed(2)}</span>
+                      <div className="pt-6 lg:pt-8 flex justify-between items-center px-1">
+                        <span className="text-[9px] lg:text-[11px] font-black text-primary uppercase tracking-[0.5em]">INVESTIMENTO TOTAL</span>
+                        <span className="text-2xl lg:text-4xl font-display font-black text-white italic tracking-tighter">R$ {total.toFixed(2)}</span>
+                      </div>
+
+                      {/* Desktop Integrated Button */}
+                      <div className="hidden lg:block pt-10 relative z-10">
+                        <button
+                          onClick={() => {
+                            if (step === 'summary') {
+                              if (activeSalon?.paga_no_local || !isMpEnabled) {
+                                handleFinalConfirm();
+                              } else {
+                                setStep('payment_detail');
+                              }
+                            } else {
+                              if (!mpReady) handleFinalConfirm();
+                            }
+                          }}
+                          disabled={isProcessing}
+                          className="w-full h-20 rounded-[32px] gold-gradient text-background-dark font-black uppercase text-[11px] tracking-[0.4em] flex items-center justify-center gap-6 shadow-gold active:scale-95 transition-all group overflow-hidden relative z-20 cursor-pointer pointer-events-auto"
+                        >
+                          <div className="absolute inset-0 bg-white/10 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                          {isProcessing ? (
+                            <div className="size-7 border-3 border-background-dark/20 border-t-background-dark rounded-full animate-spin"></div>
+                          ) : (
+                            <>
+                              <span className="relative z-10">
+                                {step === 'summary' ? (
+                                  (activeSalon?.paga_no_local || !isMpEnabled) ? 'FINALIZAR RITUAL' : 'ESCOLHER PAGAMENTO'
+                                ) : 'REALIZAR PAGAMENTO'}
+                              </span>
+                              <span className="material-symbols-outlined text-2xl font-black relative z-10 group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                            </>
+                          )}
+                        </button>
                       </div>
                     </div>
                   </div>
-                </div>
 
-                <div className="bg-primary/5 border border-primary/10 p-8 rounded-[40px] flex items-center gap-6 backdrop-blur-3xl group">
-                  <div className="size-16 rounded-2xl bg-primary/10 border border-primary/20 text-primary flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-                    <span className="material-symbols-outlined text-3xl font-black">shield_with_heart</span>
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-black text-white uppercase tracking-widest mb-2">Protocolo de Confiança</p>
-                    <p className="text-[9px] text-slate-500 font-bold uppercase tracking-widest leading-relaxed">Sua experiência é monitorada e assegurada pelos padrões Aura Signature.</p>
+                  <div className="bg-primary/5 border border-primary/10 p-8 sm:p-8 lg:p-8 rounded-2xl sm:rounded-3xl lg:rounded-[40px] flex items-center gap-6 lg:gap-6 backdrop-blur-3xl group">
+                    <div className="size-10 sm:size-12 lg:size-16 rounded-2xl bg-primary/10 border border-primary/20 text-primary flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                      <span className="material-symbols-outlined text-3xl lg:text-3xl font-black">shield_with_heart</span>
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-black text-white uppercase tracking-widest mb-2">Protocolo de Confiança</p>
+                      <p className="text-[9px] text-slate-500 font-bold uppercase tracking-widest leading-relaxed">Sua experiência é monitorada e assegurada pelos padrões Aura Signature.</p>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -538,22 +578,22 @@ const Checkout: React.FC<CheckoutProps> = ({ bookingDraft, salons, onConfirm, se
           )}
 
           {step === 'payment_detail' && (
-            <div className="max-w-[800px] mx-auto w-full animate-fade-in space-y-12">
-              <div className="bg-surface-dark border border-white/5 rounded-[56px] overflow-hidden shadow-3xl p-10">
+            <div className="max-w-[840px] mx-auto w-full animate-fade-in space-y-12">
+              <div className="bg-surface-dark border border-white/5 rounded-2xl sm:rounded-3xl lg:rounded-[56px] shadow-3xl p-4 sm:p-8 lg:p-16">
                 <header className="mb-10 text-center">
                   <p className="text-[10px] text-primary font-black uppercase tracking-[0.5em] mb-4">MÉTODO DE PAGAMENTO</p>
-                  <h2 className="text-3xl font-display font-black text-white italic tracking-tighter uppercase">Ambiente Criptografado</h2>
+                  <h2 className="text-3xl lg:text-3xl font-display font-black text-white italic tracking-tighter uppercase">Ambiente Criptografado</h2>
                 </header>
 
-                <div className="min-h-[450px]">
+                <div className="min-h-auto min-h-[450px]">
                   {mpReady && total > 0 ? (
                     <MPPaymentWrapper
                       total={total}
                       handleFinalConfirm={stableSubmit}
                     />
                   ) : (
-                    <div className="flex flex-col items-center justify-center py-20 gap-8">
-                      <div className="size-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+                    <div className="flex flex-col items-center justify-center py-20 sm:py-20 lg:py-20 gap-8 lg:gap-8">
+                      <div className="size-10 sm:size-12 lg:size-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
                       <p className="text-[11px] text-primary font-black uppercase tracking-[0.5em] animate-pulse">Iniciando Gateway Elite...</p>
                     </div>
                   )}
@@ -563,7 +603,7 @@ const Checkout: React.FC<CheckoutProps> = ({ bookingDraft, salons, onConfirm, se
           )}
 
           {step === 'waiting_pix' && (
-            <div className="max-w-[800px] mx-auto w-full">
+            <div className="max-w-[900px] mx-auto w-full animate-fade-in py-10">
               <CheckoutPixView
                 lastOrder={lastOrder}
                 bookingDraft={bookingDraft}
@@ -585,89 +625,92 @@ const Checkout: React.FC<CheckoutProps> = ({ bookingDraft, salons, onConfirm, se
       )}
 
       {step === 'success' && (
-        <div className="fixed inset-0 z-[200] bg-background-dark flex flex-col items-center justify-center p-10 text-center overflow-hidden animate-fade-in">
+        <div className="fixed inset-0 z-[200] bg-background-dark flex flex-col items-center justify-center p-6 lg:p-20 text-center overflow-auto animate-fade-in">
           <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] pointer-events-none"></div>
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-gradient-radial from-primary/10 via-transparent to-transparent opacity-50"></div>
 
-          <div className="relative z-10 space-y-12 max-w-2xl px-6">
+          <div className="relative z-10 space-y-12 max-w-[800px] w-full px-6">
             <div className="relative flex justify-center">
-              <div className="absolute inset-0 bg-primary/20 blur-[100px] rounded-full"></div>
+              <div className="absolute inset-0 bg-primary/30 blur-[100px] rounded-full"></div>
               <span
                 className="material-symbols-outlined text-primary drop-shadow-[0_0_50px_rgba(193,165,113,0.5)] relative z-20 animate-pulse-slow"
-                style={{ fontSize: '180px', fontVariationSettings: "'FILL' 1, 'wght' 200" }}
+                style={{ fontSize: 'clamp(100px, 15vw, 220px)', fontVariationSettings: "'FILL' 1, 'wght' 200" }}
               >
                 verified
               </span>
             </div>
 
-            <div className="space-y-6">
-              <h2 className="text-5xl lg:text-7xl font-display font-black text-white italic uppercase tracking-tighter leading-[0.8] animate-slide-up">Reserva <br /> Confirmada</h2>
-              <p className="text-[11px] lg:text-xs text-slate-500 font-black uppercase tracking-[0.5em] leading-loose max-w-sm mx-auto">
-                Seu ritual em <span className="text-white">{lastOrder?.salonName || bookingDraft.salonName}</span> está garantido na agenda.
+            <div className="space-y-6 lg:space-y-10">
+              <h2 className="text-4xl lg:text-8xl font-display font-black text-white italic uppercase tracking-tighter leading-[0.85] animate-slide-up">Reserva <br /> Confirmada</h2>
+              <p className="text-[10px] lg:text-sm text-slate-500 font-black uppercase tracking-[0.5em] leading-loose max-w-md mx-auto">
+                Seu ritual em <span className="text-white">{lastOrder?.salonName || bookingDraft.salonName}</span> está garantido.
+                <br className="hidden lg:block" /> Confira os detalhes na sua agenda.
               </p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-10">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:gap-8 pt-10">
               <button
                 onClick={handleWhatsAppConfirmation}
-                className="w-full gold-gradient text-background-dark h-20 rounded-2xl font-black uppercase text-[11px] tracking-[0.4em] flex items-center justify-center gap-4 shadow-gold active:scale-95 transition-all group"
+                className="w-full gold-gradient text-background-dark h-16 lg:h-24 rounded-2xl lg:rounded-[32px] font-black uppercase text-[10px] lg:text-sm tracking-[0.4em] flex items-center justify-center gap-4 shadow-gold active:scale-95 transition-all group"
               >
-                <WhatsAppIcon className="size-6 group-hover:scale-110 transition-transform" /> NOTIFICAR ARTISTA
+                <WhatsAppIcon className="size-5 lg:size-8 group-hover:scale-110 transition-transform" /> NOTIFICAR ARTISTA
               </button>
               <button
                 onClick={() => navigate('/my-appointments')}
-                className="w-full bg-white/5 border border-white/10 text-white h-20 rounded-2xl font-black uppercase text-[11px] tracking-[0.3em] hover:bg-white/10 active:scale-95 transition-all"
+                className="w-full bg-white/5 border border-white/10 text-white h-16 lg:h-24 rounded-2xl lg:rounded-[32px] font-black uppercase text-[10px] lg:text-sm tracking-[0.3em] hover:bg-white/10 active:scale-95 transition-all"
               >
                 MEUS RITUAIS
               </button>
               <button
                 onClick={() => navigate('/explore')}
-                className="col-span-1 sm:col-span-2 text-slate-700 font-black uppercase text-[10px] tracking-[0.5em] py-6 active:opacity-50 transition-opacity"
+                className="col-span-full text-slate-700 font-black uppercase text-[9px] lg:text-xs tracking-[0.6em] py-8 active:opacity-50 transition-opacity hover:text-slate-500"
               >
-                VOLTAR PARA O ACERVO
+                VOLTAR AO INÍCIO
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {step !== 'success' && (
-        <footer className="fixed bottom-12 left-1/2 -translate-x-1/2 z-[100] w-full max-w-2xl px-6 animate-fade-in">
-          <div className="bg-surface-dark/95 backdrop-blur-3xl border border-white/10 p-8 rounded-[40px] shadow-[0_50px_100px_rgba(0,0,0,0.8)] flex flex-col sm:flex-row items-center justify-between gap-8">
-            <div className="text-center sm:text-left">
-              <p className="text-[9px] font-black text-slate-600 uppercase tracking-[0.5em] mb-2 leading-none">TOTAL DO INVESTIMENTO</p>
-              <p className="text-4xl font-display font-black text-white italic tracking-tighter">R$ {total.toFixed(2)}</p>
-            </div>
-
-            <button
-              onClick={() => {
-                if (step === 'summary') {
-                  if (activeSalon?.paga_no_local || !isMpEnabled) {
-                    handleFinalConfirm();
+      {step === 'summary' && (
+        <footer className="fixed bottom-0 left-0 right-0 z-[160] lg:hidden">
+          <div className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-background-dark via-background-dark/95 to-transparent pointer-events-none"></div>
+          <div className="relative px-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))] pt-4">
+            <div className="max-w-[600px] mx-auto bg-surface-dark/95 backdrop-blur-3xl border border-white/10 p-3 rounded-[32px] shadow-[0_30px_100px_rgba(0,0,0,0.8)] flex items-center justify-between gap-4 pointer-events-auto">
+              <div className="text-left pl-3">
+                <p className="text-[8px] font-black text-slate-500 uppercase tracking-[0.4em] mb-0.5 leading-none">TOTAL</p>
+                <p className="text-xl font-display font-black text-white italic tracking-tighter">R$ {total.toFixed(2)}</p>
+              </div>
+              <button
+                onClick={() => {
+                  if (step === 'summary') {
+                    if (activeSalon?.paga_no_local || !isMpEnabled) {
+                      handleFinalConfirm();
+                    } else {
+                      setStep('payment_detail');
+                    }
                   } else {
-                    setStep('payment_detail');
+                    if (!mpReady) handleFinalConfirm();
                   }
-                } else {
-                  if (!mpReady) handleFinalConfirm();
-                }
-              }}
-              disabled={isProcessing}
-              className="w-full sm:w-auto gold-gradient text-background-dark h-20 px-12 rounded-[28px] font-black uppercase text-[11px] tracking-[0.4em] flex items-center justify-center gap-6 shadow-gold active:scale-95 transition-all group overflow-hidden relative"
-            >
-              <div className="absolute inset-0 bg-white/10 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
-              {isProcessing ? (
-                <div className="size-7 border-3 border-background-dark/20 border-t-background-dark rounded-full animate-spin"></div>
-              ) : (
-                <>
-                  <span className="relative z-10">
-                    {step === 'summary' ? (
-                      (activeSalon?.paga_no_local || !isMpEnabled) ? 'FINALIZAR RITUAL' : 'ESCOLHER PAGAMENTO'
-                    ) : 'REALIZAR PAGAMENTO'}
-                  </span>
-                  <span className="material-symbols-outlined text-2xl font-black relative z-10 group-hover:translate-x-1 transition-transform">arrow_forward</span>
-                </>
-              )}
-            </button>
+                }}
+                disabled={isProcessing}
+                className="flex-1 sm:flex-none gold-gradient text-background-dark h-12 px-6 rounded-2xl font-black uppercase text-[10px] tracking-[0.2em] flex items-center justify-center gap-2 shadow-gold active:scale-95 transition-all group overflow-hidden relative cursor-pointer hover:scale-[1.02]"
+              >
+                <div className="absolute inset-0 bg-white/10 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                {isProcessing ? (
+                  <div className="size-5 border-2 border-background-dark/20 border-t-background-dark rounded-full animate-spin"></div>
+                ) : (
+                  <>
+                    <span className="relative z-10 whitespace-nowrap">
+                      {step === 'summary' ? (
+                        (activeSalon?.paga_no_local || !isMpEnabled) ? 'FINALIZAR' : 'PAGAMENTO'
+                      ) : 'PAGAR AGORA'}
+                    </span>
+                    <span className="material-symbols-outlined text-lg font-black relative z-10 group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </footer>
       )}
@@ -712,7 +755,7 @@ const MPPaymentWrapper: React.FC<{ total: number, handleFinalConfirm: (param: an
 
   return (
     <div
-      className="mp-brick-container min-h-[600px] w-full max-w-full rounded-[40px] border border-[#c1a571]/20 shadow-2xl overflow-hidden bg-[#0c0d10] flex flex-col items-center justify-start relative transition-all duration-1000"
+      className="mp-brick-container min-h-[500px] w-full max-w-[600px] mx-auto rounded-2xl sm:rounded-3xl lg:rounded-[40px] border border-[#c1a571]/20 shadow-2xl bg-[#0c0d10] flex flex-col items-center justify-start relative transition-all duration-1000 pb-10"
       style={{ opacity: shouldRender ? 1 : 0, transform: shouldRender ? 'translateY(0)' : 'translateY(20px)' }}
     >
       <style>{`
@@ -796,7 +839,7 @@ const MPPaymentWrapper: React.FC<{ total: number, handleFinalConfirm: (param: an
 
       {!shouldRender ? (
         <div className="absolute inset-0 flex flex-col items-center justify-center space-y-4">
-          <div className="size-12 border-4 border-[#c1a571]/20 border-t-[#c1a571] rounded-full animate-spin"></div>
+          <div className="size-10 sm:size-12 lg:size-12 border-4 border-[#c1a571]/20 border-t-[#c1a571] rounded-full animate-spin"></div>
           <p className="text-[10px] text-[#c1a571] font-black uppercase tracking-widest animate-pulse">Personalizando sua Aura...</p>
         </div>
       ) : (

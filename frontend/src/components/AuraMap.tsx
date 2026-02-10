@@ -61,7 +61,7 @@ const AuraMap: React.FC<AuraMapProps> = ({
                 <Marker position={userMarker.position} icon={userMarker.icon}>
                     {userMarker.popupContent && (
                         <Popup className="custom-popup">
-                            <div className="px-4 py-2 font-black text-[10px] uppercase tracking-widest text-primary">
+                            <div className="px-4 sm:px-4 lg:px-4 py-2 sm:py-2 lg:py-2 font-black text-[10px] uppercase tracking-widest text-primary">
                                 {userMarker.popupContent}
                             </div>
                         </Popup>

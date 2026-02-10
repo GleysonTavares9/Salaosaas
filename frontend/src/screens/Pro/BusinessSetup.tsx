@@ -181,9 +181,9 @@ const BusinessSetup: React.FC<BusinessSetupProps> = ({ salon, userId, onSave }) 
 
   if (isLoading || !formData) {
     return (
-      <div className="flex-1 min-h-screen flex items-center justify-center p-8">
+      <div className="flex-1 min-h-screen flex items-center justify-center p-8 sm:p-8 lg:p-8">
         <div className="text-center space-y-4">
-          <div className="size-12 border-2 border-primary/20 border-t-primary rounded-full animate-spin mx-auto"></div>
+          <div className="size-10 sm:size-12 lg:size-12 border-2 border-primary/20 border-t-primary rounded-full animate-spin mx-auto"></div>
           <p className="text-[10px] font-black text-primary uppercase tracking-widest">Sincronizando sua Unidade...</p>
         </div>
       </div>
@@ -415,42 +415,42 @@ const BusinessSetup: React.FC<BusinessSetupProps> = ({ salon, userId, onSave }) 
 
   return (
     <div className="flex-1 overflow-y-auto h-full no-scrollbar">
-      <header className="p-6 pt-16 flex items-center justify-between sticky top-0 bg-background-dark/30 backdrop-blur-xl z-50 border-b border-white/5">
-        <button onClick={() => navigate(-1)} className="text-white size-10 flex items-center justify-center rounded-full border border-white/5 active:scale-95 transition-all">
-          <span className="material-symbols-outlined">arrow_back</span>
+      <header className="px-4 lg:px-6 pt-2 lg:pt-16 pb-2 lg:pb-6 flex items-center justify-between sticky top-0 bg-background-dark/30 backdrop-blur-xl z-50 border-b border-white/5">
+        <button onClick={() => navigate(-1)} className="text-white size-9 lg:size-10 flex items-center justify-center rounded-full border border-white/5 active:scale-95 transition-all">
+          <span className="material-symbols-outlined text-lg">arrow_back</span>
         </button>
-        <h1 className="font-display text-xl font-black text-white italic tracking-tight uppercase">Gestão Aura</h1>
-        <button onClick={handleSave} className="text-primary font-black text-[10px] uppercase tracking-[0.2em] bg-primary/10 px-4 py-2 rounded-xl border border-primary/20 shadow-lg active:scale-95 transition-all">Salvar</button>
+        <h1 className="font-display text-base lg:text-xl font-black text-white italic tracking-tight uppercase">Gestão Aura</h1>
+        <button onClick={handleSave} className="text-primary font-black text-[9px] lg:text-[10px] uppercase tracking-[0.2em] bg-primary/10 px-4 sm:px-4 lg:px-4 py-2 sm:py-2 lg:py-2 rounded-xl border border-primary/20 shadow-lg active:scale-95 transition-all">Salvar</button>
       </header>
 
-      <main className="p-6 space-y-12 pb-40 max-w-[450px] mx-auto animate-fade-in">
+      <main className="p-6 sm:p-6 lg:p-6 space-y-12 pb-40 max-w-full max-w-[450px] mx-auto animate-fade-in">
 
         {/* IDENTIDADE VISUAL */}
         <section className="space-y-6">
           <h3 className="text-[10px] font-black text-primary uppercase tracking-[0.4em] ml-1">Branding Elite</h3>
-          <div className="bg-surface-dark border border-white/5 rounded-[40px] p-8 space-y-8 shadow-2xl">
+          <div className="bg-surface-dark border border-white/5 rounded-2xl sm:rounded-3xl lg:rounded-[40px] p-8 sm:p-8 lg:p-8 space-y-8 shadow-2xl">
             <div className="space-y-2">
               <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">Nome da Unidade</label>
-              <input type="text" value={formData.nome || ''} onChange={(e) => setFormData({ ...formData, nome: e.target.value })} className="w-full bg-background-dark border border-white/10 rounded-2xl p-5 text-white outline-none focus:border-primary shadow-inner" />
+              <input type="text" value={formData.nome || ''} onChange={(e) => setFormData({ ...formData, nome: e.target.value })} className="w-full bg-background-dark border border-white/10 rounded-2xl p-5 sm:p-5 lg:p-5 text-white outline-none focus:border-primary shadow-inner" />
             </div>
 
             <div className="space-y-2">
               <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">Proprietário (Responsável)</label>
-              <input type="text" value={ownerName} onChange={(e) => setOwnerName(e.target.value)} className="w-full bg-background-dark border border-white/10 rounded-2xl p-5 text-white outline-none focus:border-primary shadow-inner" />
+              <input type="text" value={ownerName} onChange={(e) => setOwnerName(e.target.value)} className="w-full bg-background-dark border border-white/10 rounded-2xl p-5 sm:p-5 lg:p-5 text-white outline-none focus:border-primary shadow-inner" />
             </div>
 
             <div className="space-y-2">
               <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">Slug da Unidade</label>
-              <div className="flex items-center gap-2 bg-background-dark border border-white/10 rounded-2xl px-6 py-5 shadow-inner">
+              <div className="flex items-center gap-2 lg:gap-2 bg-background-dark border border-white/10 rounded-2xl px-6 sm:px-6 lg:px-6 py-5 sm:py-5 lg:py-5 shadow-inner">
                 <span className="text-slate-600 text-[10px]">aura.sh/</span>
                 <input type="text" value={formData.slug_publico || ''} onChange={(e) => setFormData({ ...formData, slug_publico: e.target.value })} className="flex-1 bg-transparent text-primary text-xs font-bold outline-none" />
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-6 pt-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 lg:gap-6 pt-2">
               <div className="space-y-4">
                 <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1 text-center block">Logo Redonda</label>
-                <div className="size-24 rounded-full mx-auto overflow-hidden border-2 border-primary/20 bg-black/40 shadow-2xl relative group">
+                <div className="size-18 sm:size-20 lg:size-24 rounded-full mx-auto overflow-hidden border-2 border-primary/20 bg-black/40 shadow-2xl relative group">
                   <img src={formData.logo_url} className="size-full object-cover" alt="Logo" />
                   <input type="file" id="logo-up" accept="image/*" className="hidden" onChange={(e) => handleFileUpload(e, 'logo_url')} />
                   <label htmlFor="logo-up" className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center cursor-pointer transition-opacity">
@@ -494,7 +494,7 @@ const BusinessSetup: React.FC<BusinessSetupProps> = ({ salon, userId, onSave }) 
                   setFormData({ ...formData, telefone: val });
                 }}
                 placeholder="(11) 99999-9999"
-                className="w-full bg-background-dark border border-white/10 rounded-2xl p-5 text-white outline-none focus:border-primary shadow-inner tracking-widest font-mono"
+                className="w-full bg-background-dark border border-white/10 rounded-2xl p-5 sm:p-5 lg:p-5 text-white outline-none focus:border-primary shadow-inner tracking-widest font-mono"
               />
               <p className="text-[8px] text-slate-500 font-bold uppercase ml-2">Usado para o botão de WhatsApp no site</p>
             </div>
@@ -505,20 +505,20 @@ const BusinessSetup: React.FC<BusinessSetupProps> = ({ salon, userId, onSave }) 
         {/* GALERIA DE PORTFÓLIO */}
         <section className="space-y-6">
           <h3 className="text-[10px] font-black text-primary uppercase tracking-[0.4em] ml-1">Rituais em Fotos</h3>
-          <div className="bg-surface-dark border border-white/5 rounded-[40px] p-8 space-y-6 shadow-2xl">
-            <div className="flex gap-4">
-              <div className="flex-1 bg-background-dark border border-white/10 rounded-2xl p-4 flex items-center justify-between shadow-inner">
+          <div className="bg-surface-dark border border-white/5 rounded-2xl sm:rounded-3xl lg:rounded-[40px] p-8 sm:p-8 lg:p-8 space-y-6 shadow-2xl">
+            <div className="flex gap-4 lg:gap-4">
+              <div className="flex-1 bg-background-dark border border-white/10 rounded-2xl p-4 sm:p-4 lg:p-4 flex items-center justify-between shadow-inner">
                 <span className="text-[10px] text-slate-500 font-black uppercase tracking-widest">Adicionar Foto Real</span>
                 <input type="file" id="gal-up" accept="image/*" className="hidden" onChange={(e) => handleFileUpload(e, 'gallery')} />
-                <label htmlFor="gal-up" className="bg-primary/10 text-primary px-4 py-2 rounded-xl text-[8px] font-black uppercase tracking-widest cursor-pointer active:scale-95 transition-all">Upload</label>
+                <label htmlFor="gal-up" className="bg-primary/10 text-primary px-4 sm:px-4 lg:px-4 py-2 sm:py-2 lg:py-2 rounded-xl text-[8px] font-black uppercase tracking-widest cursor-pointer active:scale-95 transition-all">Upload</label>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:gap-4">
               {(formData.gallery_urls || []).map((url, idx) => (
                 <div key={idx} className="relative aspect-[4/3] rounded-[24px] overflow-hidden border border-white/10 group shadow-lg">
                   <img src={url} className="size-full object-cover grayscale-[0.2] group-hover:grayscale-0 transition-all" alt={`Portfolio ${idx}`} />
                   <button onClick={() => removeGalleryImage(idx)} className="absolute inset-0 bg-red-500/80 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white transition-opacity backdrop-blur-sm">
-                    <span className="material-symbols-outlined text-2xl font-black">delete</span>
+                    <span className="material-symbols-outlined text-2xl lg:text-2xl font-black">delete</span>
                   </button>
                 </div>
               ))}
@@ -530,16 +530,16 @@ const BusinessSetup: React.FC<BusinessSetupProps> = ({ salon, userId, onSave }) 
         {/* LOCALIZAÇÃO */}
         <section className="space-y-6">
           <h3 className="text-[10px] font-black text-primary uppercase tracking-[0.4em]">Localização Premium</h3>
-          <div className="bg-surface-dark border border-white/5 rounded-[40px] p-8 space-y-6 shadow-2xl">
+          <div className="bg-surface-dark border border-white/5 rounded-2xl sm:rounded-3xl lg:rounded-[40px] p-8 sm:p-8 lg:p-8 space-y-6 shadow-2xl">
 
             <div className="space-y-2">
               <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">CEP</label>
-              <div className="flex gap-2">
+              <div className="flex gap-2 lg:gap-2">
                 <input
                   type="text"
                   maxLength={9}
                   placeholder="00000-000"
-                  className="w-1/2 bg-background-dark border border-white/10 rounded-2xl p-5 text-white outline-none shadow-inner tracking-widest"
+                  className="w-1/2 bg-background-dark border border-white/10 rounded-2xl p-5 sm:p-5 lg:p-5 text-white outline-none shadow-inner tracking-widest"
                   onBlur={(e) => fetchAddressByCEP(e.target.value)}
                 />
                 <button
@@ -553,38 +553,38 @@ const BusinessSetup: React.FC<BusinessSetupProps> = ({ salon, userId, onSave }) 
 
             <div className="space-y-2">
               <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">Endereço (Logradouro)</label>
-              <input type="text" value={street} onChange={(e) => setStreet(e.target.value)} className="w-full bg-background-dark border border-white/10 rounded-2xl p-5 text-white outline-none shadow-inner" placeholder="Rua, Avenida..." />
+              <input type="text" value={street} onChange={(e) => setStreet(e.target.value)} className="w-full bg-background-dark border border-white/10 rounded-2xl p-5 sm:p-5 lg:p-5 text-white outline-none shadow-inner" placeholder="Rua, Avenida..." />
             </div>
 
-            <div className="flex gap-4">
+            <div className="flex gap-4 lg:gap-4">
               <div className="space-y-2 w-1/3">
                 <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">Número</label>
-                <input type="text" value={number} onChange={(e) => setNumber(e.target.value)} className="w-full bg-background-dark border border-white/10 rounded-2xl p-5 text-white outline-none shadow-inner text-center font-bold" placeholder="123" />
+                <input type="text" value={number} onChange={(e) => setNumber(e.target.value)} className="w-full bg-background-dark border border-white/10 rounded-2xl p-5 sm:p-5 lg:p-5 text-white outline-none shadow-inner text-center font-bold" placeholder="123" />
               </div>
               <div className="space-y-2 flex-1">
                 <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">Bairro</label>
-                <input type="text" value={district} onChange={(e) => setDistrict(e.target.value)} className="w-full bg-background-dark border border-white/10 rounded-2xl p-5 text-white outline-none shadow-inner" placeholder="Bairro" />
+                <input type="text" value={district} onChange={(e) => setDistrict(e.target.value)} className="w-full bg-background-dark border border-white/10 rounded-2xl p-5 sm:p-5 lg:p-5 text-white outline-none shadow-inner" placeholder="Bairro" />
               </div>
             </div>
 
             <div className="space-y-2">
               <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">Cidade / UF</label>
-              <input type="text" value={formData.cidade || ''} onChange={(e) => setFormData({ ...formData, cidade: e.target.value })} className="w-full bg-background-dark border border-white/10 rounded-2xl p-5 text-white outline-none shadow-inner" />
+              <input type="text" value={formData.cidade || ''} onChange={(e) => setFormData({ ...formData, cidade: e.target.value })} className="w-full bg-background-dark border border-white/10 rounded-2xl p-5 sm:p-5 lg:p-5 text-white outline-none shadow-inner" />
             </div>
 
             <div className="space-y-4 pt-4 border-t border-white/5">
-              <div className="bg-primary/5 border border-primary/20 p-4 rounded-xl flex flex-col gap-3">
-                <div className="flex items-center gap-2">
+              <div className="bg-primary/5 border border-primary/20 p-4 sm:p-4 lg:p-4 rounded-xl flex flex-col gap-3 lg:gap-3">
+                <div className="flex items-center gap-2 lg:gap-2">
                   <span className="material-symbols-outlined text-primary">map</span>
                   <p className="text-[9px] font-black text-primary uppercase tracking-widest">Precisão Google Maps</p>
                 </div>
                 <p className="text-[8px] text-slate-400">Cole o link do Google Maps para o pino ficar exatamente sobre seu salão.</p>
-                <div className="flex gap-2">
+                <div className="flex gap-2 lg:gap-2">
                   <input
                     type="text"
                     id="gmaps-input"
                     placeholder="Cole o link aqui..."
-                    className="flex-1 bg-background-dark border border-white/10 rounded-lg p-3 text-[10px] text-white outline-none focus:border-primary shadow-inner"
+                    className="flex-1 bg-background-dark border border-white/10 rounded-lg p-3 sm:p-3 lg:p-3 text-[10px] text-white outline-none focus:border-primary shadow-inner"
                     onChange={(e) => {
                       const url = e.target.value;
                       const regex = /@(-?\d+\.\d+),(-?\d+\.\d+)/;
@@ -611,13 +611,13 @@ const BusinessSetup: React.FC<BusinessSetupProps> = ({ salon, userId, onSave }) 
                     showToast("❌ Não foi possível geolocalizar este endereço.", 'error');
                   }
                 }}
-                className="w-full mt-2 py-3 rounded-xl bg-surface-dark border border-white/5 text-slate-400 text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all"
+                className="w-full mt-2 py-3 sm:py-3 lg:py-3 rounded-xl bg-surface-dark border border-white/5 text-slate-400 text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all"
               >
                 Sincronizar via Endereço
               </button>
             </div>
 
-            <div className="grid grid-cols-2 gap-4 pt-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:gap-4 pt-4">
               <div className="space-y-2">
                 <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">Latitude</label>
                 <input
@@ -625,7 +625,7 @@ const BusinessSetup: React.FC<BusinessSetupProps> = ({ salon, userId, onSave }) 
                   step="any"
                   value={formData.location?.lat ?? 0}
                   onChange={(e) => updateLocation('lat', parseFloat(e.target.value))}
-                  className="w-full bg-background-dark border border-white/10 rounded-2xl p-4 text-white text-xs outline-none shadow-inner font-mono text-center"
+                  className="w-full bg-background-dark border border-white/10 rounded-2xl p-4 sm:p-4 lg:p-4 text-white text-xs outline-none shadow-inner font-mono text-center"
                 />
               </div>
               <div className="space-y-2">
@@ -635,7 +635,7 @@ const BusinessSetup: React.FC<BusinessSetupProps> = ({ salon, userId, onSave }) 
                   step="any"
                   value={formData.location?.lng ?? 0}
                   onChange={(e) => updateLocation('lng', parseFloat(e.target.value))}
-                  className="w-full bg-background-dark border border-white/10 rounded-2xl p-4 text-white text-xs outline-none shadow-inner font-mono text-center"
+                  className="w-full bg-background-dark border border-white/10 rounded-2xl p-4 sm:p-4 lg:p-4 text-white text-xs outline-none shadow-inner font-mono text-center"
                 />
               </div>
               <p className="col-span-2 text-center text-[8px] text-slate-500 uppercase font-black tracking-widest mt-2">
@@ -657,13 +657,13 @@ const BusinessSetup: React.FC<BusinessSetupProps> = ({ salon, userId, onSave }) 
               href="https://www.mercadopago.com.br/developers/panel/credentials"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[9px] text-blue-400 font-bold hover:underline flex items-center gap-1"
+              className="text-[9px] text-blue-400 font-bold hover:underline flex items-center gap-1 lg:gap-1"
             >
               Obter Credenciais <span className="material-symbols-outlined text-xs">open_in_new</span>
             </a>
           </div>
-          <div className="bg-surface-dark border border-white/5 rounded-[40px] p-8 space-y-6 shadow-2xl">
-            <div className="flex items-center gap-4 mb-4">
+          <div className="bg-surface-dark border border-white/5 rounded-2xl sm:rounded-3xl lg:rounded-[40px] p-8 sm:p-8 lg:p-8 space-y-6 shadow-2xl">
+            <div className="flex items-center gap-4 lg:gap-4 mb-4">
               <div className="h-8 w-12 bg-[#009EE3] rounded-lg flex items-center justify-center">
                 <span className="material-symbols-outlined text-white">handshake</span>
               </div>
@@ -680,7 +680,7 @@ const BusinessSetup: React.FC<BusinessSetupProps> = ({ salon, userId, onSave }) 
                 type="text"
                 value={mpConfig.publicKey}
                 onChange={(e) => setMpConfig({ ...mpConfig, publicKey: e.target.value })}
-                className="w-full bg-background-dark border border-white/10 rounded-2xl p-5 text-white outline-none shadow-inner font-mono text-xs"
+                className="w-full bg-background-dark border border-white/10 rounded-2xl p-5 sm:p-5 lg:p-5 text-white outline-none shadow-inner font-mono text-xs"
                 placeholder="APP_USR-..."
               />
               <p className="text-[8px] text-slate-600 font-bold uppercase ml-2">Usada no checkout para criptografar dados do cartão.</p>
@@ -692,7 +692,7 @@ const BusinessSetup: React.FC<BusinessSetupProps> = ({ salon, userId, onSave }) 
                 type="password"
                 value={mpConfig.accessToken}
                 onChange={(e) => setMpConfig({ ...mpConfig, accessToken: e.target.value })}
-                className="w-full bg-background-dark border border-white/10 rounded-2xl p-5 text-white outline-none shadow-inner font-mono text-xs"
+                className="w-full bg-background-dark border border-white/10 rounded-2xl p-5 sm:p-5 lg:p-5 text-white outline-none shadow-inner font-mono text-xs"
                 placeholder="APP_USR-..."
               />
               <p className="text-[8px] text-slate-600 font-bold uppercase ml-2">Chave secreta para operações financeiras. Mantenha segura!</p>
@@ -706,10 +706,10 @@ const BusinessSetup: React.FC<BusinessSetupProps> = ({ salon, userId, onSave }) 
                   setFormData(prev => ({ ...prev, paga_no_local: newValue }));
                   showToast(newValue ? "✅ Pagamento no local HABILITADO" : "ℹ️ Pagamento no local DESABILITADO", 'success');
                 }}
-                className={`w-full p-5 rounded-2xl border transition-all flex items-center justify-between group ${formData.paga_no_local ? 'bg-primary/10 border-primary/20 shadow-[0_0_20px_rgba(255,255,255,0.05)]' : 'bg-background-dark border-white/5 opacity-80'}`}
+                className={`w-full p-5 sm:p-5 lg:p-5 rounded-2xl border transition-all flex items-center justify-between group ${formData.paga_no_local ? 'bg-primary/10 border-primary/20 shadow-[0_0_20px_rgba(255,255,255,0.05)]' : 'bg-background-dark border-white/5 opacity-80'}`}
               >
-                <div className="flex items-center gap-4 text-left">
-                  <div className={`size-10 rounded-xl flex items-center justify-center transition-colors shrink-0 ${formData.paga_no_local ? 'bg-primary text-background-dark' : 'bg-white/5 text-slate-500'}`}>
+                <div className="flex items-center gap-4 lg:gap-4 text-left">
+                  <div className={`size-10 sm:size-12 lg:size-10 rounded-xl flex items-center justify-center transition-colors shrink-0 ${formData.paga_no_local ? 'bg-primary text-background-dark' : 'bg-white/5 text-slate-500'}`}>
                     <span className="material-symbols-outlined text-xl">{formData.paga_no_local ? 'payments' : 'money_off'}</span>
                   </div>
                   <div className="min-w-0">
@@ -728,8 +728,8 @@ const BusinessSetup: React.FC<BusinessSetupProps> = ({ salon, userId, onSave }) 
         {/* COMODIDADES */}
         <section className="space-y-6">
           <h3 className="text-[10px] font-black text-primary uppercase tracking-[0.4em] ml-1">Mimos & Amenities</h3>
-          <div className="bg-surface-dark border border-white/5 rounded-[40px] p-8 shadow-2xl">
-            <div className="grid grid-cols-2 gap-4">
+          <div className="bg-surface-dark border border-white/5 rounded-2xl sm:rounded-3xl lg:rounded-[40px] p-8 sm:p-8 lg:p-8 shadow-2xl">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:gap-4">
               {amenitiesOptions.map(amenity => {
                 const isSelected = formData.amenities?.includes(amenity) || false;
                 return (
@@ -740,7 +740,7 @@ const BusinessSetup: React.FC<BusinessSetupProps> = ({ salon, userId, onSave }) 
                       const next = current.includes(amenity) ? current.filter(a => a !== amenity) : [...current, amenity];
                       setFormData({ ...formData, amenities: next });
                     }}
-                    className={`p-4 rounded-2xl border text-[10px] font-black uppercase tracking-widest transition-all shadow-md ${isSelected ? 'gold-gradient text-background-dark border-primary' : 'bg-background-dark border-white/5 text-slate-600'}`}
+                    className={`p-4 sm:p-4 lg:p-4 rounded-2xl border text-[10px] font-black uppercase tracking-widest transition-all shadow-md ${isSelected ? 'gold-gradient text-background-dark border-primary' : 'bg-background-dark border-white/5 text-slate-600'}`}
                   >
                     {amenity}
                   </button>
@@ -754,7 +754,7 @@ const BusinessSetup: React.FC<BusinessSetupProps> = ({ salon, userId, onSave }) 
           <button
             onClick={handleSave}
             disabled={isSaving}
-            className={`w-full py-6 rounded-[32px] font-black uppercase tracking-[0.4em] text-[13px] shadow-[0_20px_50px_rgba(193,165,113,0.3)] active:scale-95 transition-all flex items-center justify-center gap-4 ${isSaving ? 'bg-slate-700 text-slate-400' : 'gold-gradient text-background-dark'}`}
+            className={`w-full py-6 sm:py-6 lg:py-6 rounded-2xl sm:rounded-3xl lg:rounded-[32px] font-black uppercase tracking-[0.4em] text-[13px] shadow-[0_20px_50px_rgba(193,165,113,0.3)] active:scale-95 transition-all flex items-center justify-center gap-4 lg:gap-4 ${isSaving ? 'bg-slate-700 text-slate-400' : 'gold-gradient text-background-dark'}`}
           >
             {isSaving ? (
               <>

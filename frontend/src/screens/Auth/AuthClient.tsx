@@ -147,36 +147,36 @@ const AuthClient: React.FC<AuthClientProps> = ({ onLogin }) => {
 
   if (isRecovering) {
     return (
-      <div className="flex-1 min-h-screen flex flex-col p-8 relative">
-        <header className="relative z-10 p-8 pt-[calc(env(safe-area-inset-top)+1rem)] flex items-center justify-between">
-          <button onClick={() => setIsRecovering(false)} className="size-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-white">
+      <div className="flex-1 min-h-screen flex flex-col p-8 sm:p-8 lg:p-8 relative">
+        <header className="relative z-10 p-8 sm:p-8 lg:p-8 pt-[calc(env(safe-area-inset-top)+1rem)] flex items-center justify-between">
+          <button onClick={() => setIsRecovering(false)} className="size-10 sm:size-12 lg:size-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-white">
             <span className="material-symbols-outlined">arrow_back</span>
           </button>
-          <div className="px-4 py-2 rounded-xl bg-primary/10 border border-primary/20">
+          <div className="px-4 sm:px-4 lg:px-4 py-2 sm:py-2 lg:py-2 rounded-xl bg-primary/10 border border-primary/20">
             <span className="text-[9px] font-black text-primary uppercase tracking-[0.2em]">Recuperação de Acesso</span>
           </div>
         </header>
-        <main className="relative z-10 flex-1 flex flex-col justify-center px-8 pb-32">
-          <div className="space-y-4 mb-8 text-center max-w-lg mx-auto">
-            <div className="size-20 lg:size-24 rounded-[28px] lg:rounded-[32px] gold-gradient flex items-center justify-center text-background-dark shadow-[0_0_50px_rgba(193,165,113,0.4)] mx-auto mb-6 transform hover:rotate-6 transition-transform">
-              <span className="material-symbols-outlined text-4xl lg:text-5xl font-black">lock_open</span>
+        <main className="relative z-10 flex-1 flex flex-col justify-center px-8 sm:px-8 lg:px-8 pb-32">
+          <div className="space-y-4 mb-8 text-center max-w-full sm:max-w-lg mx-auto">
+            <div className="size-14 sm:size-16 lg:size-20 lg:size-18 sm:size-20 lg:size-24 rounded-[28px] lg:rounded-2xl sm:rounded-3xl lg:rounded-[32px] gold-gradient flex items-center justify-center text-background-dark shadow-[0_0_50px_rgba(193,165,113,0.4)] mx-auto mb-6 transform hover:rotate-6 transition-transform">
+              <span className="material-symbols-outlined text-4xl lg:text-4xl lg:text-3xl sm:text-4xl lg:text-5xl lg:text-3xl sm:text-4xl lg:text-5xl font-black">lock_open</span>
             </div>
-            <h1 className="text-4xl lg:text-6xl font-display font-black text-white italic tracking-tighter leading-none uppercase">Recuperar <br /><span className="text-primary italic">Acesso.</span></h1>
+            <h1 className="text-4xl lg:text-4xl lg:text-4xl sm:text-5xl lg:text-6xl lg:text-4xl sm:text-5xl lg:text-6xl font-display font-black text-white italic tracking-tighter leading-none uppercase">Recuperar <br /><span className="text-primary italic">Acesso.</span></h1>
             <p className="text-secondary text-[10px] lg:text-xs font-black uppercase tracking-[0.4em] mt-6 opacity-80">Informe seu e-mail para receber o link</p>
           </div>
           <form onSubmit={handleRecover} className="space-y-6 max-w-sm mx-auto w-full">
             <div className="space-y-1.5">
               <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Seu E-mail Cadastrado</label>
-              <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="exemplo@email.com" className="w-full bg-surface-dark border border-white/5 rounded-2xl py-5 px-6 text-white text-sm outline-none focus:border-primary/50 transition-all shadow-inner" />
+              <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="exemplo@email.com" className="w-full bg-surface-dark border border-white/5 rounded-2xl py-5 sm:py-5 lg:py-5 px-6 sm:px-6 lg:px-6 text-white text-sm outline-none focus:border-primary/50 transition-all shadow-inner" />
             </div>
 
             {errorMessage && (
-              <div className="bg-red-500/10 border border-red-500/20 p-4 rounded-xl text-red-500 text-[10px] font-black uppercase tracking-widest text-center">
+              <div className="bg-red-500/10 border border-red-500/20 p-4 sm:p-4 lg:p-4 rounded-xl text-red-500 text-[10px] font-black uppercase tracking-widest text-center">
                 {errorMessage}
               </div>
             )}
 
-            <button type="submit" disabled={isLoading} className="w-full gold-gradient text-background-dark font-black py-5 rounded-2xl shadow-2xl uppercase tracking-[0.3em] text-[11px] flex items-center justify-center gap-3 active:scale-95 transition-all mt-4">
+            <button type="submit" disabled={isLoading} className="w-full gold-gradient text-background-dark font-black py-5 sm:py-5 lg:py-5 rounded-2xl shadow-2xl uppercase tracking-[0.3em] text-[11px] flex items-center justify-center gap-3 lg:gap-3 active:scale-95 transition-all mt-4">
               {isLoading ? <div className="size-5 border-2 border-background-dark/30 border-t-background-dark rounded-full animate-spin"></div> : 'Enviar E-mail de Recuperação'}
             </button>
           </form>
@@ -188,11 +188,11 @@ const AuthClient: React.FC<AuthClientProps> = ({ onLogin }) => {
   // No longer needed here as it's defined at the top
   if (redirectInfo) {
     return (
-      <div className="fixed inset-0 z-[9999] bg-background-dark/95 backdrop-blur-xl flex flex-col items-center justify-center p-8 animate-fade-in text-center">
-        <div className="size-20 rounded-full bg-primary/10 border-2 border-primary flex items-center justify-center mb-6 animate-pulse">
-          <span className="material-symbols-outlined text-4xl text-primary">sync_alt</span>
+      <div className="fixed inset-0 z-[9999] bg-background-dark/95 backdrop-blur-xl flex flex-col items-center justify-center p-8 sm:p-8 lg:p-8 animate-fade-in text-center">
+        <div className="size-14 sm:size-16 lg:size-20 rounded-full bg-primary/10 border-2 border-primary flex items-center justify-center mb-6 animate-pulse">
+          <span className="material-symbols-outlined text-4xl lg:text-4xl text-primary">sync_alt</span>
         </div>
-        <h2 className="text-3xl font-display font-black text-white italic tracking-tighter mb-2">
+        <h2 className="text-3xl lg:text-3xl font-display font-black text-white italic tracking-tighter mb-2">
           Redirecionando...
         </h2>
         <p className="text-slate-400 text-xs font-bold uppercase tracking-widest max-w-xs">
@@ -206,36 +206,36 @@ const AuthClient: React.FC<AuthClientProps> = ({ onLogin }) => {
   }
 
   return (
-    <div className="flex-1 h-full flex flex-col p-8 overflow-y-auto no-scrollbar relative">
-      <header className="relative z-10 p-8 pt-[calc(env(safe-area-inset-top)+1rem)] flex items-center justify-between">
-        <button onClick={() => navigate('/')} className="size-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-white active:scale-90 transition-transform shadow-xl">
+    <div className="flex-1 h-full flex flex-col p-8 sm:p-8 lg:p-8 overflow-y-auto no-scrollbar relative">
+      <header className="relative z-10 p-8 sm:p-8 lg:p-8 pt-[calc(env(safe-area-inset-top)+1rem)] flex items-center justify-between">
+        <button onClick={() => navigate('/')} className="size-10 sm:size-12 lg:size-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-white active:scale-90 transition-transform shadow-xl">
           <span className="material-symbols-outlined">close</span>
         </button>
-        <div className="px-4 py-2 rounded-xl bg-primary/10 border border-primary/20">
+        <div className="px-4 sm:px-4 lg:px-4 py-2 sm:py-2 lg:py-2 rounded-xl bg-primary/10 border border-primary/20">
           <span className="text-[9px] font-black text-primary uppercase tracking-[0.2em]">Experiência do Cliente</span>
         </div>
       </header>
       <div className="flex justify-center mb-10 relative z-10">
-        <div className="flex bg-surface-dark p-2 rounded-2xl border border-white/5 shadow-2xl max-w-sm mx-auto w-full">
-          <button onClick={() => setIsLogin(true)} className={`flex-1 py-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${isLogin ? 'gold-gradient text-background-dark shadow-xl' : 'text-slate-500 hover:text-white'}`}>Entrar</button>
-          <button onClick={() => setIsLogin(false)} className={`flex-1 py-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${!isLogin ? 'gold-gradient text-background-dark shadow-xl' : 'text-slate-500 hover:text-white'}`}>Cadastrar</button>
+        <div className="flex bg-surface-dark p-2 sm:p-2 lg:p-2 rounded-2xl border border-white/5 shadow-2xl max-w-sm mx-auto w-full">
+          <button onClick={() => setIsLogin(true)} className={`flex-1 py-4 sm:py-4 lg:py-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${isLogin ? 'gold-gradient text-background-dark shadow-xl' : 'text-slate-500 hover:text-white'}`}>Entrar</button>
+          <button onClick={() => setIsLogin(false)} className={`flex-1 py-4 sm:py-4 lg:py-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${!isLogin ? 'gold-gradient text-background-dark shadow-xl' : 'text-slate-500 hover:text-white'}`}>Cadastrar</button>
         </div>
       </div>
 
       {/* Error Message */}
       {errorMessage && (
         <div className="max-w-sm mx-auto w-full mb-6">
-          <div className="bg-red-500/10 border border-red-500/20 p-5 rounded-[24px] text-red-500 text-[10px] font-black uppercase tracking-widest text-center animate-shake">
+          <div className="bg-red-500/10 border border-red-500/20 p-5 sm:p-5 lg:p-5 rounded-[24px] text-red-500 text-[10px] font-black uppercase tracking-widest text-center animate-shake">
             {errorMessage}
           </div>
         </div>
       )}
-      <main className="relative z-10 flex-1 flex flex-col justify-center px-8 pb-32">
-        <div className="space-y-4 mb-8 text-center max-w-lg mx-auto">
-          <div className="size-20 lg:size-24 rounded-[28px] lg:rounded-[32px] gold-gradient flex items-center justify-center text-background-dark shadow-[0_0_50px_rgba(193,165,113,0.4)] mx-auto mb-6 transform hover:rotate-6 transition-transform">
-            <span className="material-symbols-outlined text-4xl lg:text-5xl font-black">spa</span>
+      <main className="relative z-10 flex-1 flex flex-col justify-center px-8 sm:px-8 lg:px-8 pb-32">
+        <div className="space-y-4 mb-8 text-center max-w-full sm:max-w-lg mx-auto">
+          <div className="size-14 sm:size-16 lg:size-20 lg:size-18 sm:size-20 lg:size-24 rounded-[28px] lg:rounded-2xl sm:rounded-3xl lg:rounded-[32px] gold-gradient flex items-center justify-center text-background-dark shadow-[0_0_50px_rgba(193,165,113,0.4)] mx-auto mb-6 transform hover:rotate-6 transition-transform">
+            <span className="material-symbols-outlined text-4xl lg:text-4xl lg:text-3xl sm:text-4xl lg:text-5xl lg:text-3xl sm:text-4xl lg:text-5xl font-black">spa</span>
           </div>
-          <h1 className="text-5xl lg:text-7xl font-display font-black text-white italic tracking-tighter leading-none uppercase">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl lg:text-3xl sm:text-4xl lg:text-5xl lg:text-5xl sm:text-6xl lg:text-7xl lg:text-5xl sm:text-6xl lg:text-7xl font-display font-black text-white italic tracking-tighter leading-none uppercase">
             {isLogin ? 'Luxe Aura' : 'Nova Conta'}
           </h1>
           <p className="text-secondary text-[11px] lg:text-xs font-black uppercase tracking-[0.5em] mt-6 opacity-80">
@@ -246,17 +246,17 @@ const AuthClient: React.FC<AuthClientProps> = ({ onLogin }) => {
           {!isLogin && (
             <div className="space-y-1.5 animate-fade-in">
               <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Nome Completo</label>
-              <input type="text" required placeholder="Ex: Maria Eduarda" className="w-full bg-surface-dark border border-white/5 rounded-2xl py-5 px-6 text-white text-sm outline-none focus:border-primary/50 transition-all shadow-inner" />
+              <input type="text" required placeholder="Ex: Maria Eduarda" className="w-full bg-surface-dark border border-white/5 rounded-2xl py-5 sm:py-5 lg:py-5 px-6 sm:px-6 lg:px-6 text-white text-sm outline-none focus:border-primary/50 transition-all shadow-inner" />
             </div>
           )}
           <div className="space-y-1.5">
             <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Seu E-mail</label>
-            <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="nome@email.com" className="w-full bg-surface-dark border border-white/5 rounded-2xl py-5 px-6 text-white text-sm outline-none focus:border-primary/50 transition-all shadow-inner" />
+            <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="nome@email.com" className="w-full bg-surface-dark border border-white/5 rounded-2xl py-5 sm:py-5 lg:py-5 px-6 sm:px-6 lg:px-6 text-white text-sm outline-none focus:border-primary/50 transition-all shadow-inner" />
           </div>
           {!isLogin && (
             <div className="space-y-1.5 animate-fade-in">
               <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">WhatsApp / Celular</label>
-              <input type="tel" required value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="(00) 00000-0000" className="w-full bg-surface-dark border border-white/5 rounded-2xl py-5 px-6 text-white text-sm outline-none focus:border-primary/50 transition-all shadow-inner" />
+              <input type="tel" required value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="(00) 00000-0000" className="w-full bg-surface-dark border border-white/5 rounded-2xl py-5 sm:py-5 lg:py-5 px-6 sm:px-6 lg:px-6 text-white text-sm outline-none focus:border-primary/50 transition-all shadow-inner" />
             </div>
           )}
           <div className="space-y-1.5">
@@ -271,7 +271,7 @@ const AuthClient: React.FC<AuthClientProps> = ({ onLogin }) => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full bg-surface-dark border border-white/5 rounded-2xl py-5 px-6 text-white text-sm outline-none focus:border-primary/50 transition-all shadow-inner"
+                className="w-full bg-surface-dark border border-white/5 rounded-2xl py-5 sm:py-5 lg:py-5 px-6 sm:px-6 lg:px-6 text-white text-sm outline-none focus:border-primary/50 transition-all shadow-inner"
               />
               <button
                 type="button"
@@ -294,7 +294,7 @@ const AuthClient: React.FC<AuthClientProps> = ({ onLogin }) => {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="••••••••"
-                  className={`w-full bg-surface-dark border rounded-2xl py-5 px-6 text-white text-sm outline-none transition-all shadow-inner ${confirmPassword && password !== confirmPassword ? 'border-danger/50' : 'border-white/5 focus:border-primary/50'}`}
+                  className={`w-full bg-surface-dark border rounded-2xl py-5 sm:py-5 lg:py-5 px-6 sm:px-6 lg:px-6 text-white text-sm outline-none transition-all shadow-inner ${confirmPassword && password !== confirmPassword ? 'border-danger/50' : 'border-white/5 focus:border-primary/50'}`}
                 />
                 <button
                   type="button"
@@ -308,7 +308,7 @@ const AuthClient: React.FC<AuthClientProps> = ({ onLogin }) => {
               </div>
             </div>
           )}
-          <button type="submit" disabled={isLoading} className="w-full gold-gradient text-background-dark font-black py-5 rounded-2xl shadow-2xl uppercase tracking-[0.3em] text-[11px] flex items-center justify-center gap-3 active:scale-95 transition-all mt-4 border border-white/10">
+          <button type="submit" disabled={isLoading} className="w-full gold-gradient text-background-dark font-black py-5 sm:py-5 lg:py-5 rounded-2xl shadow-2xl uppercase tracking-[0.3em] text-[11px] flex items-center justify-center gap-3 lg:gap-3 active:scale-95 transition-all mt-4 border border-white/10">
             {isLoading ? <div className="size-5 border-2 border-background-dark/30 border-t-background-dark rounded-full animate-spin"></div> : (isLogin ? 'Entrar na Aura' : 'Confirmar Cadastro')}
           </button>
         </form>
@@ -317,13 +317,13 @@ const AuthClient: React.FC<AuthClientProps> = ({ onLogin }) => {
             {isLogin ? 'Ainda não tem conta?' : 'Já possui uma conta?'}
             <button onClick={() => setIsLogin(!isLogin)} className="text-primary ml-1 underline underline-offset-4">Clique aqui</button>
           </p>
-          <div className="bg-primary/5 p-6 rounded-[32px] border border-primary/10 shadow-inner max-w-sm mx-auto">
+          <div className="bg-primary/5 p-6 sm:p-6 lg:p-6 rounded-2xl sm:rounded-3xl lg:rounded-[32px] border border-primary/10 shadow-inner max-w-sm mx-auto">
             <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.3em] mb-4">Área do Parceiro</p>
             <button
               onClick={() => navigate('/login')}
-              className="w-full py-6 rounded-3xl border border-primary/20 bg-background-dark/40 backdrop-blur-md text-primary text-[11px] font-black uppercase tracking-[0.3em] flex items-center justify-center gap-4 hover:bg-primary/10 hover:border-primary/40 hover:scale-[1.02] transition-all shadow-[0_10px_40px_rgba(0,0,0,0.3)] group"
+              className="w-full py-6 sm:py-6 lg:py-6 rounded-3xl border border-primary/20 bg-background-dark/40 backdrop-blur-md text-primary text-[11px] font-black uppercase tracking-[0.3em] flex items-center justify-center gap-4 lg:gap-4 hover:bg-primary/10 hover:border-primary/40 hover:scale-[1.02] transition-all shadow-[0_10px_40px_rgba(0,0,0,0.3)] group"
             >
-              <span className="material-symbols-outlined text-2xl group-hover:rotate-12 transition-transform">rocket_launch</span>
+              <span className="material-symbols-outlined text-2xl lg:text-2xl group-hover:rotate-12 transition-transform">rocket_launch</span>
               Portal Profissional
             </button>
             <p className="text-[8px] text-slate-600 mt-3 uppercase tracking-widest">Para Salões, Spas e Artistas</p>

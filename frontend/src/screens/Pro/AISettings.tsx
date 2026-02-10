@@ -130,27 +130,27 @@ const AISettings: React.FC = () => {
 
     return (
         <div className="min-h-screen flex flex-col font-sans relative selection:bg-primary/30">
-            {/* Efeito Visual de Fundo (Ajustado para Tema Global) */}
+            {/* Efeito Visual de Fundo */}
             <div className="fixed inset-0 pointer-events-none opacity-20">
                 <div className="absolute top-[-10%] left-[-10%] size-[500px] bg-primary/5 rounded-full blur-[120px]" />
                 <div className="absolute bottom-[-10%] right-[-10%] size-[500px] bg-primary/5 rounded-full blur-[120px]" />
             </div>
 
-            <header className="relative z-20 px-6 pt-14 pb-8 border-b border-white/5 bg-background-dark/60 backdrop-blur-2xl">
-                <button onClick={() => navigate('/pro')} className="mb-6 flex items-center gap-2 text-slate-500 hover:text-white transition-all group">
+            <header className="relative z-20 px-6 sm:px-6 lg:px-6 pt-14 pb-8 border-b border-white/5 bg-background-dark/60 backdrop-blur-2xl">
+                <button onClick={() => navigate('/pro')} className="mb-6 flex items-center gap-2 lg:gap-2 text-slate-500 hover:text-white transition-all group">
                     <span className="material-symbols-outlined text-lg group-hover:-translate-x-1 transition-transform">chevron_left</span>
                     <span className="text-[10px] font-black uppercase tracking-[0.3em]">Gestão Aura</span>
                 </button>
 
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                        <div className="size-14 rounded-2xl gold-gradient p-[px] shadow-2xl shadow-primary/20">
+                        <div className="size-10 lg:size-12 rounded-2xl gold-gradient p-[1px] shadow-2xl shadow-primary/20">
                             <div className="w-full h-full bg-[#08090a] rounded-2xl flex items-center justify-center">
-                                <span className="material-symbols-outlined text-2xl text-primary font-black italic">auto_awesome</span>
+                                <span className="material-symbols-outlined text-xl lg:text-2xl text-primary font-black italic">auto_awesome</span>
                             </div>
                         </div>
                         <div>
-                            <h1 className="font-display font-black italic tracking-tighter leading-none mb-1" style={{ fontSize: 'var(--step-2)' }}>Aura Concierge</h1>
+                            <h1 className="font-display font-black italic tracking-tighter leading-none mb-1 text-xl lg:text-3xl">Aura Concierge</h1>
                             <div className="flex items-center gap-2">
                                 <span className={`size-1.5 rounded-full ${isEnabled ? 'bg-emerald-500 animate-pulse' : 'bg-slate-700'}`} />
                                 <p className="text-[9px] text-primary font-black uppercase tracking-[0.2em]">{isEnabled ? 'Atendimento Ativo' : 'Sistema Offline'}</p>
@@ -175,10 +175,10 @@ const AISettings: React.FC = () => {
                 </div>
             </header>
 
-            <main className="flex-1 p-6 relative z-10 space-y-8 overflow-y-auto no-scrollbar pb-[200px]">
+            <main className="flex-1 p-6 lg:p-12 relative z-10 space-y-8 overflow-y-auto no-scrollbar pb-[200px] max-w-[1400px] mx-auto w-full">
 
                 {/* ESTRATÉGIA DE VENDAS */}
-                <div className="bg-surface-dark border border-white/5 rounded-[2.5rem] p-7 shadow-2xl space-y-6">
+                <div className="bg-surface-dark border border-white/5 rounded-3xl lg:rounded-[40px] p-6 lg:p-8 shadow-2xl space-y-6">
                     <div className="flex items-center gap-3">
                         <span className="material-symbols-outlined text-primary">campaign</span>
                         <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-white/60">Estratégia de Venda</h2>
@@ -189,26 +189,26 @@ const AISettings: React.FC = () => {
                             value={salon?.ai_promo_text || ''}
                             onChange={(e) => { setSalon({ ...salon, ai_promo_text: e.target.value }); setHasChanges(true); }}
                             placeholder="Ex: Ofereça 15% de desconto para quem agendar Mechas hoje."
-                            className="w-full bg-black/40 border border-white/5 rounded-[2rem] p-5 text-xs text-white focus:border-primary/40 outline-none min-h-[120px]"
+                            className="w-full bg-black/40 border border-white/5 rounded-2xl p-5 text-sm text-white focus:border-primary/40 outline-none min-h-[120px]"
                         />
 
                         <div className="flex items-center gap-4">
-                            <div className="relative w-28">
+                            <div className="relative w-32 shrink-0">
                                 <input
                                     type="number"
                                     value={salon?.ai_promo_discount || ''}
                                     onChange={(e) => { setSalon({ ...salon, ai_promo_discount: e.target.value }); setHasChanges(true); }}
-                                    className="w-full h-14 bg-black/40 border border-white/5 rounded-2xl px-4 pr-10 text-xl font-display font-black text-white outline-none text-right"
+                                    className="w-full h-12 bg-black/40 border border-white/5 rounded-xl px-4 text-xl font-display font-black text-white outline-none text-right"
                                 />
                                 <span className="absolute right-4 top-1/2 -translate-y-1/2 text-primary font-black text-sm italic">%</span>
                             </div>
                             <button
                                 onClick={handleSave}
                                 disabled={saving || !hasChanges}
-                                className={`flex-1 h-14 rounded-2xl font-black uppercase text-[10px] tracking-[0.2em] flex items-center justify-center gap-2 transition-all ${hasChanges ? 'gold-gradient text-black animate-pulse' : 'bg-white/5 text-white/30 truncate'}`}
+                                className={`flex-1 h-12 rounded-xl font-black uppercase text-[10px] tracking-[0.2em] flex items-center justify-center gap-2 transition-all ${hasChanges ? 'gold-gradient text-black animate-pulse' : 'bg-white/5 text-white/30'}`}
                             >
                                 <span className="material-symbols-outlined text-lg">verified</span>
-                                {saving ? 'Gravando...' : 'Salvar Alterações'}
+                                {saving ? 'Gravando...' : 'Salvar'}
                             </button>
                         </div>
                     </div>
@@ -221,22 +221,22 @@ const AISettings: React.FC = () => {
                         <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-white/60">Personalidade Aura</h2>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                         {voiceTones.map((tone) => (
                             <button
                                 key={tone.id}
                                 onClick={() => { setSalon({ ...salon, ai_voice_tone: tone.id }); setHasChanges(true); }}
-                                className={`p-4 rounded-3xl border transition-all text-left relative overflow-hidden group ${salon?.ai_voice_tone === tone.id ? 'bg-primary/20 border-primary shadow-[0_0_20px_rgba(193,165,113,0.1)]' : 'bg-[#0b0c0d] border-white/5 hover:border-white/20'}`}
+                                className={`p-5 rounded-[28px] border transition-all text-left relative overflow-hidden group ${salon?.ai_voice_tone === tone.id ? 'bg-primary/20 border-primary shadow-[0_0_20px_rgba(193,165,113,0.1)]' : 'bg-[#0b0c0d] border-white/5 hover:border-white/20'}`}
                             >
                                 <span className={`material-symbols-outlined text-lg mb-2 transition-transform group-hover:scale-125 ${salon?.ai_voice_tone === tone.id ? 'text-primary' : 'text-slate-600'}`}>
                                     {tone.icon}
                                 </span>
-                                <h3 className={`text-[11px] font-black uppercase tracking-widest leading-none mb-1 italic font-display ${salon?.ai_voice_tone === tone.id ? 'text-white' : 'text-slate-500'}`}>
+                                <h3 className={`text-[10px] font-black uppercase tracking-widest leading-none mb-1 italic font-display ${salon?.ai_voice_tone === tone.id ? 'text-white' : 'text-slate-500'}`}>
                                     {tone.label}
                                 </h3>
-                                <p className="text-[8px] text-slate-600 font-medium leading-[1.3] truncate">{tone.desc}</p>
+                                <p className="text-[9px] text-slate-600 font-medium leading-tight line-clamp-2">{tone.desc}</p>
                                 {salon?.ai_voice_tone === tone.id && (
-                                    <div className="absolute top-2 right-2 text-primary">
+                                    <div className="absolute top-3 right-3 text-primary">
                                         <span className="material-symbols-outlined text-xs">check_circle</span>
                                     </div>
                                 )}
@@ -245,44 +245,43 @@ const AISettings: React.FC = () => {
                     </div>
                 </div>
 
-                {/* PERFORMANCE (INSIGHTS REAIS) */}
+                {/* PERFORMANCE */}
                 <div className="space-y-4">
                     <div className="flex items-center gap-3 ml-2">
                         <span className="material-symbols-outlined text-primary text-sm">analytics</span>
                         <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-white/60">Performance IA</h2>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                        <div className="bg-[#0b0c0d] border border-white/5 p-4 sm:p-5 rounded-[2rem] relative overflow-hidden group">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div className="bg-[#0b0c0d] border border-white/5 p-6 rounded-[28px] relative overflow-hidden group">
                             <div className="absolute top-0 right-0 p-3 opacity-[0.05] group-hover:rotate-12 transition-transform">
-                                <span className="material-symbols-outlined text-4xl">forum</span>
+                                <span className="material-symbols-outlined text-3xl">forum</span>
                             </div>
                             <h4 className="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-1">Atendimentos</h4>
-                            <p className="font-display font-black text-white italic" style={{ fontSize: 'var(--step-2)' }}>{aiStats.atendimentos}</p>
+                            <p className="font-display font-black text-white italic text-3xl">{aiStats.atendimentos}</p>
                             <div className="mt-2 text-[7px] text-emerald-500 font-black uppercase tracking-widest">Conversas Únicas</div>
                         </div>
 
-                        <div className="bg-[#0b0c0d] border border-white/5 p-4 sm:p-5 rounded-[2rem] relative overflow-hidden group">
+                        <div className="bg-[#0b0c0d] border border-white/5 p-6 rounded-[28px] relative overflow-hidden group">
                             <div className="absolute top-0 right-0 p-3 opacity-[0.05] group-hover:rotate-12 transition-transform">
-                                <span className="material-symbols-outlined text-4xl">event_available</span>
+                                <span className="material-symbols-outlined text-3xl">event_available</span>
                             </div>
                             <h4 className="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-1">Agendamentos</h4>
-                            <p className="font-display font-black text-primary italic" style={{ fontSize: 'var(--step-2)' }}>{aiStats.conversoes}</p>
+                            <p className="font-display font-black text-primary italic text-3xl">{aiStats.conversoes}</p>
                             <div className="mt-2 text-[7px] text-primary/70 font-black uppercase tracking-widest">{aiStats.taxa} Conversão</div>
                         </div>
 
-                        <div className="col-span-2 bg-gradient-to-r from-primary/10 to-transparent border border-primary/20 p-4 sm:p-5 rounded-[2rem] flex items-center justify-between">
+                        <div className="col-span-1 lg:col-span-2 bg-gradient-to-r from-primary/10 to-transparent border border-primary/20 p-6 rounded-[28px] flex items-center justify-between">
                             <div>
                                 <h4 className="text-[8px] font-black text-primary uppercase tracking-widest mb-1">Receita Gerada</h4>
-                                <p className="font-display font-black text-white italic" style={{ fontSize: 'var(--step-1)' }}>{aiStats.receita_estimada}</p>
+                                <p className="font-display font-black text-white italic text-2xl">{aiStats.receita_estimada}</p>
                             </div>
-                            <div className="size-10 sm:size-12 rounded-2xl gold-gradient flex items-center justify-center text-black">
+                            <div className="size-12 rounded-xl gold-gradient flex items-center justify-center text-black">
                                 <span className="material-symbols-outlined text-xl font-black">trending_up</span>
                             </div>
                         </div>
                     </div>
                 </div>
-
             </main>
         </div>
     );

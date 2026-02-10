@@ -101,16 +101,16 @@ const PartnerRegister: React.FC<PartnerRegisterProps> = ({ onRegister }) => {
         <div className="absolute inset-0 bg-gradient-to-t from-background-dark/80 via-background-dark/20 to-transparent"></div>
       </div>
 
-      <header className="relative z-10 p-8 flex items-center justify-between">
-        <button onClick={() => navigate('/login')} className="size-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-white">
+      <header className="relative z-10 p-8 sm:p-8 lg:p-8 flex items-center justify-between">
+        <button onClick={() => navigate('/login')} className="size-10 sm:size-12 lg:size-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-white">
           <span className="material-symbols-outlined">arrow_back</span>
         </button>
-        <div className="px-4 py-2 rounded-xl bg-primary/10 border border-primary/20">
+        <div className="px-4 sm:px-4 lg:px-4 py-2 sm:py-2 lg:py-2 rounded-xl bg-primary/10 border border-primary/20">
           <span className="text-[9px] font-black text-primary uppercase tracking-[0.2em]">Parceiro Aura</span>
         </div>
       </header>
 
-      <main className="relative z-10 flex-1 flex flex-col px-8 pb-12 overflow-y-auto no-scrollbar">
+      <main className="relative z-10 flex-1 flex flex-col px-8 sm:px-8 lg:px-8 pb-12 overflow-y-auto no-scrollbar">
         <div className="space-y-2 mb-10">
           <h1 className="font-display font-black text-white italic tracking-tighter leading-none" style={{ fontSize: 'var(--step-4)' }}>Digitalize sua <br /> <span className="text-primary">Excelência.</span></h1>
           <p className="text-slate-500 font-medium" style={{ fontSize: 'var(--step-0)' }}>Gestão premium para o seu negócio.</p>
@@ -119,20 +119,20 @@ const PartnerRegister: React.FC<PartnerRegisterProps> = ({ onRegister }) => {
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
             <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Nome da Unidade</label>
-            <input type="text" required value={formData.salonName} onChange={(e) => setFormData({ ...formData, salonName: e.target.value })} className="w-full bg-surface-dark border border-white/5 rounded-2xl py-4 px-6 text-white text-sm outline-none focus:border-primary/50 transition-all" />
+            <input type="text" required value={formData.salonName} onChange={(e) => setFormData({ ...formData, salonName: e.target.value })} className="w-full bg-surface-dark border border-white/5 rounded-2xl py-4 sm:py-4 lg:py-4 px-6 sm:px-6 lg:px-6 text-white text-sm outline-none focus:border-primary/50 transition-all" />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:gap-4">
             <div className="space-y-2">
               <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Proprietário</label>
-              <input type="text" required value={formData.ownerName} onChange={(e) => setFormData({ ...formData, ownerName: e.target.value })} className="w-full bg-surface-dark border border-white/5 rounded-2xl py-4 px-6 text-white text-sm outline-none focus:border-primary/50 transition-all" />
+              <input type="text" required value={formData.ownerName} onChange={(e) => setFormData({ ...formData, ownerName: e.target.value })} className="w-full bg-surface-dark border border-white/5 rounded-2xl py-4 sm:py-4 lg:py-4 px-6 sm:px-6 lg:px-6 text-white text-sm outline-none focus:border-primary/50 transition-all" />
             </div>
             <div className="space-y-2">
               <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Segmento</label>
               <div className="relative">
                 <div
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  className="w-full bg-surface-dark border border-white/5 rounded-2xl py-4 px-6 text-white text-sm outline-none cursor-pointer flex items-center justify-between group active:scale-[0.98] transition-all"
+                  className="w-full bg-surface-dark border border-white/5 rounded-2xl py-4 sm:py-4 lg:py-4 px-6 sm:px-6 lg:px-6 text-white text-sm outline-none cursor-pointer flex items-center justify-between group active:scale-[0.98] transition-all"
                 >
                   <span className="font-medium">{formData.segment}</span>
                   <span className={`material-symbols-outlined text-primary transition-transform duration-300 ${isDropdownOpen ? 'rotate-180' : ''}`}>expand_more</span>
@@ -147,7 +147,7 @@ const PartnerRegister: React.FC<PartnerRegisterProps> = ({ onRegister }) => {
                           setFormData({ ...formData, segment: s });
                           setIsDropdownOpen(false);
                         }}
-                        className={`px-6 py-4 text-[10px] font-black uppercase tracking-widest cursor-pointer transition-all hover:bg-white/5 hover:pl-8 ${formData.segment === s ? 'text-primary bg-primary/5' : 'text-slate-400'}`}
+                        className={`px-6 sm:px-6 lg:px-6 py-4 sm:py-4 lg:py-4 text-[10px] font-black uppercase tracking-widest cursor-pointer transition-all hover:bg-white/5 hover:pl-8 ${formData.segment === s ? 'text-primary bg-primary/5' : 'text-slate-400'}`}
                       >
                         {s}
                       </div>
@@ -160,10 +160,10 @@ const PartnerRegister: React.FC<PartnerRegisterProps> = ({ onRegister }) => {
 
           <div className="space-y-2">
             <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">E-mail Corporativo</label>
-            <input type="email" required value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} className="w-full bg-surface-dark border border-white/5 rounded-2xl py-4 px-6 text-white text-sm outline-none focus:border-primary/50 transition-all" />
+            <input type="email" required value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} className="w-full bg-surface-dark border border-white/5 rounded-2xl py-4 sm:py-4 lg:py-4 px-6 sm:px-6 lg:px-6 text-white text-sm outline-none focus:border-primary/50 transition-all" />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:gap-4">
             <div className="space-y-2">
               <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Senha de Admin</label>
               <div className="relative">
@@ -172,7 +172,7 @@ const PartnerRegister: React.FC<PartnerRegisterProps> = ({ onRegister }) => {
                   required
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  className="w-full bg-surface-dark border border-white/5 rounded-2xl py-4 px-6 text-white text-sm outline-none focus:border-primary/50 transition-all"
+                  className="w-full bg-surface-dark border border-white/5 rounded-2xl py-4 sm:py-4 lg:py-4 px-6 sm:px-6 lg:px-6 text-white text-sm outline-none focus:border-primary/50 transition-all"
                 />
                 <button
                   type="button"
@@ -193,7 +193,7 @@ const PartnerRegister: React.FC<PartnerRegisterProps> = ({ onRegister }) => {
                   required
                   value={formData.confirmPassword}
                   onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                  className="w-full bg-surface-dark border border-white/5 rounded-2xl py-4 px-6 text-white text-sm outline-none focus:border-primary/50 transition-all"
+                  className="w-full bg-surface-dark border border-white/5 rounded-2xl py-4 sm:py-4 lg:py-4 px-6 sm:px-6 lg:px-6 text-white text-sm outline-none focus:border-primary/50 transition-all"
                 />
                 <button
                   type="button"
@@ -208,7 +208,7 @@ const PartnerRegister: React.FC<PartnerRegisterProps> = ({ onRegister }) => {
             </div>
           </div>
 
-          <button type="submit" disabled={isLoading} className="w-full gold-gradient text-background-dark font-black py-5 rounded-2xl shadow-2xl uppercase tracking-[0.3em] text-[11px] flex items-center justify-center gap-3 active:scale-95 transition-all">
+          <button type="submit" disabled={isLoading} className="w-full gold-gradient text-background-dark font-black py-5 sm:py-5 lg:py-5 rounded-2xl shadow-2xl uppercase tracking-[0.3em] text-[11px] flex items-center justify-center gap-3 lg:gap-3 active:scale-95 transition-all">
             {isLoading ? <div className="size-5 border-2 border-background-dark/30 border-t-background-dark rounded-full animate-spin"></div> : 'Criar Unidade Aura'}
           </button>
         </form>

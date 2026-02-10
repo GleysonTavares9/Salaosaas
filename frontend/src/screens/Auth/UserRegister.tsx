@@ -55,39 +55,39 @@ const UserRegister: React.FC<UserRegisterProps> = ({ onRegister }) => {
   };
 
   return (
-    <div className="flex-1 h-full overflow-y-auto flex flex-col p-8 no-scrollbar">
-      <header className="relative z-10 p-8 pt-[calc(env(safe-area-inset-top)+1rem)] flex items-center justify-between">
-        <button onClick={() => navigate(-1)} className="size-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-white active:scale-95 transition-all">
+    <div className="flex-1 h-full overflow-y-auto flex flex-col p-8 sm:p-8 lg:p-8 no-scrollbar">
+      <header className="relative z-10 p-8 sm:p-8 lg:p-8 pt-[calc(env(safe-area-inset-top)+1rem)] flex items-center justify-between">
+        <button onClick={() => navigate(-1)} className="size-10 sm:size-12 lg:size-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-white active:scale-95 transition-all">
           <span className="material-symbols-outlined">arrow_back</span>
         </button>
-        <div className="px-4 py-2 rounded-xl bg-primary/10 border border-primary/20">
+        <div className="px-4 sm:px-4 lg:px-4 py-2 sm:py-2 lg:py-2 rounded-xl bg-primary/10 border border-primary/20">
           <span className="text-[9px] font-black text-primary uppercase tracking-[0.2em]">Novo Cliente</span>
         </div>
       </header>
 
-      <main className="relative z-10 flex-1 flex flex-col justify-center px-8 pb-32">
-        <div className="space-y-4 mb-8 text-center max-w-lg mx-auto">
-          <div className="size-20 lg:size-24 rounded-[28px] lg:rounded-[32px] gold-gradient flex items-center justify-center text-background-dark shadow-[0_0_50px_rgba(193,165,113,0.4)] mx-auto mb-6 transform hover:rotate-6 transition-transform">
-            <span className="material-symbols-outlined text-4xl lg:text-5xl font-black">person_add</span>
+      <main className="relative z-10 flex-1 flex flex-col justify-center px-8 sm:px-8 lg:px-8 pb-32">
+        <div className="space-y-4 mb-8 text-center max-w-full sm:max-w-lg mx-auto">
+          <div className="size-14 sm:size-16 lg:size-20 lg:size-18 sm:size-20 lg:size-24 rounded-[28px] lg:rounded-2xl sm:rounded-3xl lg:rounded-[32px] gold-gradient flex items-center justify-center text-background-dark shadow-[0_0_50px_rgba(193,165,113,0.4)] mx-auto mb-6 transform hover:rotate-6 transition-transform">
+            <span className="material-symbols-outlined text-4xl lg:text-4xl lg:text-3xl sm:text-4xl lg:text-5xl lg:text-3xl sm:text-4xl lg:text-5xl font-black">person_add</span>
           </div>
-          <h1 className="text-4xl lg:text-6xl font-display font-black text-white italic tracking-tighter leading-none uppercase">Sua Aura <br /><span className="text-primary italic">Começa Aqui.</span></h1>
+          <h1 className="text-4xl lg:text-4xl lg:text-4xl sm:text-5xl lg:text-6xl lg:text-4xl sm:text-5xl lg:text-6xl font-display font-black text-white italic tracking-tighter leading-none uppercase">Sua Aura <br /><span className="text-primary italic">Começa Aqui.</span></h1>
           <p className="text-secondary text-[11px] lg:text-xs font-black uppercase tracking-[0.4em] mt-6 opacity-80">Para você que ama se cuidar</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5 max-w-sm mx-auto w-full">
           <div className="space-y-1.5">
             <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Nome Completo</label>
-            <input type="text" required value={formData.nome} onChange={(e) => setFormData({ ...formData, nome: e.target.value })} placeholder="Como quer ser chamado?" className="w-full bg-surface-dark border border-white/5 rounded-2xl py-4 px-6 text-white text-sm outline-none focus:border-primary/50 transition-all" />
+            <input type="text" required value={formData.nome} onChange={(e) => setFormData({ ...formData, nome: e.target.value })} placeholder="Como quer ser chamado?" className="w-full bg-surface-dark border border-white/5 rounded-2xl py-4 sm:py-4 lg:py-4 px-6 sm:px-6 lg:px-6 text-white text-sm outline-none focus:border-primary/50 transition-all" />
           </div>
 
           <div className="space-y-1.5">
             <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">E-mail</label>
-            <input type="email" required value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} placeholder="seu@email.com" className="w-full bg-surface-dark border border-white/5 rounded-2xl py-4 px-6 text-white text-sm outline-none focus:border-primary/50 transition-all" />
+            <input type="email" required value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} placeholder="seu@email.com" className="w-full bg-surface-dark border border-white/5 rounded-2xl py-4 sm:py-4 lg:py-4 px-6 sm:px-6 lg:px-6 text-white text-sm outline-none focus:border-primary/50 transition-all" />
           </div>
 
           <div className="space-y-1.5">
             <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">WhatsApp</label>
-            <input type="tel" required value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} placeholder="(00) 00000-0000" className="w-full bg-surface-dark border border-white/5 rounded-2xl py-4 px-6 text-white text-sm outline-none focus:border-primary/50 transition-all" />
+            <input type="tel" required value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} placeholder="(00) 00000-0000" className="w-full bg-surface-dark border border-white/5 rounded-2xl py-4 sm:py-4 lg:py-4 px-6 sm:px-6 lg:px-6 text-white text-sm outline-none focus:border-primary/50 transition-all" />
           </div>
 
           <div className="space-y-1.5">
@@ -99,7 +99,7 @@ const UserRegister: React.FC<UserRegisterProps> = ({ onRegister }) => {
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                 placeholder="••••••••"
-                className="w-full bg-surface-dark border border-white/5 rounded-2xl py-4 px-6 text-white text-sm outline-none focus:border-primary/50 transition-all font-mono"
+                className="w-full bg-surface-dark border border-white/5 rounded-2xl py-4 sm:py-4 lg:py-4 px-6 sm:px-6 lg:px-6 text-white text-sm outline-none focus:border-primary/50 transition-all font-mono"
               />
               <button
                 type="button"
@@ -122,7 +122,7 @@ const UserRegister: React.FC<UserRegisterProps> = ({ onRegister }) => {
                 value={formData.confirmPassword}
                 onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
                 placeholder="••••••••"
-                className={`w-full bg-surface-dark border rounded-2xl py-4 px-6 text-white text-sm outline-none transition-all font-mono ${formData.confirmPassword && formData.password !== formData.confirmPassword ? 'border-red-500/50' : 'border-white/5 focus:border-primary/50'}`}
+                className={`w-full bg-surface-dark border rounded-2xl py-4 sm:py-4 lg:py-4 px-6 sm:px-6 lg:px-6 text-white text-sm outline-none transition-all font-mono ${formData.confirmPassword && formData.password !== formData.confirmPassword ? 'border-red-500/50' : 'border-white/5 focus:border-primary/50'}`}
               />
               <button
                 type="button"
@@ -139,7 +139,7 @@ const UserRegister: React.FC<UserRegisterProps> = ({ onRegister }) => {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full gold-gradient text-background-dark font-black py-5 rounded-2xl shadow-2xl uppercase tracking-[0.3em] text-[11px] flex items-center justify-center gap-3 active:scale-95 transition-all mt-4"
+            className="w-full gold-gradient text-background-dark font-black py-5 sm:py-5 lg:py-5 rounded-2xl shadow-2xl uppercase tracking-[0.3em] text-[11px] flex items-center justify-center gap-3 lg:gap-3 active:scale-95 transition-all mt-4"
           >
             {isLoading ? <div className="size-5 border-2 border-background-dark/30 border-t-background-dark rounded-full animate-spin"></div> : 'Criar minha conta'}
           </button>

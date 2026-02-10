@@ -215,16 +215,16 @@ const Profile: React.FC<ProfileProps> = ({ onLogout }) => {
   return (
     <div className="flex-1 h-full overflow-y-auto pb-32 no-scrollbar bg-background-dark">
       {/* Header Profile */}
-      <header className="relative py-16 lg:py-24 flex flex-col items-center justify-center overflow-hidden">
+      <header className="relative py-16 sm:py-16 lg:py-16 lg:py-24 sm:py-24 lg:py-24 flex flex-col items-center justify-center overflow-hidden">
         {/* Background Effects */}
         <div className="absolute inset-0 bg-gradient-to-b from-primary/15 via-background-dark/80 to-background-dark z-0"></div>
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-[800px] h-[300px] bg-primary/5 blur-[120px] rounded-full"></div>
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-full max-w-[800px] h-auto min-h-[300px] bg-primary/5 blur-[120px] rounded-full"></div>
 
-        <div className="relative z-10 flex flex-col items-center gap-8 px-6 w-full max-w-[1200px]">
+        <div className="relative z-10 flex flex-col items-center gap-8 lg:gap-8 px-6 sm:px-6 lg:px-6 w-full max-w-full max-w-[1200px]">
           <div className="relative group">
-            <div className="size-32 lg:size-40 rounded-[48px] border-2 border-primary/20 p-2 bg-surface-dark shadow-2xl transition-all group-hover:border-primary/40 group-hover:scale-105 duration-500">
+            <div className="size-26 sm:size-28 lg:size-32 lg:size-34 sm:size-36 lg:size-40 rounded-2xl sm:rounded-3xl lg:rounded-[48px] border-2 border-primary/20 p-2 sm:p-2 lg:p-2 bg-surface-dark shadow-2xl transition-all group-hover:border-primary/40 group-hover:scale-105 duration-500">
               <div
-                className="size-full rounded-[40px] bg-cover bg-center transition-all shadow-inner relative overflow-hidden"
+                className="size-full rounded-2xl sm:rounded-3xl lg:rounded-[40px] bg-cover bg-center transition-all shadow-inner relative overflow-hidden"
                 style={{
                   backgroundImage: `url('${userData?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(userData?.name || 'Aura')}&background=c1a571&color=0c0d10&bold=true&size=200`}')`,
                 }}
@@ -241,27 +241,27 @@ const Profile: React.FC<ProfileProps> = ({ onLogout }) => {
                 </div>
               </div>
             </div>
-            <button onClick={handleAvatarClick} className="absolute -bottom-2 -right-2 size-12 rounded-[20px] bg-primary text-background-dark flex items-center justify-center shadow-2xl active:scale-90 transition-all border-4 border-background-dark z-10 hover:scale-110">
+            <button onClick={handleAvatarClick} className="absolute -bottom-2 -right-2 size-10 sm:size-12 lg:size-12 rounded-[20px] bg-primary text-background-dark flex items-center justify-center shadow-2xl active:scale-90 transition-all border-4 border-background-dark z-10 hover:scale-110">
               <span className="material-symbols-outlined text-xl font-black">{userData?.avatar_url ? 'photo_camera' : 'edit'}</span>
             </button>
           </div>
 
           <div className="text-center space-y-4">
-            <div className="px-5 py-1.5 rounded-full bg-primary/10 border border-primary/20 inline-block">
+            <div className="px-5 sm:px-5 lg:px-5 py-1 sm:py-1 lg:py-1.5 rounded-full bg-primary/10 border border-primary/20 inline-block">
               <span className="text-[9px] font-black text-primary uppercase tracking-[0.4em]">
                 {userData?.role === 'admin' ? 'Proprietário' : userData?.role === 'pro' ? (proData?.role || 'Artista') : 'Cliente Vip'}
               </span>
             </div>
 
-            <h2 className="text-4xl lg:text-5xl font-display font-black text-white italic tracking-tighter uppercase leading-none">{userData?.name || 'Carregando...'}</h2>
+            <h2 className="text-4xl lg:text-4xl lg:text-3xl sm:text-4xl lg:text-5xl lg:text-3xl sm:text-4xl lg:text-5xl font-display font-black text-white italic tracking-tighter uppercase leading-none">{userData?.name || 'Carregando...'}</h2>
 
-            <div className="flex flex-wrap items-center justify-center gap-6 pt-2">
-              <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center justify-center gap-6 lg:gap-6 pt-2">
+              <div className="flex items-center gap-2 lg:gap-2">
                 <span className="material-symbols-outlined text-primary text-sm">mail</span>
                 <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest">{userData?.email}</p>
               </div>
               {userData?.phone && (
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 lg:gap-2">
                   <span className="material-symbols-outlined text-primary text-sm">phone_iphone</span>
                   <p className="text-primary text-[10px] font-black uppercase tracking-widest">{userData.phone}</p>
                 </div>
@@ -271,15 +271,15 @@ const Profile: React.FC<ProfileProps> = ({ onLogout }) => {
         </div>
       </header>
 
-      <main className="max-w-[1200px] mx-auto w-full px-6 lg:px-12 py-12 safe-area-bottom pb-32 animate-fade-in">
-        <div className="grid lg:grid-cols-12 gap-10">
+      <main className="max-w-full max-w-[1200px] mx-auto w-full px-6 sm:px-6 lg:px-6 lg:px-12 sm:px-12 lg:px-12 py-12 sm:py-12 lg:py-12 safe-area-bottom pb-32 animate-fade-in">
+        <div className="grid lg:grid-cols-12 gap-10 lg:gap-10">
           <div className="lg:col-span-8 space-y-8">
             <h3 className="text-[10px] font-black text-slate-700 uppercase tracking-[0.4em] ml-2">Preferências Elite</h3>
-            <div className="bg-surface-dark/40 rounded-[48px] border border-white/5 overflow-hidden shadow-2xl backdrop-blur-md">
-              <button onClick={() => setIsEditing(true)} className="w-full p-8 lg:p-10 flex justify-between items-center text-white border-b border-white/5 hover:bg-white/5 transition-all group">
-                <div className="flex items-center gap-6">
-                  <div className="size-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-background-dark transition-all">
-                    <span className="material-symbols-outlined text-2xl">account_circle</span>
+            <div className="bg-surface-dark/40 rounded-2xl sm:rounded-3xl lg:rounded-[48px] border border-white/5 overflow-hidden shadow-2xl backdrop-blur-md">
+              <button onClick={() => setIsEditing(true)} className="w-full p-8 sm:p-8 lg:p-8 lg:p-10 sm:p-10 lg:p-10 flex justify-between items-center text-white border-b border-white/5 hover:bg-white/5 transition-all group">
+                <div className="flex items-center gap-6 lg:gap-6">
+                  <div className="size-10 sm:size-12 lg:size-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-background-dark transition-all">
+                    <span className="material-symbols-outlined text-2xl lg:text-2xl">account_circle</span>
                   </div>
                   <div className="text-left">
                     <span className="font-display italic text-xl tracking-tight block">Editar Perfil</span>
@@ -289,10 +289,10 @@ const Profile: React.FC<ProfileProps> = ({ onLogout }) => {
                 <span className="material-symbols-outlined text-slate-700 group-hover:text-primary transition-colors group-hover:translate-x-2">chevron_right</span>
               </button>
 
-              <button onClick={() => setIsNotificationsOpen(true)} className="w-full p-8 lg:p-10 flex justify-between items-center text-white border-b border-white/5 hover:bg-white/5 transition-all group">
-                <div className="flex items-center gap-6">
-                  <div className="size-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-background-dark transition-all">
-                    <span className="material-symbols-outlined text-2xl">notifications</span>
+              <button onClick={() => setIsNotificationsOpen(true)} className="w-full p-8 sm:p-8 lg:p-8 lg:p-10 sm:p-10 lg:p-10 flex justify-between items-center text-white border-b border-white/5 hover:bg-white/5 transition-all group">
+                <div className="flex items-center gap-6 lg:gap-6">
+                  <div className="size-10 sm:size-12 lg:size-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-background-dark transition-all">
+                    <span className="material-symbols-outlined text-2xl lg:text-2xl">notifications</span>
                   </div>
                   <div className="text-left">
                     <span className="font-display italic text-xl tracking-tight block">Central de Notificações</span>
@@ -302,10 +302,10 @@ const Profile: React.FC<ProfileProps> = ({ onLogout }) => {
                 <span className="material-symbols-outlined text-slate-700 group-hover:text-primary transition-colors group-hover:translate-x-2">chevron_right</span>
               </button>
 
-              <button onClick={() => setIsPrivacyOpen(true)} className="w-full p-8 lg:p-10 flex justify-between items-center text-white border-b border-white/5 hover:bg-white/5 transition-all group">
-                <div className="flex items-center gap-6">
-                  <div className="size-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-background-dark transition-all">
-                    <span className="material-symbols-outlined text-2xl">security</span>
+              <button onClick={() => setIsPrivacyOpen(true)} className="w-full p-8 sm:p-8 lg:p-8 lg:p-10 sm:p-10 lg:p-10 flex justify-between items-center text-white border-b border-white/5 hover:bg-white/5 transition-all group">
+                <div className="flex items-center gap-6 lg:gap-6">
+                  <div className="size-10 sm:size-12 lg:size-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-background-dark transition-all">
+                    <span className="material-symbols-outlined text-2xl lg:text-2xl">security</span>
                   </div>
                   <div className="text-left">
                     <span className="font-display italic text-xl tracking-tight block">Privacidade & Dados</span>
@@ -319,10 +319,10 @@ const Profile: React.FC<ProfileProps> = ({ onLogout }) => {
 
           <aside className="lg:col-span-4 space-y-8">
             <h3 className="text-[10px] font-black text-slate-700 uppercase tracking-[0.4em] ml-2">Sessão</h3>
-            <div className="bg-surface-dark/40 rounded-[48px] border border-white/5 p-8 lg:p-10 shadow-2xl backdrop-blur-md">
+            <div className="bg-surface-dark/40 rounded-2xl sm:rounded-3xl lg:rounded-[48px] border border-white/5 p-8 sm:p-8 lg:p-8 lg:p-10 sm:p-10 lg:p-10 shadow-2xl backdrop-blur-md">
               <button
                 onClick={onLogout}
-                className="w-full p-6 flex items-center justify-center gap-4 bg-red-500/10 border border-red-500/20 rounded-[28px] text-red-500 text-[10px] font-black uppercase tracking-[0.4em] hover:bg-red-500 hover:text-white active:scale-95 transition-all shadow-xl"
+                className="w-full p-6 sm:p-6 lg:p-6 flex items-center justify-center gap-4 lg:gap-4 bg-red-500/10 border border-red-500/20 rounded-[28px] text-red-500 text-[10px] font-black uppercase tracking-[0.4em] hover:bg-red-500 hover:text-white active:scale-95 transition-all shadow-xl"
               >
                 <span className="material-symbols-outlined text-lg">logout</span>
                 Sair com Segurança
@@ -341,10 +341,10 @@ const Profile: React.FC<ProfileProps> = ({ onLogout }) => {
 
       {/* MODAL EDIT PERFIL */}
       {isEditing && (
-        <div className="fixed inset-0 z-[100] bg-background-dark/80 backdrop-blur-2xl flex items-center justify-center p-8 animate-fade-in">
+        <div className="fixed inset-0 z-[100] bg-background-dark/80 backdrop-blur-2xl flex items-center justify-center p-8 sm:p-8 lg:p-8 animate-fade-in">
           <div className="w-full max-w-sm space-y-10">
             <div className="text-center">
-              <h2 className="text-4xl font-display font-black text-white italic tracking-tighter mb-2">Editar <span className="text-primary italic">Perfil.</span></h2>
+              <h2 className="text-4xl lg:text-4xl font-display font-black text-white italic tracking-tighter mb-2">Editar <span className="text-primary italic">Perfil.</span></h2>
               {userData?.role === 'pro' && proData && (
                 <p className="text-primary text-[10px] font-black uppercase tracking-widest italic">{proData.role}</p>
               )}
@@ -360,47 +360,47 @@ const Profile: React.FC<ProfileProps> = ({ onLogout }) => {
               {/* Nome e Telefone para Todos */}
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Nome de Exibição</label>
-                <input type="text" value={editName} onChange={e => setEditName(e.target.value)} className="w-full bg-surface-dark border border-white/10 rounded-2xl p-5 text-white outline-none focus:border-primary shadow-inner" placeholder="Seu nome completo" />
+                <input type="text" value={editName} onChange={e => setEditName(e.target.value)} className="w-full bg-surface-dark border border-white/10 rounded-2xl p-5 sm:p-5 lg:p-5 text-white outline-none focus:border-primary shadow-inner" placeholder="Seu nome completo" />
               </div>
 
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Telefone</label>
-                <input type="tel" value={editPhone} onChange={e => setEditPhone(e.target.value)} className="w-full bg-surface-dark border border-white/10 rounded-2xl p-5 text-white outline-none focus:border-primary shadow-inner" placeholder="(00) 00000-0000" />
+                <input type="tel" value={editPhone} onChange={e => setEditPhone(e.target.value)} className="w-full bg-surface-dark border border-white/10 rounded-2xl p-5 sm:p-5 lg:p-5 text-white outline-none focus:border-primary shadow-inner" placeholder="(00) 00000-0000" />
               </div>
 
               {/* Campos Exclusivos de Profissional (Estilo Marco Aurélio) */}
               {userData?.role === 'pro' && proData && (
                 <div className="animate-fade-in space-y-6">
-                  <div className="bg-surface-dark border border-white/5 rounded-3xl p-6">
+                  <div className="bg-surface-dark border border-white/5 rounded-3xl p-6 sm:p-6 lg:p-6">
                     <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-2">E-mail de Acesso</p>
                     <p className="text-sm font-bold text-white/40 italic">{userData.email}</p>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-surface-dark border border-white/5 rounded-3xl p-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:gap-4">
+                    <div className="bg-surface-dark border border-white/5 rounded-3xl p-6 sm:p-6 lg:p-6">
                       <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-2">Produtividade</p>
-                      <p className="text-3xl font-display font-black text-primary italic leading-none">{proData.productivity || 0}</p>
+                      <p className="text-3xl lg:text-3xl font-display font-black text-primary italic leading-none">{proData.productivity || 0}</p>
                     </div>
-                    <div className="bg-surface-dark border border-white/5 rounded-3xl p-6">
+                    <div className="bg-surface-dark border border-white/5 rounded-3xl p-6 sm:p-6 lg:p-6">
                       <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-2">Comissão %</p>
-                      <p className="text-3xl font-display font-black text-white italic leading-none">{proData.comissao || 0}</p>
+                      <p className="text-3xl lg:text-3xl font-display font-black text-white italic leading-none">{proData.comissao || 0}</p>
                     </div>
                   </div>
 
-                  <div className="bg-surface-dark border border-white/5 rounded-3xl p-6">
+                  <div className="bg-surface-dark border border-white/5 rounded-3xl p-6 sm:p-6 lg:p-6">
                     <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-3">Minha Disponibilidade</p>
-                    <div className="flex gap-4">
+                    <div className="flex gap-4 lg:gap-4">
                       <button
                         type="button"
                         onClick={() => setProData({ ...proData, status: 'active' })}
-                        className={`flex-1 p-4 rounded-2xl border transition-all ${proData.status === 'active' ? 'bg-emerald-500/20 border-emerald-500 text-emerald-500' : 'border-white/10 text-slate-500'}`}
+                        className={`flex-1 p-4 sm:p-4 lg:p-4 rounded-2xl border transition-all ${proData.status === 'active' ? 'bg-emerald-500/20 border-emerald-500 text-emerald-500' : 'border-white/10 text-slate-500'}`}
                       >
                         <span className="text-xs font-black uppercase">Ativo</span>
                       </button>
                       <button
                         type="button"
                         onClick={() => setProData({ ...proData, status: 'away' })}
-                        className={`flex-1 p-4 rounded-2xl border transition-all ${proData.status === 'away' ? 'bg-red-500/10 border-red-500 text-red-500' : 'border-white/10 text-slate-500'}`}
+                        className={`flex-1 p-4 sm:p-4 lg:p-4 rounded-2xl border transition-all ${proData.status === 'away' ? 'bg-red-500/10 border-red-500 text-red-500' : 'border-white/10 text-slate-500'}`}
                       >
                         <span className="text-xs font-black uppercase">Ausente</span>
                       </button>
@@ -408,9 +408,9 @@ const Profile: React.FC<ProfileProps> = ({ onLogout }) => {
                   </div>
                 </div>
               )}
-              <div className="flex gap-4">
-                <button type="button" onClick={() => setIsEditing(false)} className="flex-1 py-5 rounded-2xl border border-white/10 text-white text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all">Cancelar</button>
-                <button type="submit" disabled={isSaving} className="flex-1 py-5 rounded-2xl gold-gradient text-background-dark text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all shadow-2xl">{isSaving ? 'Salvando...' : 'Confirmar'}</button>
+              <div className="flex gap-4 lg:gap-4">
+                <button type="button" onClick={() => setIsEditing(false)} className="flex-1 py-5 sm:py-5 lg:py-5 rounded-2xl border border-white/10 text-white text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all">Cancelar</button>
+                <button type="submit" disabled={isSaving} className="flex-1 py-5 sm:py-5 lg:py-5 rounded-2xl gold-gradient text-background-dark text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all shadow-2xl">{isSaving ? 'Salvando...' : 'Confirmar'}</button>
               </div>
             </form>
           </div>
@@ -419,15 +419,15 @@ const Profile: React.FC<ProfileProps> = ({ onLogout }) => {
 
       {/* MODAL NOTIFICAÇÕES */}
       {isNotificationsOpen && (
-        <div className="fixed inset-0 z-[100] bg-background-dark/80 backdrop-blur-2xl flex items-center justify-center p-8 animate-fade-in">
+        <div className="fixed inset-0 z-[100] bg-background-dark/80 backdrop-blur-2xl flex items-center justify-center p-8 sm:p-8 lg:p-8 animate-fade-in">
           <div className="w-full max-w-sm space-y-8">
             <div className="text-center">
-              <h2 className="text-3xl font-display font-black text-white italic tracking-tighter mb-2">Central de <span className="text-primary italic">Alertas.</span></h2>
+              <h2 className="text-3xl lg:text-3xl font-display font-black text-white italic tracking-tighter mb-2">Central de <span className="text-primary italic">Alertas.</span></h2>
               <p className="text-slate-500 text-[9px] font-bold uppercase tracking-widest">Personalize como a Aura fala com você</p>
             </div>
 
             <div className="space-y-4">
-              <div onClick={() => toggleNotification('push')} className="bg-surface-dark border border-white/5 rounded-2xl p-5 flex items-center justify-between cursor-pointer active:scale-95 transition-all">
+              <div onClick={() => toggleNotification('push')} className="bg-surface-dark border border-white/5 rounded-2xl p-5 sm:p-5 lg:p-5 flex items-center justify-between cursor-pointer active:scale-95 transition-all">
                 <div>
                   <h4 className={`text-xs font-bold uppercase tracking-wider ${notifyPush ? 'text-white' : 'text-slate-500'}`}>Push Notifications</h4>
                   <p className="text-slate-500 text-[8px] font-medium mt-1">Lembretes de agendamentos no app</p>
@@ -436,7 +436,7 @@ const Profile: React.FC<ProfileProps> = ({ onLogout }) => {
                   <div className={`absolute top-1 size-3 bg-background-dark rounded-full transition-all ${notifyPush ? 'right-1' : 'left-1 bg-white/40'}`}></div>
                 </div>
               </div>
-              <div onClick={() => toggleNotification('email')} className="bg-surface-dark border border-white/5 rounded-2xl p-5 flex items-center justify-between cursor-pointer active:scale-95 transition-all">
+              <div onClick={() => toggleNotification('email')} className="bg-surface-dark border border-white/5 rounded-2xl p-5 sm:p-5 lg:p-5 flex items-center justify-between cursor-pointer active:scale-95 transition-all">
                 <div>
                   <h4 className={`text-xs font-bold uppercase tracking-wider ${notifyEmail ? 'text-white' : 'text-slate-500'}`}>E-mail Marketing</h4>
                   <p className="text-slate-500 text-[8px] font-medium mt-1">Novidades e ofertas exclusivas</p>
@@ -445,7 +445,7 @@ const Profile: React.FC<ProfileProps> = ({ onLogout }) => {
                   <div className={`absolute top-1 size-3 bg-background-dark rounded-full transition-all ${notifyEmail ? 'right-1' : 'left-1 bg-white/40'}`}></div>
                 </div>
               </div>
-              <div onClick={() => toggleNotification('sms')} className="bg-surface-dark border border-white/5 rounded-2xl p-5 flex items-center justify-between cursor-pointer active:scale-95 transition-all">
+              <div onClick={() => toggleNotification('sms')} className="bg-surface-dark border border-white/5 rounded-2xl p-5 sm:p-5 lg:p-5 flex items-center justify-between cursor-pointer active:scale-95 transition-all">
                 <div>
                   <h4 className={`text-xs font-bold uppercase tracking-wider ${notifySms ? 'text-white' : 'text-slate-500'}`}>SMS / WhatsApp</h4>
                   <p className="text-slate-500 text-[8px] font-medium mt-1">Confirmações importantes</p>
@@ -455,28 +455,28 @@ const Profile: React.FC<ProfileProps> = ({ onLogout }) => {
                 </div>
               </div>
             </div>
-            <button onClick={() => setIsNotificationsOpen(false)} className="w-full py-5 rounded-2xl border border-white/10 text-white text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all">Fechar</button>
+            <button onClick={() => setIsNotificationsOpen(false)} className="w-full py-5 sm:py-5 lg:py-5 rounded-2xl border border-white/10 text-white text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all">Fechar</button>
           </div>
         </div>
       )}
 
       {/* MODAL PRIVACIDADE */}
       {isPrivacyOpen && (
-        <div className="fixed inset-0 z-[100] bg-background-dark/80 backdrop-blur-2xl flex items-center justify-center p-8 animate-fade-in">
+        <div className="fixed inset-0 z-[100] bg-background-dark/80 backdrop-blur-2xl flex items-center justify-center p-8 sm:p-8 lg:p-8 animate-fade-in">
           <div className="w-full max-w-sm space-y-8">
             <div className="text-center">
-              <h2 className="text-3xl font-display font-black text-white italic tracking-tighter mb-2">Seus <span className="text-primary italic">Dados.</span></h2>
+              <h2 className="text-3xl lg:text-3xl font-display font-black text-white italic tracking-tighter mb-2">Seus <span className="text-primary italic">Dados.</span></h2>
               <p className="text-slate-500 text-[9px] font-bold uppercase tracking-widest">Controle total sobre sua privacidade</p>
             </div>
             <div className="space-y-4">
-              <button onClick={handleExportData} className="w-full bg-surface-dark border border-white/5 rounded-2xl p-5 flex items-center justify-between group active:scale-95 transition-all">
+              <button onClick={handleExportData} className="w-full bg-surface-dark border border-white/5 rounded-2xl p-5 sm:p-5 lg:p-5 flex items-center justify-between group active:scale-95 transition-all">
                 <div>
                   <h4 className="text-white text-left text-xs font-bold uppercase tracking-wider group-hover:text-primary transition-colors">Exportar meus dados</h4>
                   <p className="text-slate-500 text-[8px] font-medium mt-1 text-left">Baixe uma cópia de tudo que sabemos</p>
                 </div>
                 <span className="material-symbols-outlined text-white/20 group-hover:text-primary">download</span>
               </button>
-              <button onClick={handleDeleteAccount} className="w-full bg-red-500/10 border border-red-500/20 rounded-2xl p-5 flex items-center justify-between group active:scale-95 transition-all">
+              <button onClick={handleDeleteAccount} className="w-full bg-red-500/10 border border-red-500/20 rounded-2xl p-5 sm:p-5 lg:p-5 flex items-center justify-between group active:scale-95 transition-all">
                 <div>
                   <h4 className="text-red-500 text-left text-xs font-bold uppercase tracking-wider">Excluir minha conta</h4>
                   <p className="text-red-400/60 text-[8px] font-medium mt-1 text-left">Ação irreversível. Adeus Aura.</p>
@@ -484,10 +484,10 @@ const Profile: React.FC<ProfileProps> = ({ onLogout }) => {
                 <span className="material-symbols-outlined text-red-500/50 group-hover:text-red-500">delete_forever</span>
               </button>
             </div>
-            <p className="text-center text-slate-600 text-[8px] leading-relaxed px-4">
+            <p className="text-center text-slate-600 text-[8px] leading-relaxed px-4 sm:px-4 lg:px-4">
               A Aura segue rigorosamente a LGPD. Seus dados são criptografados e nunca vendidos a terceiros sem seu consentimento explícito.
             </p>
-            <button onClick={() => setIsPrivacyOpen(false)} className="w-full py-5 rounded-2xl border border-white/10 text-white text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all">Fechar</button>
+            <button onClick={() => setIsPrivacyOpen(false)} className="w-full py-5 sm:py-5 lg:py-5 rounded-2xl border border-white/10 text-white text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all">Fechar</button>
           </div>
         </div>
       )}

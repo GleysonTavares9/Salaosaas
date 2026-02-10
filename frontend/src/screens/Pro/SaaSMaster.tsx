@@ -85,63 +85,63 @@ const SaaSMaster: React.FC = () => {
     if (isLoading) {
         return (
             <div className="flex-1 flex items-center justify-center">
-                <div className="size-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin"></div>
+                <div className="size-10 sm:size-12 lg:size-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin"></div>
             </div>
         );
     }
 
     return (
         <div className="flex-1 h-full overflow-y-auto no-scrollbar">
-            <header className="p-8 pt-20 flex flex-col md:flex-row md:items-center justify-between gap-6 bg-background-dark/30 backdrop-blur-xl border-b border-white/5">
+            <header className="p-8 sm:p-8 lg:p-8 pt-20 flex flex-col md:flex-row md:items-center justify-between gap-6 lg:gap-6 bg-background-dark/30 backdrop-blur-xl border-b border-white/5">
                 <div>
-                    <div className="flex items-center gap-2 mb-2">
+                    <div className="flex items-center gap-2 lg:gap-2 mb-2">
                         <span className="material-symbols-outlined text-primary font-black">shield_person</span>
                         <p className="text-[10px] text-primary font-black uppercase tracking-[0.4em]">SaaS Command Center</p>
                     </div>
-                    <h1 className="text-4xl font-display font-black text-white italic tracking-tighter">Painel <span className="text-primary">Master.</span></h1>
+                    <h1 className="text-4xl lg:text-4xl font-display font-black text-white italic tracking-tighter">Painel <span className="text-primary">Master.</span></h1>
                 </div>
 
-                <div className="bg-surface-dark/50 backdrop-blur-xl border border-white/5 rounded-3xl p-4 flex items-center gap-4">
+                <div className="bg-surface-dark/50 backdrop-blur-xl border border-white/5 rounded-3xl p-4 sm:p-4 lg:p-4 flex items-center gap-4 lg:gap-4">
                     <div className="text-right">
                         <p className="text-[8px] text-slate-500 font-black uppercase tracking-widest">Master Admin</p>
                         <p className="text-sm font-bold text-white">Gleyson Tavares</p>
                     </div>
-                    <div className="size-12 rounded-2xl gold-gradient flex items-center justify-center text-background-dark shadow-lg">
+                    <div className="size-10 sm:size-12 lg:size-12 rounded-2xl gold-gradient flex items-center justify-center text-background-dark shadow-lg">
                         <span className="material-symbols-outlined font-black">admin_panel_settings</span>
                     </div>
                 </div>
             </header>
 
-            <main className="px-6 py-10 space-y-10 pb-32 animate-fade-in lg:px-6 w-full">
+            <main className="px-6 sm:px-6 lg:px-6 py-10 sm:py-10 lg:py-10 space-y-10 pb-32 animate-fade-in lg:px-6 sm:px-6 lg:px-6 w-full">
 
                 {/* Global Stats Grid */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 sm:grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-4">
                     {[
                         { label: 'Faturamento Global', val: `R$ ${stats.totalRevenue.toLocaleString()}`, icon: 'payments', color: 'text-emerald-500' },
                         { label: 'Total de Unidades', val: stats.totalSalons, icon: 'storefront', color: 'text-blue-500' },
                         { label: 'Unidades em Trial', val: stats.activeTrials, icon: 'hourglass_top', color: 'text-amber-500' },
                         { label: 'Assinantes Ativos', val: stats.activeSubscribers, icon: 'verified', color: 'text-primary' },
                     ].map((s, i) => (
-                        <div key={i} className="bg-surface-dark border border-white/5 p-6 rounded-[32px] shadow-2xl space-y-4">
-                            <div className={`size-10 rounded-2xl bg-white/5 flex items-center justify-center ${s.color}`}>
+                        <div key={i} className="bg-surface-dark border border-white/5 p-6 sm:p-6 lg:p-6 rounded-2xl sm:rounded-3xl lg:rounded-[32px] shadow-2xl space-y-4">
+                            <div className={`size-10 sm:size-12 lg:size-10 rounded-2xl bg-white/5 flex items-center justify-center ${s.color}`}>
                                 <span className="material-symbols-outlined font-black">{s.icon}</span>
                             </div>
                             <div>
                                 <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest">{s.label}</p>
-                                <p className="text-2xl font-display font-black text-white italic mt-1">{s.val}</p>
+                                <p className="text-2xl lg:text-2xl font-display font-black text-white italic mt-1">{s.val}</p>
                             </div>
                         </div>
                     ))}
                 </div>
 
                 {/* Revenue Chart */}
-                <section className="bg-surface-dark rounded-[40px] border border-white/5 p-8 shadow-2xl relative overflow-hidden group">
+                <section className="bg-surface-dark rounded-2xl sm:rounded-3xl lg:rounded-[40px] border border-white/5 p-8 sm:p-8 lg:p-8 shadow-2xl relative overflow-hidden group">
                     <div className="flex justify-between items-center mb-10">
                         <div>
                             <h3 className="text-white font-black text-xs uppercase tracking-[0.2em] mb-1">Crescimento da Plataforma</h3>
                             <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest italic">Volume de transações (14 dias)</p>
                         </div>
-                        <div className="bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-full flex items-center gap-2">
+                        <div className="bg-emerald-500/10 border border-emerald-500/20 px-3 sm:px-3 lg:px-3 py-1 sm:py-1 lg:py-1 rounded-full flex items-center gap-2 lg:gap-2">
                             <div className="size-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
                             <span className="text-[8px] font-black text-emerald-500 uppercase">Live Metrics</span>
                         </div>
@@ -169,31 +169,31 @@ const SaaSMaster: React.FC = () => {
 
                 {/* Salons Management List */}
                 <section className="space-y-6">
-                    <div className="flex justify-between items-center px-4">
+                    <div className="flex justify-between items-center px-4 sm:px-4 lg:px-4">
                         <h3 className="text-[10px] font-black text-primary uppercase tracking-[0.4em]">Unidades Cadastradas</h3>
                         <span className="text-[8px] text-slate-500 font-bold uppercase tracking-widest italic">Gerencie o ecossistema Aura</span>
                     </div>
 
-                    <div className="grid gap-4">
+                    <div className="grid gap-4 lg:gap-4">
                         {salons.map((salon) => (
-                            <div key={salon.id} className="bg-surface-dark/60 border border-white/5 p-6 rounded-[32px] flex items-center justify-between group hover:border-primary/20 transition-all cursor-pointer">
-                                <div className="flex items-center gap-5">
-                                    <div className="size-14 rounded-2xl overflow-hidden border border-white/10 group-hover:scale-105 transition-transform">
+                            <div key={salon.id} className="bg-surface-dark/60 border border-white/5 p-6 sm:p-6 lg:p-6 rounded-2xl sm:rounded-3xl lg:rounded-[32px] flex items-center justify-between group hover:border-primary/20 transition-all cursor-pointer">
+                                <div className="flex items-center gap-5 lg:gap-5">
+                                    <div className="size-10 sm:size-12 lg:size-14 rounded-2xl overflow-hidden border border-white/10 group-hover:scale-105 transition-transform">
                                         <img src={salon.logo_url} className="size-full object-cover" alt={salon.nome} />
                                     </div>
                                     <div>
                                         <h4 className="text-white font-display font-black italic text-lg leading-tight uppercase tracking-tight">{salon.nome}</h4>
-                                        <div className="flex items-center gap-3 mt-1.5">
-                                            <span className="text-[8px] font-black text-primary uppercase tracking-widest bg-primary/10 px-2 py-0.5 rounded-md border border-primary/20">{salon.segmento}</span>
+                                        <div className="flex items-center gap-3 lg:gap-3 mt-1.5">
+                                            <span className="text-[8px] font-black text-primary uppercase tracking-widest bg-primary/10 px-2 sm:px-2 lg:px-2 py-0 sm:py-0 lg:py-0.5 rounded-md border border-primary/20">{salon.segmento}</span>
                                             <span className="text-[8px] text-slate-500 font-bold uppercase tracking-widest italic">{salon.cidade || 'Localização não definida'}</span>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div className="flex items-center gap-8">
+                                <div className="flex items-center gap-8 lg:gap-8">
                                     <div className="text-right hidden sm:block">
                                         <p className="text-[9px] text-slate-500 font-black uppercase tracking-widest mb-1">Assinatura</p>
-                                        <div className="flex flex-col gap-1 items-end">
+                                        <div className="flex flex-col gap-1 lg:gap-1 items-end">
                                             <select
                                                 value={salon.subscription_plan || 'free'}
                                                 onChange={async (e) => {
@@ -201,7 +201,7 @@ const SaaSMaster: React.FC = () => {
                                                     const { error } = await supabase.from('salons').update({ subscription_plan: newPlan }).eq('id', salon.id);
                                                     if (!error) setSalons(prev => prev.map(s => s.id === salon.id ? { ...s, subscription_plan: newPlan as any } : s));
                                                 }}
-                                                className="bg-background-dark/50 text-[10px] font-black text-primary border border-white/10 rounded-lg px-2 py-1 outline-none"
+                                                className="bg-background-dark/50 text-[10px] font-black text-primary border border-white/10 rounded-lg px-2 sm:px-2 lg:px-2 py-1 sm:py-1 lg:py-1 outline-none"
                                             >
                                                 <option value="free">FREE</option>
                                                 <option value="pro">PRO</option>
@@ -214,7 +214,7 @@ const SaaSMaster: React.FC = () => {
                                                     const { error } = await supabase.from('salons').update({ subscription_status: newStatus }).eq('id', salon.id);
                                                     if (!error) setSalons(prev => prev.map(s => s.id === salon.id ? { ...s, subscription_status: newStatus as any } : s));
                                                 }}
-                                                className="bg-background-dark/50 text-[8px] font-black text-slate-500 border border-white/10 rounded-lg px-2 py-1 outline-none"
+                                                className="bg-background-dark/50 text-[8px] font-black text-slate-500 border border-white/10 rounded-lg px-2 sm:px-2 lg:px-2 py-1 sm:py-1 lg:py-1 outline-none"
                                             >
                                                 <option value="trialing">TRIALING</option>
                                                 <option value="active">ACTIVE</option>
@@ -226,7 +226,7 @@ const SaaSMaster: React.FC = () => {
 
                                     <button
                                         onClick={() => navigate(`/salon/${salon.slug_publico}`)}
-                                        className="size-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-400 group-hover:text-primary group-hover:border-primary/30 transition-all"
+                                        className="size-10 sm:size-12 lg:size-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-400 group-hover:text-primary group-hover:border-primary/30 transition-all"
                                     >
                                         <span className="material-symbols-outlined">visibility</span>
                                     </button>
@@ -239,7 +239,7 @@ const SaaSMaster: React.FC = () => {
                 {/* Floating Back Button */}
                 <button
                     onClick={() => navigate('/pro')}
-                    className="fixed bottom-10 left-1/2 -translate-x-1/2 px-8 py-4 bg-background-dark/90 backdrop-blur-2xl border border-white/10 rounded-[28px] text-[10px] font-black uppercase tracking-[0.4em] text-white flex items-center gap-3 shadow-2xl hover:bg-white/5 active:scale-95 transition-all z-50 ring-1 ring-white/5"
+                    className="fixed bottom-10 left-1/2 -translate-x-1/2 px-8 sm:px-8 lg:px-8 py-4 sm:py-4 lg:py-4 bg-background-dark/90 backdrop-blur-2xl border border-white/10 rounded-[28px] text-[10px] font-black uppercase tracking-[0.4em] text-white flex items-center gap-3 lg:gap-3 shadow-2xl hover:bg-white/5 active:scale-95 transition-all z-50 ring-1 ring-white/5"
                 >
                     <span className="material-symbols-outlined text-sm">arrow_back</span>
                     Voltar para Gestão
