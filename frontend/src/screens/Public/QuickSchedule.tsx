@@ -674,8 +674,8 @@ const QuickSchedule: React.FC = () => {
     };
 
     return (
-        <div className="bg-[#0a0a0b] h-[100dvh] w-full flex items-center justify-center p-0 sm:p-0 lg:p-0 sm:p-6 sm:p-6 lg:p-6 overflow-hidden fixed inset-0 sm:relative">
-            <div className="w-full max-w-full max-w-[500px] lg:max-w-full max-w-[850px] h-full lg:h-[95vh] bg-[#121214] lg:rounded-2xl sm:rounded-3xl lg:rounded-[40px] border border-white/5 shadow-2xl flex flex-col overflow-hidden relative font-sans pt-[env(safe-area-inset-top)]">
+        <div className="bg-[#0a0a0b] h-[100dvh] w-full flex items-center justify-center p-0 lg:p-12 overflow-hidden fixed inset-0">
+            <div className="w-full max-w-[1200px] h-full lg:h-[90vh] bg-[#121214] lg:rounded-[48px] border border-white/5 shadow-[0_0_100px_rgba(0,0,0,0.5)] flex flex-col overflow-hidden relative font-sans pt-[env(safe-area-inset-top)]">
 
                 {/* Header Premium Aura */}
                 <div className="px-6 sm:px-6 lg:px-6 py-5 sm:py-5 lg:py-5 bg-[#18181b] border-b border-white/5 flex items-center justify-between z-10 shrink-0">
@@ -758,7 +758,7 @@ const QuickSchedule: React.FC = () => {
                 <div className="flex-1 overflow-y-auto p-4 sm:p-4 lg:p-4 sm:p-6 sm:p-6 lg:p-6 space-y-5 scrollbar-hide bg-[#121214]">
                     {messages.map(msg => (
                         <div key={msg.id} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in-up`}>
-                            <div className={`max-w-[90%] sm:max-w-[85%] px-5 sm:px-5 lg:px-5 py-4 sm:py-4 lg:py-4 rounded-[24px] leading-relaxed shadow-xl ${msg.sender === 'bot'
+                            <div className={`max-w-[90%] lg:max-w-[60%] px-5 py-4 rounded-[24px] leading-relaxed shadow-xl ${msg.sender === 'bot'
                                 ? 'bg-[#1c1c1f] text-slate-100 rounded-tl-sm border border-[#c1a571]/20 shadow-[#c1a571]/5'
                                 : `text-black font-bold rounded-tr-sm`
                                 }`} style={{
@@ -781,21 +781,21 @@ const QuickSchedule: React.FC = () => {
                                 <div
                                     ref={servicesScrollRef}
                                     {...servicesDrag}
-                                    className="mt-4 flex overflow-x-auto gap-4 lg:gap-4 pb-4 scrollbar-hide px-1 sm:px-1 lg:px-1 cursor-grab active:cursor-grabbing select-none"
+                                    className="mt-4 flex overflow-x-auto gap-6 pb-6 no-scrollbar px-1 cursor-grab active:cursor-grabbing select-none"
                                 >
                                     {services.map(svc => {
                                         const isSelected = selectedServices.some(s => s.id === svc.id);
                                         return (
                                             <div key={svc.id} onClick={() => toggleService(svc)}
-                                                className={`shrink-0 w-44 bg-[#1c1c1f] rounded-[24px] border-2 p-3 sm:p-3 lg:p-3 flex flex-col gap-3 lg:gap-3 cursor-pointer transition-all active:scale-95 ${isSelected ? 'shadow-lg bg-[#c1a571]/10' : 'border-white/5'}`}
+                                                className={`shrink-0 w-40 lg:w-56 bg-[#1c1c1f] rounded-[24px] lg:rounded-[32px] border-2 p-3 lg:p-4 flex flex-col gap-3 lg:gap-4 cursor-pointer transition-all active:scale-95 ${isSelected ? 'shadow-[0_10px_30px_rgba(193,165,113,0.15)] bg-[#c1a571]/10' : 'border-white/5'}`}
                                                 style={{ borderColor: isSelected ? auraGold : 'transparent' }}>
-                                                <div className="h-28 w-full bg-black/40 rounded-2xl overflow-hidden relative">
-                                                    {svc.image ? <img src={svc.image} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-white/10 text-3xl lg:text-3xl">✂️</div>}
-                                                    {isSelected && <div className="absolute top-2 right-2 rounded-full p-1 sm:p-1 lg:p-1" style={{ backgroundColor: auraGold }}><span className="material-symbols-outlined text-xs text-black font-black">check</span></div>}
+                                                <div className="h-28 lg:h-40 w-full bg-black/40 rounded-2xl lg:rounded-[24px] overflow-hidden relative">
+                                                    {svc.image ? <img src={svc.image} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-white/10 text-3xl lg:text-4xl">✂️</div>}
+                                                    {isSelected && <div className="absolute top-2 lg:top-3 right-2 lg:right-3 rounded-full p-1 lg:p-1.5" style={{ backgroundColor: auraGold }}><span className="material-symbols-outlined text-[8px] lg:text-[10px] text-black font-black">check</span></div>}
                                                 </div>
-                                                <div className="px-1 sm:px-1 lg:px-1">
-                                                    <h3 className="font-bold text-xs truncate text-white mb-1">{svc.name}</h3>
-                                                    <p className="font-black text-sm" style={{ color: auraGold }}>R$ {svc.price}</p>
+                                                <div className="px-1">
+                                                    <h3 className="font-bold text-[11px] lg:text-sm truncate text-white mb-0.5 lg:mb-1 uppercase tracking-tight">{svc.name}</h3>
+                                                    <p className="font-black text-xs lg:text-base" style={{ color: auraGold }}>R$ {svc.price}</p>
                                                 </div>
                                             </div>
                                         )
@@ -888,7 +888,7 @@ const QuickSchedule: React.FC = () => {
                         )}
 
                         {showElements && step === 'TIME' && (
-                            <div className="mt-4 grid grid-cols-1 sm:grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 sm:grid-cols-1 sm:grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 lg:grid-cols-1 sm:grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 lg:gap-3 px-1 sm:px-1 lg:px-1">
+                            <div className="mt-4 grid grid-cols-4 md:grid-cols-6 lg:grid-cols-4 xl:grid-cols-5 gap-2 lg:gap-3 px-1">
                                 {availableSlots.map(slot => (
                                     <button key={slot} onClick={() => setSelectedTime(slot)} className={`py-3 sm:py-3 lg:py-3.5 border rounded-2xl text-[10px] font-black transition-all active:scale-95 uppercase tracking-widest text-center ${selectedTime === slot ? 'gold-gradient text-black' : 'bg-[#1c1c1f] border-white/5 text-slate-400 hover:text-white'}`}>
                                         {slot}
@@ -918,73 +918,75 @@ const QuickSchedule: React.FC = () => {
                 </div>
 
                 {/* Bottom Footer */}
-                <div className="p-6 sm:p-6 lg:p-6 bg-[#18181b]/95 backdrop-blur-xl border-t border-white/5 z-20 shrink-0">
-                    {step === 'SERVICES' && (
-                        <button onClick={confirmServices} disabled={selectedServices.length === 0} className="w-full text-black font-black py-4 sm:py-4 lg:py-4 rounded-2xl shadow-xl uppercase text-xs tracking-[0.2em] disabled:opacity-30 active:scale-95 transition-all flex items-center justify-center gap-2 lg:gap-2" style={{ background: `linear-gradient(135deg, ${auraGold} 0%, ${auraGoldDark} 100%)` }}>
-                            CONTINUAR {selectedServices.length > 0 && `(${selectedServices.length})`}
-                            <span className="material-symbols-outlined text-sm">arrow_forward</span>
-                        </button>
-                    )}
-                    {showElements && step === 'PROFESSIONAL' && (
-                        <div className="flex gap-3 lg:gap-3">
-                            <button onClick={() => setStep('SERVICES')} className="size-10 sm:size-12 lg:size-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-500 hover:text-white transition-all">
-                                <span className="material-symbols-outlined">undo</span>
+                <div className="p-6 lg:p-10 bg-[#18181b]/95 backdrop-blur-xl border-t border-white/5 z-20 shrink-0 flex justify-center">
+                    <div className="w-full max-w-[600px]">
+                        {step === 'SERVICES' && (
+                            <button onClick={confirmServices} disabled={selectedServices.length === 0} className="w-full text-black font-black py-5 lg:py-6 rounded-[32px] shadow-[0_20px_50px_rgba(193,165,113,0.2)] uppercase text-xs lg:text-sm tracking-[0.2em] disabled:opacity-30 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3" style={{ background: `linear-gradient(135deg, ${auraGold} 0%, ${auraGoldDark} 100%)` }}>
+                                CONTINUAR {selectedServices.length > 0 && `(${selectedServices.length})`}
+                                <span className="material-symbols-outlined text-lg">arrow_forward</span>
                             </button>
-                            <button onClick={confirmPro} disabled={!selectedPro} className="flex-1 text-black font-black py-4 sm:py-4 lg:py-4 rounded-2xl shadow-xl uppercase text-xs tracking-[0.2em] disabled:opacity-30 active:scale-95 transition-all flex items-center justify-center gap-2 lg:gap-2" style={{ background: `linear-gradient(135deg, ${auraGold} 0%, ${auraGoldDark} 100%)` }}>
-                                ESCOLHER PROFISSIONAL
-                                <span className="material-symbols-outlined text-sm">arrow_forward</span>
-                            </button>
-                        </div>
-                    )}
-                    {showElements && step === 'DATE' && (
-                        <div className="flex gap-3 lg:gap-3">
-                            <button onClick={() => setStep('PROFESSIONAL')} className="size-10 sm:size-12 lg:size-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-500 hover:text-white transition-all">
-                                <span className="material-symbols-outlined">undo</span>
-                            </button>
-                            <button onClick={confirmDate} disabled={!selectedDate} className="flex-1 text-black font-black py-4 sm:py-4 lg:py-4 rounded-2xl shadow-xl uppercase text-xs tracking-[0.2em] disabled:opacity-30 active:scale-95 transition-all flex items-center justify-center gap-2 lg:gap-2" style={{ background: `linear-gradient(135deg, ${auraGold} 0%, ${auraGoldDark} 100%)` }}>
-                                ESCOLHER DATA
-                                <span className="material-symbols-outlined text-sm">arrow_forward</span>
-                            </button>
-                        </div>
-                    )}
-                    {showElements && step === 'TIME' && (
-                        <div className="flex gap-3 lg:gap-3">
-                            <button onClick={() => setStep('DATE')} className="size-10 sm:size-12 lg:size-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-500 hover:text-white transition-all">
-                                <span className="material-symbols-outlined">undo</span>
-                            </button>
-                            <button onClick={confirmTime} disabled={!selectedTime} className="flex-1 text-black font-black py-4 sm:py-4 lg:py-4 rounded-2xl shadow-xl uppercase text-xs tracking-[0.2em] disabled:opacity-30 active:scale-95 transition-all flex items-center justify-center gap-2 lg:gap-2" style={{ background: `linear-gradient(135deg, ${auraGold} 0%, ${auraGoldDark} 100%)` }}>
-                                REVISAR AGENDAMENTO
-                                <span className="material-symbols-outlined text-sm">arrow_forward</span>
-                            </button>
-                        </div>
-                    )}
-                    {showElements && step === 'CONFIRM' && (
-                        <div className="flex gap-3 lg:gap-3">
-                            <button onClick={() => setStep('TIME')} className="size-10 sm:size-12 lg:size-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-500 hover:text-white transition-all">
-                                <span className="material-symbols-outlined">undo</span>
-                            </button>
-                            <button onClick={finalize} className="flex-1 bg-emerald-500 text-white font-black py-4 sm:py-4 lg:py-4 rounded-2xl shadow-xl uppercase text-xs tracking-[0.2em] active:scale-95 transition-all">
-                                FINALIZAR AGORA
-                            </button>
-                        </div>
-                    )}
-                    {['PHONE', 'AUTH_CHECK', 'PASSWORD', 'REGISTER_NAME', 'REGISTER_EMAIL', 'REGISTER_PASSWORD'].includes(step) && (
-                        <div className="flex gap-3 lg:gap-3 relative">
-                            <input type={step.includes('PASSWORD') ? 'password' : 'text'}
-                                value={inputValue}
-                                onChange={handleInputChange}
-                                onKeyDown={handleKeyDown}
-                                placeholder="Digite aqui..."
-                                autoFocus
-                                className="flex-1 bg-[#0a0a0b] border border-white/10 rounded-2xl px-5 sm:px-5 lg:px-5 py-4 sm:py-4 lg:py-4 text-white text-sm focus:outline-none placeholder-slate-600 transition-colors"
-                                style={inputValue ? { borderColor: auraGold } : {}}
-                            />
-                            <button onClick={handleSend} disabled={!inputValue.trim()} className="w-14 rounded-2xl flex items-center justify-center shadow-lg disabled:opacity-30 active:scale-95 transition-all" style={{ backgroundColor: auraGold }}>
-                                <span className="material-symbols-outlined text-black font-black">arrow_upward</span>
-                            </button>
-                        </div>
-                    )}
-                    {['WELCOME', 'LOADING', 'SUCCESS'].includes(step) && <div className="h-4 w-full flex items-center justify-center"><div className="w-12 h-1 bg-white/5 rounded-full"></div></div>}
+                        )}
+                        {showElements && step === 'PROFESSIONAL' && (
+                            <div className="flex gap-4">
+                                <button onClick={() => setStep('SERVICES')} className="size-14 lg:size-16 rounded-[24px] bg-white/5 border border-white/10 flex items-center justify-center text-slate-500 hover:text-white transition-all">
+                                    <span className="material-symbols-outlined">undo</span>
+                                </button>
+                                <button onClick={confirmPro} disabled={!selectedPro} className="flex-1 text-black font-black py-5 lg:py-6 rounded-[32px] shadow-[0_20px_50px_rgba(193,165,113,0.2)] uppercase text-xs lg:text-sm tracking-[0.2em] disabled:opacity-30 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3" style={{ background: `linear-gradient(135deg, ${auraGold} 0%, ${auraGoldDark} 100%)` }}>
+                                    ESCOLHER PROFISSIONAL
+                                    <span className="material-symbols-outlined text-lg">arrow_forward</span>
+                                </button>
+                            </div>
+                        )}
+                        {showElements && step === 'DATE' && (
+                            <div className="flex gap-4">
+                                <button onClick={() => setStep('PROFESSIONAL')} className="size-14 lg:size-16 rounded-[24px] bg-white/5 border border-white/10 flex items-center justify-center text-slate-500 hover:text-white transition-all">
+                                    <span className="material-symbols-outlined">undo</span>
+                                </button>
+                                <button onClick={confirmDate} disabled={!selectedDate} className="flex-1 text-black font-black py-5 lg:py-6 rounded-[32px] shadow-[0_20px_50px_rgba(193,165,113,0.2)] uppercase text-xs lg:text-sm tracking-[0.2em] disabled:opacity-30 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3" style={{ background: `linear-gradient(135deg, ${auraGold} 0%, ${auraGoldDark} 100%)` }}>
+                                    ESCOLHER DATA
+                                    <span className="material-symbols-outlined text-lg">arrow_forward</span>
+                                </button>
+                            </div>
+                        )}
+                        {showElements && step === 'TIME' && (
+                            <div className="flex gap-4">
+                                <button onClick={() => setStep('DATE')} className="size-14 lg:size-16 rounded-[24px] bg-white/5 border border-white/10 flex items-center justify-center text-slate-500 hover:text-white transition-all">
+                                    <span className="material-symbols-outlined">undo</span>
+                                </button>
+                                <button onClick={confirmTime} disabled={!selectedTime} className="flex-1 text-black font-black py-5 lg:py-6 rounded-[32px] shadow-[0_20px_50px_rgba(193,165,113,0.2)] uppercase text-xs lg:text-sm tracking-[0.2em] disabled:opacity-30 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3" style={{ background: `linear-gradient(135deg, ${auraGold} 0%, ${auraGoldDark} 100%)` }}>
+                                    REVISAR AGENDAMENTO
+                                    <span className="material-symbols-outlined text-lg">arrow_forward</span>
+                                </button>
+                            </div>
+                        )}
+                        {showElements && step === 'CONFIRM' && (
+                            <div className="flex gap-4">
+                                <button onClick={() => setStep('TIME')} className="size-14 lg:size-16 rounded-[24px] bg-white/5 border border-white/10 flex items-center justify-center text-slate-500 hover:text-white transition-all">
+                                    <span className="material-symbols-outlined">undo</span>
+                                </button>
+                                <button onClick={finalize} className="flex-1 bg-emerald-500 text-white font-black py-5 lg:py-6 rounded-[32px] shadow-[0_20px_50px_rgba(16,185,129,0.2)] uppercase text-xs lg:text-sm tracking-[0.2em] hover:scale-[1.02] active:scale-95 transition-all">
+                                    FINALIZAR AGORA
+                                </button>
+                            </div>
+                        )}
+                        {['PHONE', 'AUTH_CHECK', 'PASSWORD', 'REGISTER_NAME', 'REGISTER_EMAIL', 'REGISTER_PASSWORD'].includes(step) && (
+                            <div className="flex gap-4 relative">
+                                <input type={step.includes('PASSWORD') ? 'password' : 'text'}
+                                    value={inputValue}
+                                    onChange={handleInputChange}
+                                    onKeyDown={handleKeyDown}
+                                    placeholder="Digite aqui..."
+                                    autoFocus
+                                    className="flex-1 bg-[#0a0a0b] border border-white/10 rounded-[24px] px-6 py-5 lg:py-6 text-white text-sm focus:outline-none placeholder-slate-600 transition-colors"
+                                    style={inputValue ? { borderColor: auraGold } : {}}
+                                />
+                                <button onClick={handleSend} disabled={!inputValue.trim()} className="w-16 lg:w-20 rounded-[24px] flex items-center justify-center shadow-lg disabled:opacity-30 hover:scale-[1.05] active:scale-95 transition-all" style={{ backgroundColor: auraGold }}>
+                                    <span className="material-symbols-outlined text-black font-black text-2xl">arrow_upward</span>
+                                </button>
+                            </div>
+                        )}
+                        {['WELCOME', 'LOADING', 'SUCCESS'].includes(step) && <div className="h-4 w-full flex items-center justify-center"><div className="w-20 h-1.5 bg-white/5 rounded-full"></div></div>}
+                    </div>
                 </div>
             </div>
         </div>
