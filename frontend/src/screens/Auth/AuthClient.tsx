@@ -122,7 +122,10 @@ const AuthClient: React.FC<AuthClientProps> = ({ onLogin }) => {
     e.preventDefault();
     setIsLoading(true);
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email);
+      const baseUrl = import.meta.env.VITE_APP_URL || window.location.origin;
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${baseUrl}/reset-password`,
+      });
       if (error) throw error;
       showToast(`Enviamos um link de recuperação para: ${email}`, 'success');
       setTimeout(() => setIsRecovering(false), 2000);

@@ -533,7 +533,7 @@ export const api = {
         async resetPassword(email: string) {
             const baseUrl = import.meta.env.VITE_APP_URL || window.location.origin;
             const { error } = await supabase.auth.resetPasswordForEmail(email, {
-                redirectTo: `${baseUrl}/#/reset-password`,
+                redirectTo: `${baseUrl}/reset-password`,
             });
             if (error) throw error;
         },
