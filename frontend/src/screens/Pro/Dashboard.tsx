@@ -1,8 +1,8 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ViewRole, Salon, Appointment, Product } from '../../types';
-import { ResponsiveContainer, AreaChart, Area } from 'recharts';
+import { ViewRole, Salon, Appointment, Product, Expense } from '../../types';
+import { ResponsiveContainer, AreaChart, Area, Tooltip, YAxis, XAxis, Legend } from 'recharts';
 import { api } from '../../lib/api';
 import { supabase } from '../../lib/supabase';
 import { useToast } from '../../contexts/ToastContext';
@@ -95,37 +95,50 @@ const Dashboard: React.FC<DashboardProps> = ({ role, salon, appointments, userId
     }
   }, [salon?.id, role, userId]);
 
-  // Cálculos de Faturamento Hoje (Admin vê total, Pro vê sua comissão/ganho)
+  const [expenses, setExpenses] = useState<Expense[]>([]);
+
+  useEffect(() => {
+    if (salon?.id) {
+      // ... existing billing fetch ...
+      api.expenses.getBySalon(salon.id).then(setExpenses).catch(() => { });
+    }
+  }, [salon?.id]);
+
+  // Cálculos de Volume e Receita
   const stats = useMemo(() => {
-    // Usar data local para evitar problemas de fuso horário na virada do dia (UTC)
-    const today = new Date().toLocaleDateString('en-CA'); // Formato YYYY-MM-DD
-    const filtered = appointments.filter(a => a.date === today && a.status !== 'canceled');
+    const today = new Date().toLocaleDateString('en-CA');
+    const filteredToday = appointments.filter(a => a.date === today && a.status !== 'canceled');
+    const expensesToday = expenses.filter(e => e.date === today && e.status === 'paid');
+
+    let countToday = 0;
+    let grossToday = 0;
+    let netToday = 0;
+    let outToday = expensesToday.reduce((acc, curr) => acc + (curr.amount || 0), 0);
 
     if (role === 'admin') {
-      return {
-        label: 'Volume de Reservas Hoje',
-        value: filtered.reduce((acc, curr) => acc + (curr.valor || 0), 0),
-        gross: filtered.reduce((acc, curr) => acc + (curr.valor || 0), 0),
-        net: filtered.reduce((acc, curr) => acc + (curr.valor || 0), 0)
-      };
+      countToday = filteredToday.length;
+      grossToday = filteredToday.reduce((acc, curr) => acc + (curr.valor || 0), 0);
+      netToday = grossToday - outToday; // Lucro Real
     } else {
-      const myAppts = filtered.filter(a => a.professional_id === proProfile?.id);
-      const gross = myAppts.reduce((acc, curr) => acc + (curr.valor || 0), 0);
+      const myAppts = filteredToday.filter(a => a.professional_id === proProfile?.id);
+      countToday = myAppts.length;
+      grossToday = myAppts.reduce((acc, curr) => acc + (curr.valor || 0), 0);
       const commission = proProfile?.comissao || 0;
-      const net = (gross * commission) / 100;
-
-      return {
-        label: 'Meus Ganhos Projetados',
-        value: gross, // Mostramos o faturamento bruto como principal se solicitado
-        gross: gross,
-        net: net
-      };
+      netToday = (grossToday * commission) / 100;
     }
-  }, [appointments, role, userId, proProfile]);
 
-  // Dados do Gráfico
+    return {
+      label: 'Volume de Reservas Hoje',
+      count: countToday,
+      gross: grossToday,
+      net: netToday,
+      out: outToday
+    };
+  }, [appointments, expenses, role, userId, proProfile]);
+
+  // Dados do Gráfico (Volume de Agendamentos por Dia - Últimos 7 dias)
   const chartData = useMemo(() => {
-    const dailyMap: { [key: string]: number } = {};
+    const dailyMap: { [key: string]: { rev: number, exp: number } } = {};
     const last7Days = [...Array(7)].map((_, i) => {
       const d = new Date();
       d.setDate(d.getDate() - i);
@@ -134,26 +147,35 @@ const Dashboard: React.FC<DashboardProps> = ({ role, salon, appointments, userId
       return { dayStr, weekday };
     }).reverse();
 
-    last7Days.forEach(day => dailyMap[day.dayStr] = 0);
+    last7Days.forEach(day => dailyMap[day.dayStr] = { rev: 0, exp: 0 });
 
     appointments.forEach(a => {
       if (a.status !== 'canceled' && dailyMap[a.date] !== undefined) {
         if (role === 'admin') {
-          dailyMap[a.date] += (a.valor || 0);
+          dailyMap[a.date].rev += (a.valor || 0);
         } else if (a.professional_id === proProfile?.id) {
-          dailyMap[a.date] += (a.valor * (proProfile?.comissao || 0)) / 100;
+          dailyMap[a.date].rev += (a.valor * (proProfile?.comissao || 0)) / 100;
         }
+      }
+    });
+
+    expenses.forEach(e => {
+      if (e.status === 'paid' && dailyMap[e.date] !== undefined && role === 'admin') {
+        dailyMap[e.date].exp += (e.amount || 0);
       }
     });
 
     return last7Days.map(day => ({
       name: day.weekday,
-      rev: dailyMap[day.dayStr]
+      rev: dailyMap[day.dayStr].rev,
+      exp: dailyMap[day.dayStr].exp,
+      net: dailyMap[day.dayStr].rev - dailyMap[day.dayStr].exp
     }));
-  }, [appointments, role, userId, proProfile]);
+  }, [appointments, expenses, role, userId, proProfile]);
 
   const adminMenu: MenuItem[] = [
-    { label: 'Visão do Caixa', icon: 'payments', path: '/pro/admin-bookings', color: 'blue', desc: 'Vendas e agendamentos' },
+    { label: 'Fluxo de Caixa', icon: 'account_balance_wallet', path: '/pro/tasks', color: 'blue', desc: 'Saídas e Despesas' },
+    { label: 'Visão do Caixa', icon: 'payments', path: '/pro/admin-bookings', color: 'emerald', desc: 'Vendas e agendamentos' },
     { label: 'Agenda Geral', icon: 'calendar_month', path: '/pro/schedule', color: 'purple', desc: 'Visualizar grade de agendamentos' },
     { label: 'Relatórios', icon: 'insights', path: '/pro/analytics', color: 'cyan', desc: 'Dados e KPIs' },
     { label: 'Gestão de Estoque', icon: 'inventory_2', path: '/pro/products', color: 'emerald', desc: 'Produtos e insumos' },
@@ -180,8 +202,8 @@ const Dashboard: React.FC<DashboardProps> = ({ role, salon, appointments, userId
     <div className="flex-1 h-full overflow-y-auto no-scrollbar bg-background-dark relative">
       <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.02] pointer-events-none"></div>
 
-      <header className="sticky top-0 bg-background-dark/90 backdrop-blur-3xl z-50 border-b border-white/5 pt-2 pb-1 lg:py-10">
-        <div className="max-w-[1400px] mx-auto w-full px-4 lg:px-12 flex items-center justify-between">
+      <header className="sticky top-0 bg-background-dark/90 backdrop-blur-3xl z-50 border-b border-white/5 pt-12 lg:pt-6 pb-2 lg:pb-6">
+        <div className="max-w-none w-full px-4 lg:px-12 flex items-center justify-between">
           <div className="flex items-center gap-3 lg:gap-10">
             <div className="relative group">
               <div className="size-10 lg:size-24 rounded-[14px] lg:rounded-[40px] gold-gradient flex items-center justify-center text-background-dark shadow-[0_0_50px_rgba(193,165,113,0.2)] transition-all group-hover:scale-105 active:scale-95">
@@ -219,7 +241,7 @@ const Dashboard: React.FC<DashboardProps> = ({ role, salon, appointments, userId
         </div>
       </header>
 
-      <main className="max-w-[1400px] mx-auto w-full px-4 lg:px-12 py-6 lg:py-16 space-y-8 lg:space-y-16 pb-40 animate-fade-in">
+      <main className="max-w-none w-full px-4 lg:px-12 py-6 lg:py-10 space-y-8 lg:space-y-16 pb-40 animate-fade-in">
 
         {/* Subscription Status Banner (Luxurious) */}
         {role === 'admin' && billingInfo?.is_trial_active && (
@@ -338,43 +360,100 @@ const Dashboard: React.FC<DashboardProps> = ({ role, salon, appointments, userId
 
           <div className="flex flex-col lg:flex-row justify-between items-start gap-4 lg:gap-8 mb-4 lg:mb-8">
             <div>
-              <p className="text-slate-500 font-black uppercase tracking-[0.5em] mb-2 lg:mb-3 text-[9px] lg:text-[10px] shrink-0">{stats.label}</p>
+              <p className="text-slate-500 font-black uppercase tracking-[0.5em] mb-2 lg:mb-3 text-[9px] lg:text-[10px] shrink-0">
+                {role === 'admin' ? 'Entrada Bruta Hoje' : 'Volume de Reservas Hoje'}
+              </p>
               <h1 className="font-display font-black text-white tracking-tighter italic text-4xl lg:text-6xl leading-none">
                 R$ {stats.gross.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
               </h1>
-              {role === 'pro' && (
-                <div className="flex flex-col lg:flex-row lg:items-center gap-2 lg:gap-6 mt-4 lg:mt-6 p-3 lg:p-5 bg-black/30 rounded-[20px] lg:rounded-2xl border border-white/5">
-                  <div>
-                    <span className="text-slate-600 font-black uppercase tracking-widest block text-[8px] lg:text-[9px] mb-0.5">Seu Net Income</span>
-                    <span className="text-emerald-500 font-display font-black text-xl lg:text-2xl italic">
-                      R$ {stats.net.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+
+              <div className="flex flex-col lg:flex-row lg:items-center gap-2 lg:gap-6 mt-4 lg:mt-6 p-3 lg:p-5 bg-black/30 rounded-[20px] lg:rounded-2xl border border-white/5">
+                <div>
+                  <span className="text-slate-600 font-black uppercase tracking-widest block text-[8px] lg:text-[9px] mb-0.5">
+                    {role === 'admin' ? 'Lucro Líquido (Real)' : 'Seu Net Income Hoje'}
+                  </span>
+                  <span className={`font-display font-black text-xl lg:text-2xl italic ${stats.net >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
+                    R$ {stats.net.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  </span>
+                </div>
+                {role === 'admin' && stats.out > 0 && (
+                  <div className="lg:border-l lg:border-white/10 lg:pl-6">
+                    <span className="text-slate-600 font-black uppercase tracking-widest block text-[8px] lg:text-[9px] mb-0.5">Saídas (Pagas)</span>
+                    <span className="text-red-500 font-display font-black text-xl lg:text-2xl italic">
+                      - R$ {stats.out.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                     </span>
                   </div>
-                  <div className="h-px lg:h-10 w-full lg:w-px bg-white/5"></div>
-                  <p className="text-[8px] lg:text-[9px] text-slate-500 font-bold uppercase tracking-[0.2em]">Baseado em {proProfile?.comissao}% de comissão bruta</p>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </div>
 
-          <div className="h-40 lg:h-52 w-full -mx-4 lg:-mx-10 scale-105 lg:scale-110 transition-transform duration-[2000ms] group-hover:scale-[1.12]">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={chartData}>
+          <div className="h-40 lg:h-52 w-full mt-4 lg:mt-8">
+            <ResponsiveContainer width="100%" height="100%" key={`chart-${chartData.length}-${role || 'guest'}`}>
+              <AreaChart data={chartData} margin={{ top: 5, right: 0, left: -20, bottom: 0 }}>
                 <defs>
                   <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#c1a571" stopOpacity={0.3} />
                     <stop offset="95%" stopColor="#c1a571" stopOpacity={0} />
                   </linearGradient>
                 </defs>
+                <XAxis
+                  dataKey="name"
+                  hide={false}
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fill: '#64748b', fontSize: 10, fontWeight: '700', textTransform: 'uppercase' }}
+                  dy={10}
+                />
+                <YAxis
+                  hide={false}
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fill: '#64748b', fontSize: 10, fontWeight: '700' }}
+                  tickFormatter={(val) => `R$${val}`}
+                  width={60}
+                />
+                <Tooltip
+                  contentStyle={{ backgroundColor: '#0c0d10', border: 'none', borderRadius: '12px', fontSize: '10px', fontWeight: '900', color: '#fff' }}
+                  itemStyle={{ color: '#c1a571' }}
+                  formatter={(value: any, name: string) => {
+                    const label = name === 'rev' ? 'Entrada' : name === 'exp' ? 'Saída' : 'Líquido';
+                    return [`R$ ${Number(value).toFixed(2)}`, label];
+                  }}
+                  cursor={{ stroke: '#ffffff10', strokeWidth: 2 }}
+                />
+                <Legend
+                  verticalAlign="top"
+                  align="right"
+                  iconType="circle"
+                  wrapperStyle={{ paddingTop: '0px', paddingBottom: '20px' }}
+                  formatter={(value) => {
+                    const label = value === 'rev' ? 'ENTRADAS' : value === 'exp' ? 'SAÍDAS' : 'LÍQUIDO';
+                    return <span className="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1">{label}</span>;
+                  }}
+                />
                 <Area
                   type="monotone"
                   dataKey="rev"
+                  name="rev"
                   stroke="#c1a571"
                   strokeWidth={3}
                   fillOpacity={1}
                   fill="url(#colorRev)"
                   animationDuration={2500}
                 />
+                {role === 'admin' && (
+                  <Area
+                    type="monotone"
+                    dataKey="exp"
+                    name="exp"
+                    stroke="#ef4444"
+                    strokeWidth={2}
+                    fillOpacity={0.1}
+                    fill="#ef4444"
+                    animationDuration={2500}
+                  />
+                )}
               </AreaChart>
             </ResponsiveContainer>
           </div>

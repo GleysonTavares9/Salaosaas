@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useToast } from '../../contexts/ToastContext';
+import { api } from '../../lib/api';
 
 interface CheckoutPixViewProps {
     lastOrder: any;
@@ -44,14 +45,57 @@ const CheckoutPixView: React.FC<CheckoutPixViewProps> = ({
         }
     };
 
-    const handleCheckStatus = () => {
-        setIsProcessing(true);
-        // Simulando verificação - Na produção aqui haveria um webhook ou polling real
-        setTimeout(() => {
-            setIsProcessing(false);
-            onSuccess({}); // Agora chama a função de sucesso para abrir o modal de confirmação
+    useEffect(() => {
+        if (!lastOrder?.pixData?.id) return;
+
+        // Auto-polling a cada 5 segundos
+        const pollInterval = setInterval(async () => {
+            try {
+                const statusData = await api.payments.checkStatus(lastOrder.pixData.id, lastOrder.salonId);
+                console.log("Checking PIX status:", statusData.status);
+
+                if (statusData.status === 'approved') {
+                    clearInterval(pollInterval);
+                    handleSuccess();
+                }
+            } catch (error) {
+                console.warn("Polling error:", error);
+            }
+        }, 5000);
+
+        return () => clearInterval(pollInterval);
+    }, [lastOrder?.pixData?.id]);
+
+    const handleSuccess = async () => {
+        try {
+            if (lastOrder.appointmentId) {
+                await api.appointments.updateStatus(lastOrder.appointmentId, 'confirmed');
+            }
+            onSuccess({ id: lastOrder.appointmentId });
             showToast('Pagamento confirmado com sucesso!', 'success');
-        }, 2000);
+        } catch (e) {
+            console.error("Erro ao confirmar appt:", e);
+            onSuccess({ id: lastOrder.appointmentId });
+        }
+    };
+
+    const handleCheckStatus = async () => {
+        if (!lastOrder?.pixData?.id) return;
+        setIsProcessing(true);
+        try {
+            const statusData = await api.payments.checkStatus(lastOrder.pixData.id, lastOrder.salonId);
+            if (statusData.status === 'approved') {
+                await handleSuccess();
+            } else if (statusData.status === 'pending') {
+                showToast('Aguardando confirmação do banco...', 'info');
+            } else {
+                showToast(`Status: ${statusData.status}. Tente novamente em instantes.`, 'info');
+            }
+        } catch (error) {
+            showToast('Erro ao verificar status. Tente novamente.', 'error');
+        } finally {
+            setIsProcessing(false);
+        }
     };
 
     const pixCode = lastOrder?.pixData?.copyPaste;

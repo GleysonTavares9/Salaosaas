@@ -111,7 +111,7 @@ const BottomNav: React.FC<BottomNavProps> = ({ role }) => {
     // Admin / Pro
     items = [
       { path: '/pro', icon: 'dashboard', label: 'Dashboard' },
-      { path: '/pro/tasks', icon: 'task_alt', label: 'Tarefas' },
+      ...(role === 'admin' ? [{ path: '/pro/tasks', icon: 'account_balance_wallet', label: 'Saídas' }] : []),
       { path: '/pro/schedule', icon: 'event_note', label: 'Agenda' },
       { path: '/messages', icon: 'chat_bubble', label: 'Mensagens' },
       { path: '/profile', icon: 'account_circle', label: 'Perfil' }

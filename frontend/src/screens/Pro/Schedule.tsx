@@ -47,6 +47,109 @@ const Schedule: React.FC<ScheduleProps> = ({ appointments: initialAppointments, 
     id: string | null;
   }>({ show: false, title: '', message: '', actionType: null, id: null });
 
+  // States para Remarcação (Reschedule)
+  const [showRescheduleModal, setShowRescheduleModal] = useState(false);
+  const [selectedRescheduleAppt, setSelectedRescheduleAppt] = useState<Appointment | null>(null);
+  const [rescheduleDate, setRescheduleDate] = useState('');
+  const [rescheduleTime, setRescheduleTime] = useState('');
+  const [availableSlots, setAvailableSlots] = useState<string[]>([]);
+  const [isLoadingSlots, setIsLoadingSlots] = useState(false);
+
+  // Gerar datas para os próximos 14 dias (Reschedule)
+  const availableDates = Array.from({ length: 14 }, (_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() + i);
+    return {
+      value: d.toISOString().split('T')[0],
+      display: d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }),
+      weekday: d.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '')
+    };
+  });
+
+  // Effect para calcular slots disponíveis
+  useEffect(() => {
+    if (showRescheduleModal && selectedRescheduleAppt && rescheduleDate && salon) {
+      setIsLoadingSlots(true);
+      const generateSlots = () => {
+        const slots: string[] = [];
+        const [y, m, d] = rescheduleDate.split('-').map(Number);
+        const dateObj = new Date(y, m - 1, d);
+        const dayKeys = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+        const currentDayKey = dayKeys[dateObj.getDay()];
+
+        // Determinar horário do profissional ou salão
+        const selectedPro = allProfessionals.find(p => p.id === selectedRescheduleAppt.professional_id);
+        const schedule = selectedPro?.horario_funcionamento?.[currentDayKey] || salon.horario_funcionamento?.[currentDayKey];
+
+        if (!schedule || schedule.closed) {
+          setAvailableSlots([]);
+          setIsLoadingSlots(false);
+          return;
+        }
+
+        const [startH, startM] = schedule.open.split(':').map(Number);
+        const [endH, endM] = schedule.close.split(':').map(Number);
+        const startLimit = startH * 60 + startM;
+        const endLimit = endH * 60 + endM;
+
+        const duration = selectedRescheduleAppt.duration_min || 30;
+
+        // Buscar conflitos
+        const busyIntervals = appointments
+          .filter(a => a.date === rescheduleDate && a.professional_id === selectedRescheduleAppt.professional_id && a.status !== 'canceled' && a.id !== selectedRescheduleAppt.id)
+          .map(a => {
+            const [h, min] = a.time.split(':').map(Number);
+            const s = h * 60 + min;
+            return { start: s, end: s + (a.duration_min || 30) };
+          });
+
+        for (let t = startLimit; t < endLimit; t += 30) {
+          const tEnd = t + duration;
+          if (tEnd > endLimit) continue;
+
+          const isConflict = busyIntervals.some(busy => (t < busy.end && tEnd > busy.start));
+          if (!isConflict) {
+            const h = Math.floor(t / 60);
+            const m = t % 60;
+            slots.push(`${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`);
+          }
+        }
+        setAvailableSlots(slots);
+        setIsLoadingSlots(false);
+      };
+      generateSlots();
+    }
+  }, [rescheduleDate, showRescheduleModal, selectedRescheduleAppt, salon, appointments]);
+
+  const handleRescheduleAction = (appt: Appointment) => {
+    setSelectedRescheduleAppt(appt);
+    setRescheduleDate(appt.date); // Default to current date
+    setRescheduleTime(appt.time);
+    setShowRescheduleModal(true);
+  };
+
+  const executeReschedule = async () => {
+    if (!selectedRescheduleAppt || !rescheduleDate || !rescheduleTime) return;
+    try {
+      await api.appointments.update(selectedRescheduleAppt.id, {
+        date: rescheduleDate,
+        time: rescheduleTime,
+        status: 'confirmed' // Force status to confirmed
+      });
+      setAppointments(prev => prev.map(a => a.id === selectedRescheduleAppt.id ? {
+        ...a,
+        date: rescheduleDate,
+        time: rescheduleTime,
+        status: 'confirmed'
+      } : a));
+      showToast('Sessão remarcada com sucesso!', 'success');
+      setShowRescheduleModal(false);
+    } catch (error) {
+      console.error(error);
+      showToast('Erro ao remarcar.', 'error');
+    }
+  };
+
   const fetchData = async () => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -355,8 +458,8 @@ const Schedule: React.FC<ScheduleProps> = ({ appointments: initialAppointments, 
 
   return (
     <div className="flex-1 h-full overflow-y-auto pb-32 relative no-scrollbar bg-background-dark">
-      <header className="sticky top-0 z-[100] bg-background-dark/80 backdrop-blur-2xl px-4 lg:px-6 pt-2 lg:pt-12 pb-2 lg:pb-8 border-b border-white/5">
-        <div className="max-w-full max-w-[1400px] mx-auto w-full">
+      <header className="sticky top-0 z-[100] bg-background-dark/80 backdrop-blur-2xl px-4 lg:px-6 pt-12 lg:pt-6 pb-2 lg:pb-6 border-b border-white/5">
+        <div className="max-w-none w-full">
           <div className="flex items-center justify-between mb-3 lg:mb-10 px-2 sm:px-2 lg:px-2">
             <div className="flex items-center gap-3 lg:gap-6">
               <button onClick={() => navigate('/pro')} className="size-9 lg:size-12 rounded-xl bg-black/40 border border-white/10 flex items-center justify-center text-white active:scale-95 transition-all">
@@ -397,31 +500,7 @@ const Schedule: React.FC<ScheduleProps> = ({ appointments: initialAppointments, 
           )}
         </div>
       </header>
-
-      <div className="max-w-full max-w-[1400px] mx-auto w-full px-8 sm:px-8 lg:px-8 py-6 sm:py-6 lg:py-6 flex items-center justify-between">
-        <div className="flex items-center gap-4 lg:gap-4">
-          <div className="size-10 sm:size-12 lg:size-10 rounded-xl bg-white/5 flex items-center justify-center border border-white/10 text-slate-500">
-            <span className="material-symbols-outlined text-sm">event</span>
-          </div>
-          <span className="text-[10px] font-black text-white uppercase tracking-[0.4em]">
-            {new Date(selectedDate + 'T12:00:00').toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' })}
-          </span>
-        </div>
-        <div className="flex items-center gap-6 lg:gap-6">
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-full border border-primary/20">
-            <span className="size-1.5 bg-primary rounded-full animate-pulse"></span>
-            <span className="text-[9px] font-black text-primary uppercase tracking-widest">{todayAppointments.length} Sessões</span>
-          </div>
-          <button
-            onClick={() => setShowAddModal(true)}
-            className="size-10 sm:size-12 lg:size-12 rounded-2xl gold-gradient text-background-dark flex items-center justify-center shadow-[0_10px_30px_rgba(0,0,0,0.5)] transition-all active:scale-95 hover:scale-105"
-          >
-            <span className="material-symbols-outlined font-black">add</span>
-          </button>
-        </div>
-      </div>
-
-      <main className="max-w-full max-w-[1400px] mx-auto w-full px-6 sm:px-6 lg:px-6 py-6 sm:py-6 lg:py-6 animate-fade-in relative">
+      <main className="max-w-none w-full px-4 lg:px-6 py-4 lg:py-6 space-y-4 lg:space-y-6 pb-40 animate-fade-in relative z-10">
         <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] pointer-events-none"></div>
 
         {activeTab === 'grid' ? (
@@ -598,7 +677,7 @@ const Schedule: React.FC<ScheduleProps> = ({ appointments: initialAppointments, 
             </div>
           </div>
         ) : (
-          <div className="max-w-full sm:max-w-6xl mx-auto w-full space-y-6">
+          <div className="max-w-none w-full space-y-6">
             {todayAppointments.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 lg:gap-8">
                 {todayAppointments.map(appt => (
@@ -641,6 +720,14 @@ const Schedule: React.FC<ScheduleProps> = ({ appointments: initialAppointments, 
                           className="size-8 lg:size-9 bg-white/5 border border-white/10 rounded-lg flex items-center justify-center text-white hover:bg-primary hover:text-background-dark transition-all active:scale-95"
                         >
                           <span className="material-symbols-outlined text-base">chat</span>
+                        </button>
+
+                        <button
+                          onClick={() => handleRescheduleAction(appt)}
+                          className="size-8 lg:size-9 bg-white/5 border border-white/10 rounded-lg flex items-center justify-center text-slate-300 hover:bg-white/10 hover:text-white transition-all active:scale-95"
+                          title="Remarcar"
+                        >
+                          <span className="material-symbols-outlined text-base">edit_calendar</span>
                         </button>
 
                         <button
@@ -924,40 +1011,120 @@ const Schedule: React.FC<ScheduleProps> = ({ appointments: initialAppointments, 
         </div>
       )}
 
-      {/* Modal de Confirmação Customizado (Aura Confirm) */}
       {confirmModal.show && (
-        <div className="fixed inset-0 z-[500] flex items-center justify-center p-6 sm:p-6 lg:p-6">
-          <div className="absolute inset-0 bg-background-dark/95 backdrop-blur-xl animate-fade-in"></div>
-          <div className="relative w-full max-w-xs bg-surface-dark border border-white/10 rounded-2xl sm:rounded-3xl lg:rounded-[40px] p-8 sm:p-8 lg:p-8 shadow-2xl animate-scale-in text-center">
-            <div className={`size-10 sm:size-12 lg:size-16 rounded-full mx-auto mb-6 flex items-center justify-center ${confirmModal.actionType === 'delete' ? 'bg-red-500/10 text-red-500' :
-              confirmModal.actionType === 'cancel' ? 'bg-amber-500/10 text-amber-500' : 'bg-primary/10 text-primary'
-              }`}>
-              <span className="material-symbols-outlined text-3xl lg:text-3xl">
-                {confirmModal.actionType === 'delete' ? 'delete_forever' :
-                  confirmModal.actionType === 'cancel' ? 'cancel' : 'check_circle'}
-              </span>
+        <div className="fixed inset-0 z-[9999] overflow-y-auto bg-background-dark/95 backdrop-blur-xl animate-fade-in">
+          <div className="flex min-h-full items-center justify-center p-4 sm:p-6 text-center">
+            <div className="relative w-full max-w-xs bg-surface-dark border border-white/10 rounded-2xl sm:rounded-3xl lg:rounded-[40px] p-8 shadow-2xl animate-scale-in">
+              <div className={`size-12 lg:size-16 rounded-full mx-auto mb-6 flex items-center justify-center ${confirmModal.actionType === 'delete' ? 'bg-red-500/10 text-red-500' :
+                confirmModal.actionType === 'cancel' ? 'bg-amber-500/10 text-amber-500' : 'bg-primary/10 text-primary'
+                }`}>
+                <span className="material-symbols-outlined text-3xl lg:text-3xl">
+                  {confirmModal.actionType === 'delete' ? 'delete_forever' :
+                    confirmModal.actionType === 'cancel' ? 'cancel' : 'check_circle'}
+                </span>
+              </div>
+
+              <h3 className="text-lg font-display font-black text-white italic uppercase tracking-tighter mb-2">
+                {confirmModal.title}
+              </h3>
+              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest leading-relaxed mb-8">
+                {confirmModal.message}
+              </p>
+
+              <div className="flex flex-col gap-3">
+                <button
+                  onClick={executeConfirmedAction}
+                  className={`w-full py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] shadow-lg active:scale-95 transition-all ${confirmModal.actionType === 'delete' ? 'bg-red-500 text-white' : 'gold-gradient text-background-dark'
+                    }`}
+                >
+                  Confirmar
+                </button>
+                <button
+                  onClick={() => setConfirmModal({ ...confirmModal, show: false })}
+                  className="w-full py-4 rounded-2xl text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] hover:text-white transition-colors"
+                >
+                  Voltar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Remarcação (Schedule) */}
+      {showRescheduleModal && selectedRescheduleAppt && (
+        <div className="fixed inset-0 z-[600] bg-background-dark/95 backdrop-blur-3xl animate-fade-in flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8">
+          <div className="flex flex-col w-full max-w-md md:max-w-2xl lg:max-w-4xl bg-surface-dark border border-white/10 rounded-[32px] md:rounded-[48px] shadow-2xl overflow-hidden max-h-full">
+            <header className="px-6 py-6 md:px-10 md:py-8 flex items-center justify-between shrink-0 border-b border-white/5 bg-background-dark/50">
+              <div>
+                <h2 className="text-xl md:text-3xl font-display font-black text-white italic tracking-tighter uppercase">Remarcar Fluxo</h2>
+                <p className="text-[9px] md:text-[10px] text-primary font-black uppercase tracking-[0.3em] mt-1 md:mt-2 leading-none">{selectedRescheduleAppt.clientName}</p>
+              </div>
+              <button onClick={() => setShowRescheduleModal(false)} className="size-10 md:size-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-500 hover:text-white transition-all active:scale-95">
+                <span className="material-symbols-outlined font-black">close</span>
+              </button>
+            </header>
+
+            <div className="flex-1 overflow-y-auto p-6 md:p-10 space-y-8 md:space-y-12 no-scrollbar">
+              <div>
+                <p className="text-[9px] md:text-[10px] font-black text-primary uppercase tracking-[0.4em] mb-4 md:mb-6 text-center">Calendário de Disponibilidade</p>
+                <div className="flex gap-3 md:gap-4 overflow-x-auto no-scrollbar pb-4 select-none px-1">
+                  {availableDates.map(d => (
+                    <button
+                      key={d.value}
+                      onClick={() => {
+                        setRescheduleDate(d.value);
+                        setRescheduleTime('');
+                      }}
+                      className={`shrink-0 flex flex-col items-center justify-center size-20 md:size-24 rounded-2xl md:rounded-[32px] border transition-all duration-300 ${rescheduleDate === d.value
+                        ? 'gold-gradient text-background-dark border-transparent shadow-gold scale-105 z-10'
+                        : 'bg-surface-dark/40 border-white/10 text-slate-500 hover:border-white/30'}`}
+                    >
+                      <span className="text-[8px] md:text-[9px] font-black uppercase tracking-tighter mb-0.5 md:mb-1">{d.weekday}</span>
+                      <span className="text-lg md:text-2xl font-black italic font-display leading-tight">{d.display.split('/')[0]}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="bg-primary/5 border border-primary/20 rounded-3xl md:rounded-[48px] p-6 md:p-10 space-y-6 md:space-y-8">
+                <p className="text-[9px] md:text-[10px] font-black text-primary uppercase tracking-[0.4em] text-center">Slots Magnéticos</p>
+                {isLoadingSlots ? (
+                  <div className="flex justify-center py-8 md:py-12">
+                    <div className="size-8 md:size-10 border-2 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+                  </div>
+                ) : availableSlots.length > 0 ? (
+                  <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
+                    {availableSlots.map(slot => (
+                      <button
+                        key={slot}
+                        onClick={() => setRescheduleTime(slot)}
+                        className={`py-3 md:py-4 rounded-xl md:rounded-2xl border text-[11px] md:text-[13px] font-black font-display italic transition-all duration-200 ${rescheduleTime === slot
+                          ? 'bg-primary text-background-dark border-primary shadow-gold-sm scale-105'
+                          : 'bg-background-dark/60 border-white/5 text-slate-500 hover:border-white/20 hover:text-white'}`}
+                      >
+                        {slot}
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="py-12 md:py-20 text-center border-2 border-dashed border-white/5 rounded-3xl md:rounded-[40px] bg-white/[0.02]">
+                    <span className="material-symbols-outlined text-3xl md:text-4xl text-slate-700 mb-2 md:mb-4">block</span>
+                    <p className="text-[9px] md:text-[10px] font-black text-slate-600 uppercase tracking-widest">Sem brechas para esta data</p>
+                  </div>
+                )}
+              </div>
             </div>
 
-            <h3 className="text-lg font-display font-black text-white italic uppercase tracking-tighter mb-2">
-              {confirmModal.title}
-            </h3>
-            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest leading-relaxed mb-8">
-              {confirmModal.message}
-            </p>
-
-            <div className="flex flex-col gap-3 lg:gap-3">
+            <div className="p-6 md:p-10 bg-background-dark/50 border-t border-white/5 shrink-0">
               <button
-                onClick={executeConfirmedAction}
-                className={`w-full py-4 sm:py-4 lg:py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] shadow-lg active:scale-95 transition-all ${confirmModal.actionType === 'delete' ? 'bg-red-500 text-white' : 'gold-gradient text-background-dark'
-                  }`}
+                disabled={!rescheduleDate || !rescheduleTime}
+                onClick={executeReschedule}
+                className={`w-full h-16 md:h-20 rounded-2xl md:rounded-[32px] text-[11px] md:text-[13px] font-black uppercase tracking-[0.3em] md:tracking-[0.5em] transition-all duration-500 shadow-xl ${rescheduleDate && rescheduleTime
+                  ? 'gold-gradient text-background-dark active:scale-95 hover:brightness-110 shadow-gold/20'
+                  : 'bg-white/5 text-white/10 cursor-not-allowed opacity-50'}`}
               >
-                Confirmar
-              </button>
-              <button
-                onClick={() => setConfirmModal({ ...confirmModal, show: false })}
-                className="w-full py-4 sm:py-4 lg:py-4 rounded-2xl text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] hover:text-white transition-colors"
-              >
-                Voltar
+                PROJETAR NOVA SESSÃO
               </button>
             </div>
           </div>

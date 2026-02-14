@@ -128,7 +128,7 @@ const ProductShowcase: React.FC<ProductShowcaseProps> = ({ bookingDraft, setBook
     <div className="flex-1 overflow-y-auto h-full no-scrollbar bg-background-dark relative">
       <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.02] pointer-events-none"></div>
 
-      <header className="sticky top-0 z-50 bg-background-dark/80 backdrop-blur-3xl px-6 sm:px-6 lg:px-6 pt-12 pb-10 border-b border-white/5">
+      <header className="sticky top-0 z-50 bg-background-dark/80 backdrop-blur-3xl px-6 sm:px-6 lg:px-6 pt-12 lg:pt-6 pb-6 border-b border-white/5">
         <div className="max-w-full max-w-[1400px] mx-auto w-full">
           <div className="flex items-center justify-between mb-12">
             <button onClick={() => navigate(-1)} className="size-10 sm:size-12 lg:size-12 rounded-2xl bg-black/40 border border-white/10 flex items-center justify-center text-white active:scale-95 transition-all">
@@ -163,7 +163,7 @@ const ProductShowcase: React.FC<ProductShowcaseProps> = ({ bookingDraft, setBook
         </div>
       </header>
 
-      <main className="max-w-full max-w-[1400px] mx-auto w-full px-6 sm:px-6 lg:px-6 py-12 sm:py-12 lg:py-12 lg:py-20 sm:py-20 lg:py-20 animate-fade-in relative z-10">
+      <main className="max-w-full max-w-[1400px] mx-auto w-full px-6 sm:px-6 lg:px-6 py-6 lg:py-10 animate-fade-in relative z-10">
         {loading ? (
           <div className="flex flex-col items-center justify-center py-40 sm:py-40 lg:py-40">
             <div className="size-10 sm:size-12 lg:size-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin mb-10"></div>
@@ -177,7 +177,7 @@ const ProductShowcase: React.FC<ProductShowcaseProps> = ({ bookingDraft, setBook
             <p className="text-[11px] font-black uppercase tracking-[0.5em] text-slate-600">Boutique temporariamente fechada</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 sm:grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-1 sm:grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-10 lg:gap-14 lg:gap-14 pb-40">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 lg:gap-6 pb-40">
             {enrichedProducts.map(product => {
               const isSelected = selectedProductIds.includes(product.id);
               const isOutOfStock = product.stock <= 0;
@@ -186,48 +186,48 @@ const ProductShowcase: React.FC<ProductShowcaseProps> = ({ bookingDraft, setBook
               return (
                 <div
                   key={product.id}
-                  className={`group relative bg-surface-dark/40 rounded-2xl sm:rounded-3xl lg:rounded-[56px] border border-white/5 p-8 sm:p-8 lg:p-8 shadow-[0_30px_80px_rgba(0,0,0,0.4)] transition-all backdrop-blur-3xl overflow-hidden active:scale-[0.99]
+                  className={`group relative bg-surface-dark/40 rounded-xl lg:rounded-2xl border border-white/5 p-3 lg:p-4 shadow-lg transition-all backdrop-blur-3xl overflow-hidden active:scale-[0.99]
                     ${isOutOfStock ? 'opacity-40 grayscale pointer-events-none' : 'hover:border-primary/20'}
-                    ${isSelected ? 'ring-2 ring-primary ring-offset-4 ring-offset-background-dark' : ''}
+                    ${isSelected ? 'ring-1 ring-primary ring-offset-2 ring-offset-background-dark' : ''}
                   `}
                   onClick={() => !isOutOfStock && toggleProduct(product)}
                 >
-                  <div className="relative aspect-[4/5] rounded-2xl sm:rounded-3xl lg:rounded-[40px] overflow-hidden border-2 border-white/5 shadow-2xl bg-black/20 mb-8 cursor-pointer">
+                  <div className="relative aspect-[4/5] rounded-lg lg:rounded-xl overflow-hidden border border-white/5 shadow-lg bg-black/20 mb-3 cursor-pointer">
                     <img src={product.image} className="size-full object-cover grayscale-[0.3] group-hover:grayscale-0 group-hover:scale-110 transition-all duration-1000" alt={product.name} />
                     <div className="absolute inset-0 bg-gradient-to-t from-background-dark/80 via-transparent to-transparent"></div>
 
                     {salon && (
-                      <div className="absolute top-6 left-6 flex flex-col gap-2 lg:gap-2">
-                        <span className="bg-black/60 backdrop-blur-md border border-white/10 px-4 sm:px-4 lg:px-4 py-2 sm:py-2 lg:py-2 rounded-full text-[8px] font-black text-white uppercase tracking-widest">{salon.nome}</span>
-                        <span className="bg-primary/20 backdrop-blur-md border border-primary/30 px-4 sm:px-4 lg:px-4 py-2 sm:py-2 lg:py-2 rounded-full text-[8px] font-black text-primary uppercase tracking-widest self-start">{salon.distancia}</span>
+                      <div className="absolute top-2 left-2 flex flex-col gap-1">
+                        <span className="bg-black/60 backdrop-blur-md border border-white/10 px-2 py-0.5 rounded-full text-[6px] font-black text-white uppercase tracking-widest truncate max-w-[80px]">{salon.nome}</span>
+                        <span className="bg-primary/20 backdrop-blur-md border border-primary/30 px-2 py-0.5 rounded-full text-[6px] font-black text-primary uppercase tracking-widest self-start">{salon.distancia}</span>
                       </div>
                     )}
 
                     {isOutOfStock && (
                       <div className="absolute inset-0 bg-background-dark/80 flex items-center justify-center">
-                        <span className="text-[10px] font-black text-white uppercase tracking-[0.3em] border-2 border-white/20 px-6 sm:px-6 lg:px-6 py-3 sm:py-3 lg:py-3 rounded-full">Indisponível</span>
+                        <span className="text-[8px] font-black text-white uppercase tracking-[0.2em] border border-white/20 px-3 py-1.5 rounded-full">Indisponível</span>
                       </div>
                     )}
 
-                    <div className={`absolute bottom-6 right-6 size-10 sm:size-12 lg:size-16 rounded-[24px] flex items-center justify-center shadow-gold transition-all duration-500
+                    <div className={`absolute bottom-3 right-3 size-8 lg:size-10 rounded-full flex items-center justify-center shadow-gold transition-all duration-500
                       ${isSelected ? 'gold-gradient text-background-dark scale-110' : 'bg-white/10 text-white backdrop-blur-md border border-white/10 group-hover:gold-gradient group-hover:text-background-dark group-hover:scale-110'}
                     `}>
-                      <span className="material-symbols-outlined text-2xl lg:text-2xl font-black">{isSelected ? 'check' : 'shopping_bag'}</span>
+                      <span className="material-symbols-outlined text-lg font-black">{isSelected ? 'check' : 'shopping_bag'}</span>
                     </div>
                   </div>
 
-                  <div className="space-y-6">
+                  <div className="space-y-2">
                     <div>
-                      <h4 className="font-display text-2xl lg:text-2xl font-black text-white italic tracking-tighter uppercase leading-none truncate group-hover:text-primary transition-colors">{product.name}</h4>
-                      <div className="flex items-center gap-3 lg:gap-3 mt-4">
-                        <span className="text-[8px] font-black text-slate-600 uppercase tracking-widest bg-white/5 px-3 sm:px-3 lg:px-3 py-1 sm:py-1 lg:py-1.5 rounded-xl border border-white/5">{product.stock} UNIDADES</span>
+                      <h4 className="font-display text-sm lg:text-base font-black text-white italic tracking-tighter uppercase leading-none truncate group-hover:text-primary transition-colors">{product.name}</h4>
+                      <div className="flex items-center gap-2 mt-2">
+                        <span className="text-[6px] font-black text-slate-600 uppercase tracking-widest bg-white/5 px-2 py-0.5 rounded-lg border border-white/5">{product.stock} UNIDADES</span>
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between pt-6 border-t border-white/5">
+                    <div className="flex items-center justify-between pt-2 border-t border-white/5">
                       <div className="flex flex-col">
-                        <span className="text-[8px] font-black text-slate-600 uppercase tracking-widest leading-none mb-2">Valor de Investimento</span>
-                        <span className="text-3xl lg:text-3xl font-display font-black text-white italic tracking-tight">R$ {product.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                        <span className="text-[6px] font-black text-slate-600 uppercase tracking-widest leading-none mb-1">Valor</span>
+                        <span className="text-lg lg:text-xl font-display font-black text-white italic tracking-tight">R$ {product.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                       </div>
                     </div>
                   </div>

@@ -138,9 +138,9 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({ salonId }) => {
     <div className="flex-1 overflow-y-auto h-full no-scrollbar bg-background-dark relative">
       <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.02] pointer-events-none"></div>
 
-      <header className="sticky top-0 z-50 bg-background-dark/80 backdrop-blur-3xl px-4 lg:px-6 pt-2 lg:pt-12 pb-2 lg:pb-10 border-b border-white/5">
+      <header className="sticky top-0 z-50 bg-background-dark/80 backdrop-blur-3xl px-4 lg:px-6 pt-12 lg:pt-6 pb-2 lg:pb-6 border-b border-white/5">
         <div className="max-w-full max-w-[1400px] mx-auto w-full">
-          <div className="flex items-center justify-between mb-3 lg:mb-12 px-2">
+          <div className="flex items-center justify-between mb-3 lg:mb-6 px-2">
             <button onClick={() => navigate('/pro')} className="size-9 lg:size-12 rounded-xl bg-black/40 border border-white/10 flex items-center justify-center text-white active:scale-95 transition-all">
               <span className="material-symbols-outlined text-xl">arrow_back</span>
             </button>
@@ -185,7 +185,7 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({ salonId }) => {
         </div>
       </header>
 
-      <main className="max-w-full max-w-[1400px] mx-auto w-full px-6 sm:px-6 lg:px-6 py-12 sm:py-12 lg:py-12 lg:py-20 sm:py-20 lg:py-20 space-y-16 pb-40 animate-fade-in relative z-10">
+      <main className="max-w-full max-w-[1400px] mx-auto w-full px-4 lg:px-6 py-6 lg:py-10 space-y-8 lg:space-y-12 pb-40 animate-fade-in relative z-10">
         <div className="flex justify-center">
           <button
             onClick={() => setIsAdding(true)}
@@ -209,45 +209,45 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({ salonId }) => {
             <div className="size-10 sm:size-12 lg:size-12 border-2 border-primary/20 border-t-primary rounded-full animate-spin"></div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 xxl:grid-cols-6 gap-6 lg:gap-8">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 gap-3 lg:gap-4">
             {filteredProducts.map(product => {
               const isLowStock = product.stock < 5;
               return (
-                <div key={product.id} className="group relative bg-surface-dark/40 rounded-2xl lg:rounded-[40px] border border-white/5 p-6 lg:p-8 shadow-2xl transition-all hover:border-primary/20 backdrop-blur-xl overflow-hidden active:scale-[0.99]">
+                <div key={product.id} className="group relative bg-surface-dark/40 rounded-xl lg:rounded-2xl border border-white/5 p-3 lg:p-4 shadow-2xl transition-all hover:border-primary/20 backdrop-blur-xl overflow-hidden active:scale-[0.99]">
                   {isLowStock && (
                     <div className="absolute top-0 left-0 w-2 h-full bg-red-500 shadow-[10px_0_40px_rgba(239,68,68,0.3)] z-10"></div>
                   )}
 
-                  <div className="flex flex-col gap-8 lg:gap-8">
-                    <div className="relative aspect-square rounded-2xl sm:rounded-3xl lg:rounded-[40px] overflow-hidden border-2 border-white/5 shadow-2xl bg-black/20">
+                  <div className="flex flex-col gap-3 lg:gap-4">
+                    <div className="relative aspect-square rounded-lg sm:rounded-xl overflow-hidden border border-white/5 shadow-lg bg-black/20">
                       <img src={product.image} className="size-full object-cover grayscale-[0.3] group-hover:grayscale-0 group-hover:scale-110 transition-all duration-1000" alt={product.name} />
                       <div className="absolute inset-0 bg-gradient-to-t from-background-dark/80 via-transparent to-transparent"></div>
-                      <div className="absolute bottom-6 left-6 flex items-center gap-3 lg:gap-3">
-                        <span className="bg-primary/20 backdrop-blur-md border border-primary/30 px-4 sm:px-4 lg:px-4 py-2 sm:py-2 lg:py-2 rounded-full text-[8px] font-black text-primary uppercase tracking-widest">{product.category}</span>
+                      <div className="absolute bottom-2 left-2 flex items-center gap-1.5">
+                        <span className="bg-primary/20 backdrop-blur-md border border-primary/30 px-2.5 py-1 rounded-full text-[6px] font-black text-primary uppercase tracking-widest">{product.category}</span>
                       </div>
                     </div>
 
-                    <div className="space-y-6">
-                      <div className="flex items-start justify-between gap-4 lg:gap-4">
+                    <div className="space-y-3">
+                      <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0">
-                          <h4 className="font-display text-xl lg:text-2xl font-black text-white italic tracking-tighter uppercase leading-none truncate group-hover:text-primary transition-colors">{product.name}</h4>
-                          <div className={`inline-flex items-center gap-2 mt-4 px-2.5 py-1 rounded-xl border ${isLowStock ? 'bg-red-500/10 text-red-500 border-red-500/20' : 'bg-white/5 text-slate-500 border-white/10'}`}>
-                            <span className="material-symbols-outlined text-[12px] font-black">{isLowStock ? 'warning' : 'inventory_2'}</span>
-                            <span className="text-[9px] font-black uppercase tracking-widest">STOCK: {product.stock}</span>
+                          <h4 className="font-display text-sm lg:text-base font-black text-white italic tracking-tighter uppercase leading-none truncate group-hover:text-primary transition-colors">{product.name}</h4>
+                          <div className={`inline-flex items-center gap-1.5 mt-2 px-2 py-0.5 rounded-lg border ${isLowStock ? 'bg-red-500/10 text-red-500 border-red-500/20' : 'bg-white/5 text-slate-500 border-white/10'}`}>
+                            <span className="material-symbols-outlined text-[10px] font-black">{isLowStock ? 'warning' : 'inventory_2'}</span>
+                            <span className="text-[7px] font-black uppercase tracking-widest">QTD: {product.stock}</span>
                           </div>
                         </div>
                       </div>
 
-                      <div className="flex items-center justify-between pt-6 border-t border-white/5">
+                      <div className="flex items-center justify-between pt-3 border-t border-white/5">
                         <div className="flex flex-col">
-                          <span className="text-[7px] lg:text-[8px] font-black text-slate-600 uppercase tracking-widest leading-none mb-1.5">Valor de Venda</span>
-                          <span className="text-2xl lg:text-3xl font-display font-black text-white italic tracking-tight">R$ {product.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                          <span className="text-[6px] font-black text-slate-600 uppercase tracking-widest leading-none mb-1">Valor</span>
+                          <span className="text-lg lg:text-xl font-display font-black text-white italic tracking-tight">R$ {product.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                         </div>
                         <button
                           onClick={() => handleEdit(product)}
-                          className="size-10 sm:size-12 lg:size-14 rounded-2xl bg-primary text-background-dark flex items-center justify-center shadow-gold-sm active:scale-90 transition-all hover:brightness-110"
+                          className="size-8 lg:size-10 rounded-xl bg-primary text-background-dark flex items-center justify-center shadow-gold-sm active:scale-90 transition-all hover:brightness-110"
                         >
-                          <span className="material-symbols-outlined text-xl font-black">edit_square</span>
+                          <span className="material-symbols-outlined text-base font-black">edit_square</span>
                         </button>
                       </div>
                     </div>

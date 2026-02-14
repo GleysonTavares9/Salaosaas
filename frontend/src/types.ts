@@ -129,3 +129,14 @@ export interface ChatMessage {
   timestamp: string;
   is_me?: boolean;
 }
+
+export interface Expense {
+  id: string;
+  salon_id: string;
+  description: string;
+  amount: number;
+  category: string;
+  date: string;
+  status: 'paid' | 'pending';
+  created_at?: string;
+}

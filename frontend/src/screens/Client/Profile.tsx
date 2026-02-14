@@ -331,7 +331,7 @@ const Profile: React.FC<ProfileProps> = ({ onLogout }) => {
               <div className="mt-10 pt-10 border-t border-white/5 text-center">
                 <p className="text-slate-700 text-[9px] font-black uppercase tracking-[0.4em] leading-relaxed">
                   Luxe Aura • Premium Experience<br />
-                  Versão 2.4.0 • Excellence Standard
+                  Versão 1.1.0 • Excellence Standard
                 </p>
               </div>
             </div>

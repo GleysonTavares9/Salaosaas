@@ -24,19 +24,28 @@
   :root {
     --sab: env(safe-area-inset-bottom);
     --sat: env(safe-area-inset-top);
-    
+
     /* RESPONSIVIDADE MELHORADA - Padding adaptativo */
-    --mobile-px: clamp(1rem, 4vw, 1.25rem); /* 16px-20px */
-    --tablet-px: clamp(1.5rem, 5vw, 2.5rem); /* 24px-40px */
-    --desktop-px: clamp(2rem, 6vw, 3rem); /* 32px-48px */
+    --mobile-px: clamp(1rem, 4vw, 1.25rem);
+    /* 16px-20px */
+    --tablet-px: clamp(1.5rem, 5vw, 2.5rem);
+    /* 24px-40px */
+    --desktop-px: clamp(2rem, 6vw, 3rem);
+    /* 32px-48px */
 
     /* Fluid Typography - Otimizado para todos os tamanhos */
-    --step-0: clamp(0.7rem, 0.65rem + 0.25vw, 0.875rem); /* 11.2px-14px */
-    --step-1: clamp(0.8125rem, 0.75rem + 0.35vw, 1rem); /* 13px-16px */
-    --step-2: clamp(0.9375rem, 0.85rem + 0.5vw, 1.125rem); /* 15px-18px */
-    --step-3: clamp(1.125rem, 1rem + 0.75vw, 1.5rem); /* 18px-24px */
-    --step-4: clamp(1.5rem, 1.25rem + 1.25vw, 2.25rem); /* 24px-36px */
-    --step-5: clamp(2rem, 1.5rem + 2.5vw, 4rem); /* 32px-64px */
+    --step-0: clamp(0.7rem, 0.65rem + 0.25vw, 0.875rem);
+    /* 11.2px-14px */
+    --step-1: clamp(0.8125rem, 0.75rem + 0.35vw, 1rem);
+    /* 13px-16px */
+    --step-2: clamp(0.9375rem, 0.85rem + 0.5vw, 1.125rem);
+    /* 15px-18px */
+    --step-3: clamp(1.125rem, 1rem + 0.75vw, 1.5rem);
+    /* 18px-24px */
+    --step-4: clamp(1.5rem, 1.25rem + 1.25vw, 2.25rem);
+    /* 24px-36px */
+    --step-5: clamp(2rem, 1.5rem + 2.5vw, 4rem);
+    /* 32px-64px */
 
     /* Espaçamentos responsivos */
     --spacing-xs: clamp(0.25rem, 1vw, 0.5rem);
@@ -53,7 +62,8 @@
   }
 
   html {
-    font-size: 15px; /* Base 15px para mobile */
+    font-size: 15px;
+    /* Base 15px para mobile */
     -webkit-text-size-adjust: 100%;
     overscroll-behavior-y: none;
   }
@@ -61,19 +71,22 @@
   /* Ajuste de font-size para diferentes breakpoints */
   @media (min-width: 640px) {
     html {
-      font-size: 16px; /* Tablets pequenos */
+      font-size: 16px;
+      /* Tablets pequenos */
     }
   }
 
   @media (min-width: 1024px) {
     html {
-      font-size: 16px; /* Desktop */
+      font-size: 16px;
+      /* Desktop */
     }
   }
 
   @media (min-width: 1536px) {
     html {
-      font-size: 17px; /* Telas grandes */
+      font-size: 17px;
+      /* Telas grandes */
     }
   }
 
@@ -128,22 +141,15 @@
     background-attachment: fixed;
   }
 
-  /* Desktop - Centralizar e limitar largura máxima */
+  /* Desktop - Garantir que o app ocupe 100% da tela sempre */
   @media (min-width: 1024px) {
     #root {
       max-width: 100%;
+      width: 100%;
       margin: 0;
       height: 100vh;
       height: 100dvh;
       position: relative;
-    }
-  }
-
-  /* Desktop extra large - Pode adicionar max-width se necessário */
-  @media (min-width: 1920px) {
-    #root {
-      max-width: 1920px;
-      margin: 0 auto;
     }
   }
 
@@ -185,7 +191,8 @@
   /* MELHORADO: Scroll container responsivo */
   @media (min-width: 1024px) {
     .scroll-container {
-      padding-bottom: calc(120px + var(--sab)); /* Menos espaço no desktop */
+      padding-bottom: calc(120px + var(--sab));
+      /* Menos espaço no desktop */
     }
   }
 
@@ -228,7 +235,8 @@
     background-color: rgba(18, 19, 22, 0.7);
     backdrop-filter: blur(12px);
     border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: var(--radius-lg); /* Usa variável responsiva */
+    border-radius: var(--radius-lg);
+    /* Usa variável responsiva */
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
     position: relative;
     overflow: hidden;
@@ -319,7 +327,7 @@
 
   @media (min-width: 1024px) {
     .content-container {
-      max-width: 1280px;
+      max-width: none;
       padding-left: var(--desktop-px);
       padding-right: var(--desktop-px);
     }
@@ -327,7 +335,7 @@
 
   @media (min-width: 1536px) {
     .content-container {
-      max-width: 1536px;
+      max-width: none;
     }
   }
 
@@ -473,13 +481,15 @@
   padding: 0 !important;
   overflow: hidden;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8) !important;
-  max-width: calc(100vw - 2rem) !important; /* NOVO: Evita sair da tela */
+  max-width: calc(100vw - 2rem) !important;
+  /* NOVO: Evita sair da tela */
 }
 
 .leaflet-popup-content {
   margin: 0 !important;
   width: auto !important;
-  max-width: 100% !important; /* NOVO */
+  max-width: 100% !important;
+  /* NOVO */
 }
 
 .leaflet-popup-tip {
@@ -495,13 +505,15 @@
   background-color: #1a1c22 !important;
   color: #c1a571 !important;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
-  width: clamp(26px, 8vw, 36px) !important; /* NOVO: Responsivo */
+  width: clamp(26px, 8vw, 36px) !important;
+  /* NOVO: Responsivo */
   height: clamp(26px, 8vw, 36px) !important;
   line-height: clamp(26px, 8vw, 36px) !important;
 }
 
 /* Animação de pulse lento para upsell */
 @keyframes pulse-slow {
+
   0%,
   100% {
     opacity: 1;

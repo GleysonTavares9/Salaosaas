@@ -1,5 +1,5 @@
 
-// Luxe Aura Premium - v1.0.8 - Deploy Automático Ativo
+// Luxe Aura Premium - v1.1.0 - Deploy Automático Ativo
 import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { HashRouter as Router, Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { ViewRole, Appointment, Service, Salon, Product, Professional, GalleryItem } from './types.ts';
@@ -349,7 +349,26 @@ const AppContent: React.FC = () => {
         } catch (err) {
         }
       };
+
       fetchData();
+
+      // Realtime Subscription
+      const appointmentChannel = supabase
+        .channel('public:appointments')
+        .on('postgres_changes', {
+          event: '*',
+          schema: 'public',
+          table: 'appointments'
+        }, (payload) => {
+          // Quando houver qualquer mudança na tabela de agendamentos, recarregamos os dados
+          // Isso garante que o Dashboard esteja sempre atualizado sem F5
+          fetchData();
+        })
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(appointmentChannel);
+      };
     }
   }, [currentUserId, role, salons]);
 
@@ -501,7 +520,7 @@ const AppContent: React.FC = () => {
         </div>
       )}
 
-      <div className={`flex-1 overflow-y-auto no-scrollbar ${shouldShowNav ? 'pb-24 lg:pb-0 lg:pl-[280px]' : ''}`}>
+      <div className={`flex-1 overflow-y-auto no-scrollbar ${shouldShowNav ? 'pb-24 lg:pb-0 lg:pl-[240px] xl:pl-[280px]' : ''}`}>
         <Suspense fallback={
           <div className="flex-1 bg-background-dark flex flex-col items-center justify-center">
             <div className="size-8 border-2 border-primary/20 border-t-primary rounded-full animate-spin mb-4"></div>
@@ -577,8 +596,8 @@ const AppContent: React.FC = () => {
             } />
 
             <Route path="/pro/tasks" element={
-              (role === 'admin' || role === 'pro')
-                ? (isSubscriptionValid(salons[0]) ? <Tasks /> : <Navigate to="/pro/billing" replace />)
+              role === 'admin'
+                ? (isSubscriptionValid(salons[0]) ? <Tasks salon={salons[0]} role={role} /> : <Navigate to="/pro/billing" replace />)
                 : <Navigate to="/login" replace />
             } />
 

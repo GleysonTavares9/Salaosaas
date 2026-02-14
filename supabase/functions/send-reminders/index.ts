@@ -13,6 +13,24 @@ serve(async (req) => {
     }
 
     try {
+        // 0. Verificar Auth manualmente (para resolver 401/CORS no Gateway)
+        const authHeader = req.headers.get('Authorization');
+        if (!authHeader) {
+            return new Response(JSON.stringify({ error: 'Missing Authorization header' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+        }
+
+        const supabaseClient = createClient(
+            Deno.env.get('SUPABASE_URL') ?? '',
+            Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+            { global: { headers: { Authorization: authHeader } } }
+        );
+
+        const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+        if (authError || !user) {
+            return new Response(JSON.stringify({ error: 'Unauthorized', details: authError }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+        }
+
+        // 1. Cliente Admin para operações de banco
         const supabase = createClient(
             Deno.env.get('SUPABASE_URL')!,
             Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
@@ -27,49 +45,74 @@ serve(async (req) => {
         console.log("Buscando agendamentos para:", dateStr);
 
         // Buscar agendamentos de amanhã que não foram cancelados
+        // Buscar agendamentos de amanhã que não foram cancelados
+        // Simplificado: Buscar dados crus primeiro para evitar erros de join
         const { data: appts, error } = await supabase
             .from('appointments')
-            .select(`
-        id, 
-        time,
-        client:client_id(id, full_name), 
-        salon:salon_id(id, nome),
-        professional:professional_id(id, nome),
-        services(name)
-      `)
+            .select('*')
             .eq('date', dateStr)
-            .neq('status', 'cancelled');
+            .neq('status', 'cancelled')
+            .neq('status', 'canceled');
 
         if (error) {
-            console.error("Erro ao buscar agendamentos:", error);
+            console.error("Erro Supabase select appts:", error);
             throw error;
         }
 
         let sentCount = 0;
         const details = [];
 
-        for (const appt of appts || []) {
-            // @ts-ignore
-            const client = appt.client;
-            // @ts-ignore
-            const pro = appt.professional;
-            // @ts-ignore
-            const salon = appt.salon;
-            // @ts-ignore
-            const service = appt.services;
+        // Coletar IDs para buscar detalhes em massa (ou buscar individualmente se volume for baixo)
+        // Para simplificar e garantir funcionamento, vamos buscar dados auxiliares sob demanda ou em massa.
+        // Dado que é um script diário, buscar em loop não é crítico, mas em massa é melhor.
 
-            if (!client?.id || !pro?.id) {
-                details.push({ id: appt.id, status: "skipped (missing client or pro id)" });
+        if (!appts || appts.length === 0) {
+            return new Response(JSON.stringify({ message: "Nenhum agendamento para amanhã." }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+        }
+
+        const clientIds = [...new Set(appts.map(a => a.client_id))];
+        const proIds = [...new Set(appts.map(a => a.professional_id))];
+        const salonIds = [...new Set(appts.map(a => a.salon_id))];
+        const serviceIds = [...new Set(appts.map(a => a.service_id).filter(id => id))];
+
+        // Buscar Perfis
+        const { data: profiles } = await supabase.from('profiles').select('id, full_name, name, comissao').in('id', [...clientIds, ...proIds]);
+        const profilesMap = new Map((profiles || []).map(p => [p.id, p]));
+
+        // Buscar Salões
+        const { data: salons } = await supabase.from('salons').select('id, nome').in('id', salonIds);
+        const salonsMap = new Map((salons || []).map(s => [s.id, s]));
+
+        // Buscar Serviços
+        const { data: services } = await supabase.from('services').select('id, name').in('id', serviceIds);
+        const servicesMap = new Map((services || []).map(s => [s.id, s]));
+
+
+        for (const appt of appts) {
+            const client = profilesMap.get(appt.client_id);
+            const pro = profilesMap.get(appt.professional_id);
+            // Salões e Serviços são opcionais ou podem vir de outras tabelas, mas vamos tentar mapear
+            const salon = salonsMap.get(appt.salon_id);
+            const service = servicesMap.get(appt.service_id);
+
+            const clientName = client?.full_name || client?.name || 'Cliente';
+            // const proName = pro?.full_name || pro?.name; // Não usado no texto, mas disponível
+            const salonName = salon?.nome || 'Salão';
+            const serviceName = service?.name || 'Serviço';
+
+            if (!appt.client_id || !appt.professional_id) {
+                console.log(`Skipping appt ${appt.id}: missing IDs`);
                 continue;
             }
 
-            const senderId = pro.id;
+            const senderId = appt.professional_id;
+            const clientId = appt.client_id;
 
             // Buscar conversa existente
             const { data: existingConv } = await supabase
                 .from('conversations')
                 .select('id')
-                .or(`and(user1_id.eq.${senderId},user2_id.eq.${client.id}),and(user1_id.eq.${client.id},user2_id.eq.${senderId})`)
+                .or(`and(user1_id.eq.${senderId},user2_id.eq.${clientId}),and(user1_id.eq.${clientId},user2_id.eq.${senderId})`)
                 .maybeSingle();
 
             let convId = existingConv?.id;
@@ -78,7 +121,7 @@ serve(async (req) => {
                 // Criar conversa se não existir
                 const { data: newConv, error: createError } = await supabase.from('conversations').insert({
                     user1_id: senderId,
-                    user2_id: client.id,
+                    user2_id: clientId,
                     last_message: 'Início Automático',
                     unread_count: 0
                 }).select().single();
@@ -91,7 +134,7 @@ serve(async (req) => {
             }
 
             if (convId) {
-                const text = `🔔 *Lembrete Automático*\nOlá ${client.full_name}, seu agendamento é amanhã (${dateStr}) às ${appt.time} no ${salon?.nome || 'Salão'} (${service?.name || 'Serviço'}). Confirmado! ✨`;
+                const text = `🔔 *Lembrete Automático*\nOlá ${clientName}, seu agendamento é amanhã (${dateStr}) às ${appt.time} no ${salonName} (${serviceName}). Confirmado! ✨`;
 
                 await supabase.from('messages').insert({
                     conversation_id: convId,
@@ -107,7 +150,7 @@ serve(async (req) => {
                 }).eq('id', convId);
 
                 sentCount++;
-                details.push({ client: client.full_name, status: "sent" });
+                details.push({ client: clientName, status: "sent" });
             }
         }
 

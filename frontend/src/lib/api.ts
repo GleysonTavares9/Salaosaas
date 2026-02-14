@@ -1,5 +1,5 @@
 import { supabase } from './supabase';
-import { Salon, Service, Product, Professional, Appointment, ChatMessage, Conversation } from '../types';
+import { Salon, Service, Product, Professional, Appointment, ChatMessage, Conversation, Expense } from '../types';
 
 export const api = {
     supabase,
@@ -442,6 +442,29 @@ export const api = {
         }
     },
 
+    // --- Despesas ---
+    expenses: {
+        async getBySalon(salonId: string) {
+            const { data, error } = await supabase.from('expenses').select('*').eq('salon_id', salonId).order('date', { ascending: false });
+            if (error) throw error;
+            return data as Expense[];
+        },
+        async create(expense: Omit<Expense, 'id'>) {
+            const { data, error } = await supabase.from('expenses').insert(expense).select().single();
+            if (error) throw error;
+            return data as Expense;
+        },
+        async delete(id: string) {
+            const { error } = await supabase.from('expenses').delete().eq('id', id);
+            if (error) throw error;
+        },
+        async updateStatus(id: string, status: 'paid' | 'pending') {
+            const { data, error } = await supabase.from('expenses').update({ status }).eq('id', id).select().single();
+            if (error) throw error;
+            return data as Expense;
+        }
+    },
+
     // --- Pagamentos (Mercado Pago API) ---
     payments: {
         async createOrder(salon: Salon, paymentData: any) {
@@ -460,7 +483,9 @@ export const api = {
                 payer: {
                     ...paymentData.payer,
                     email: paymentData.payer?.email || 'cliente@aura.com'
-                }
+                },
+                external_reference: paymentData.external_reference,
+                metadata: paymentData.metadata
             };
             if (token) payload.token = token;
 

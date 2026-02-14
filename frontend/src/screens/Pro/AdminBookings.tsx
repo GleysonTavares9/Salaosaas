@@ -330,139 +330,128 @@ const AdminBookings: React.FC<AdminBookingsProps> = ({ appointments, role, salon
       </header>
 
 
-      <main className="max-w-full max-w-[1400px] mx-auto w-full px-4 lg:px-6 py-8 lg:py-12 space-y-10 pb-40 animate-fade-in relative z-10">
+      <main className="max-w-none w-full px-4 lg:px-8 py-8 lg:py-12 space-y-10 pb-40 animate-fade-in relative z-10">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 xxl:grid-cols-5 gap-6 lg:gap-8">
           {filteredAppts.map(appt => (
-            <div key={appt.id} className={`bg-surface-dark/40 rounded-2xl lg:rounded-[40px] border p-6 lg:p-8 shadow-2xl relative overflow-hidden transition-all backdrop-blur-3xl group ${appt.status === 'canceled' ? 'opacity-40 grayscale border-white/5' :
-              appt.status === 'completed' ? 'border-emerald-500/20 shadow-emerald-900/10' :
-                'border-white/5 hover:border-primary/20'
-              }`}>
+            <div key={appt.id} className="bg-surface-dark/40 rounded-xl lg:rounded-3xl border border-white/5 shadow-lg relative overflow-hidden transition-all backdrop-blur-3xl group mb-2 lg:mb-0 hover:border-primary/20 hover:shadow-primary/5 hover:-translate-y-1 lg:hover:-translate-y-2">
 
-              {/* Status Badge Overlays */}
-              <div className="absolute top-0 right-0 p-4 lg:p-6">
-                <span className={`px-3 lg:px-4 py-1.5 lg:py-2 rounded-full text-[8px] font-black uppercase tracking-[0.3em] border ${appt.status === 'completed' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' :
-                  appt.status === 'confirmed' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
-                    appt.status === 'pending' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' :
-                      'bg-red-500/10 text-red-500 border-red-500/20'
-                  }`}>
-                  {appt.status}
-                </span>
-              </div>
+              {/* Vertical Status Stripe (Left) - Thicker on Desktop */}
+              <div className={`absolute left-0 top-0 bottom-0 w-1 lg:w-1.5 ${appt.status === 'completed' ? 'bg-emerald-500' :
+                appt.status === 'confirmed' ? 'bg-blue-500' :
+                  appt.status === 'pending' ? 'bg-amber-500' :
+                    'bg-red-500'
+                }`}></div>
 
-              {/* Header Info */}
-              <div className="mb-10 space-y-4">
-                <div>
-                  <h3 className="text-2xl lg:text-2xl lg:text-3xl lg:text-3xl font-display font-black text-white italic tracking-tighter uppercase leading-none truncate pr-16">{appt.clientName || "Cliente Aura"}</h3>
-                  <div className="flex items-center gap-3 lg:gap-3 mt-4">
-                    <p className="text-[10px] font-black text-primary uppercase tracking-[0.3em] bg-primary/5 px-3 sm:px-3 lg:px-3 py-1 sm:py-1 lg:py-1.5 rounded-lg border border-primary/10">{appt.service_names || appt.serviceName}</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between pt-4 border-t border-white/5">
-                  <div className="flex items-center gap-3 lg:gap-3">
-                    <div className="size-8 rounded-full bg-slate-800 border border-white/10 flex items-center justify-center">
-                      <span className="material-symbols-outlined text-[14px] text-slate-500">person</span>
+              <div className="pl-4 pr-3 py-3 lg:p-6 lg:pl-10 flex flex-col gap-2 lg:gap-5 h-full justify-between">
+                {/* Header: Name & Price */}
+                <div className="flex justify-between items-start">
+                  <div className="overflow-hidden mr-2">
+                    <h3 className="text-sm lg:text-2xl font-display font-black text-white italic uppercase leading-none truncate mb-1 lg:mb-2">{appt.clientName || "Cliente Aura"}</h3>
+                    <div className="flex items-center gap-2 lg:gap-3">
+                      <div className="flex items-center gap-1 lg:gap-2">
+                        <span className={`size-1.5 lg:size-2.5 rounded-full ${appt.status === 'completed' ? 'bg-emerald-500' : appt.status === 'confirmed' ? 'bg-blue-500' : appt.status === 'pending' ? 'bg-amber-500' : 'bg-red-500'}`}></span>
+                        <span className="text-[7px] lg:text-[11px] font-bold text-slate-400 uppercase tracking-wider leading-none">
+                          {appt.status === 'confirmed' ? 'CONFIRM.' : appt.status === 'pending' ? 'PENDENT.' : appt.status === 'completed' ? 'CONCLUÍD.' : 'CANCEL.'}
+                        </span>
+                      </div>
+                      <span className="text-slate-700 text-[8px] lg:text-xs">•</span>
+                      <p className="text-[8px] lg:text-[11px] font-bold text-slate-500 uppercase tracking-wider truncate max-w-[80px] lg:max-w-full">{appt.professionalName || "Sem Atrib."}</p>
                     </div>
-                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest truncate max-w-full max-w-[120px]">
-                      {appt.professionalName || "Sem Atribuir"}
+                  </div>
+                  <div className="text-right shrink-0">
+                    <p className="text-base lg:text-3xl font-display font-black text-white italic leading-none">
+                      R$ {Number(appt.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                     </p>
                   </div>
-                  <div className="text-right">
-                    <p className="text-3xl lg:text-3xl font-display font-black text-white italic">R$ {appt.valor}</p>
+                </div>
+
+                {/* Info Bar: Service & Date */}
+                <div className="flex items-center justify-between bg-black/20 lg:bg-black/40 rounded-lg lg:rounded-xl p-1.5 lg:p-3 border border-white/5">
+                  <div className="max-w-[100px] lg:max-w-none truncate">
+                    <span className="bg-primary/10 text-primary border border-primary/10 px-1.5 lg:px-3 py-0.5 lg:py-1 rounded lg:rounded-md text-[7px] lg:text-[11px] font-black uppercase tracking-widest truncate block">
+                      {appt.service_names || appt.serviceName}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 lg:gap-4 text-[8px] lg:text-[12px] font-black text-white uppercase tracking-wider shrink-0">
+                    <div className="flex items-center gap-1 lg:gap-2">
+                      <span className="material-symbols-outlined text-[10px] lg:text-sm text-primary">calendar_today</span>
+                      {appt.date ? new Date(appt.date + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }) : '--/--'}
+                    </div>
+                    <div className="flex items-center gap-1 lg:gap-2">
+                      <span className="material-symbols-outlined text-[10px] lg:text-sm text-primary">schedule</span>
+                      {appt.time ? appt.time.substring(0, 5) : '--:--'}
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Date & Time Ribbon */}
-              <div className="flex items-center justify-between bg-black/40 rounded-3xl p-5 sm:p-5 lg:p-5 mb-8 border border-white/5">
-                <div className="flex items-center gap-3 lg:gap-3">
-                  <span className="material-symbols-outlined text-primary text-lg">calendar_today</span>
-                  <p className="text-[10px] font-black text-white uppercase tracking-widest">{appt.date}</p>
-                </div>
-                <div className="h-4 w-px bg-white/10"></div>
-                <div className="flex items-center gap-3 lg:gap-3">
-                  <span className="material-symbols-outlined text-primary text-lg">schedule</span>
-                  <p className="text-[10px] font-black text-white uppercase tracking-widest">{appt.time}</p>
-                </div>
-              </div>
-
-              {/* Ações de Comunicação */}
-              <div className="grid grid-cols-2 gap-3 lg:gap-4 mb-4 lg:mb-6">
-                <button
-                  onClick={async () => {
-                    try {
-                      if (!userId) {
-                        showToast("Erro: Usuário não identificado.", 'error');
-                        return;
-                      }
-                      const conv = await api.chat.startConversation(userId, appt.client_id);
-                      navigate(`/chat/${conv.id}`);
-                    } catch (error: any) {
-                      showToast('Falha ao iniciar chat.', 'error');
-                    }
-                  }}
-                  className="flex items-center justify-center gap-2 lg:gap-3 bg-white/[0.03] border border-white/5 rounded-xl lg:rounded-2xl py-3 lg:py-4 text-[9px] lg:text-[10px] font-black text-white uppercase tracking-widest hover:bg-white/[0.07] active:scale-95 transition-all"
-                >
-                  <span className="material-symbols-outlined text-sm lg:text-base">chat</span>
-                  Aura Chat
-                </button>
-                <button
-                  onClick={() => openWhatsApp(appt)}
-                  className="flex items-center justify-center gap-2 lg:gap-3 bg-emerald-500/[0.03] border border-emerald-500/10 rounded-xl lg:rounded-2xl py-3 lg:py-4 text-[9px] lg:text-[10px] font-black text-emerald-400 uppercase tracking-widest hover:bg-emerald-500/[0.06] active:scale-95 transition-all"
-                >
-                  <span className="material-symbols-outlined text-sm lg:text-base">mail</span>
-                  WhatsApp
-                </button>
-              </div>
-
-              {/* Ações de Gestão de Agenda */}
-              {appt.status === 'completed' ? (
-                <div className="pt-6 border-t border-white/5">
-                  <div className="w-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 py-5 sm:py-5 lg:py-5 rounded-2xl text-[11px] font-black uppercase tracking-[0.2em] flex items-center justify-center gap-3 lg:gap-3">
-                    <span className="material-symbols-outlined text-base font-black">verified</span>
-                    Sessão Finalizada
-                  </div>
-                </div>
-              ) : appt.status === 'canceled' ? (
-                <div className="pt-6 border-t border-white/5">
-                  <button
-                    onClick={() => handleAction(appt.id, 'deletar')}
-                    className="w-full bg-red-500/10 border border-red-500/20 text-red-500 py-5 sm:py-5 lg:py-5 rounded-2xl text-[11px] font-black uppercase tracking-[0.2em] flex items-center justify-center gap-3 lg:gap-3 active:scale-95 transition-all"
-                  >
-                    <span className="material-symbols-outlined text-base">delete_forever</span>
-                    Expurgar Registro
-                  </button>
-                </div>
-              ) : (
-                <div className="space-y-3 lg:space-y-4 pt-4 lg:pt-6 border-t border-white/5 mt-auto">
-                  {/* Botão Principal: Finalizar */}
-                  <button
-                    onClick={() => handleCloseAppointment(appt.id)}
-                    className="w-full gold-gradient text-background-dark py-4 lg:py-5 rounded-2xl text-[10px] lg:text-[11px] font-black uppercase tracking-[0.3em] flex items-center justify-center gap-2 lg:gap-3 shadow-gold-sm active:scale-95 transition-all hover:brightness-110"
-                  >
-                    <span className="material-symbols-outlined text-lg lg:text-xl font-black">lock_open</span>
-                    Fechar Comanda
-                  </button>
-
-                  {/* Botões Secundários: Remarcar/Cancelar */}
-                  <div className="flex gap-4 lg:gap-4">
+                {/* Action Toolbar */}
+                <div className="flex items-center gap-2 lg:gap-3 pt-1 lg:pt-2 border-t border-white/5 mt-auto">
+                  {/* Comm Icons */}
+                  <div className="flex gap-1.5 lg:gap-2 shrink-0">
                     <button
-                      onClick={() => handleAction(appt.id, 'remarcar')}
-                      className="flex-1 bg-white/[0.03] border border-white/5 text-slate-400 py-4 sm:py-4 lg:py-4 lg:py-5 sm:py-5 lg:py-5 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 lg:gap-2 active:scale-95 transition-all hover:text-white"
+                      onClick={async () => {
+                        try {
+                          if (!userId) return;
+                          const conv = await api.chat.startConversation(userId, appt.client_id);
+                          navigate(`/chat/${conv.id}`);
+                        } catch (e) { showToast('Erro', 'error'); }
+                      }}
+                      className="size-8 lg:size-11 lg:w-auto lg:px-5 rounded-lg lg:rounded-xl bg-white/5 border border-white/10 flex items-center justify-center gap-2 text-white active:scale-95 transition-all hover:bg-white/10 font-bold uppercase tracking-wider text-[10px]"
                     >
-                      <span className="material-symbols-outlined text-base">update</span>
-                      Mudar Data
+                      <span className="material-symbols-outlined text-[14px] lg:text-[18px]">chat</span>
+                      <span className="hidden lg:inline">Chat</span>
                     </button>
                     <button
-                      onClick={() => handleAction(appt.id, 'cancelar')}
-                      className="flex-1 bg-red-500/[0.02] border border-red-500/10 text-red-500/60 py-4 sm:py-4 lg:py-4 lg:py-5 sm:py-5 lg:py-5 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 lg:gap-2 active:scale-95 transition-all hover:text-red-500"
+                      onClick={() => openWhatsApp(appt)}
+                      className="size-8 lg:size-11 lg:w-auto lg:px-5 rounded-lg lg:rounded-xl bg-emerald-500/5 border border-emerald-500/10 flex items-center justify-center gap-2 text-emerald-500 active:scale-95 transition-all hover:bg-emerald-500/10 font-bold uppercase tracking-wider text-[10px]"
                     >
-                      <span className="material-symbols-outlined text-base">block</span>
-                      Cancelar
+                      <span className="material-symbols-outlined text-[14px] lg:text-[18px]">mail</span>
+                      <span className="hidden lg:inline">Whats</span>
                     </button>
                   </div>
+
+                  {/* Main Actions */}
+                  {appt.status === 'completed' ? (
+                    <div className="flex-1 h-8 lg:h-11 rounded-lg lg:rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center gap-1.5 lg:gap-2 text-emerald-500">
+                      <span className="material-symbols-outlined text-xs lg:text-base">verified</span>
+                      <span className="text-[8px] lg:text-[11px] font-black uppercase tracking-widest text-center truncate">Finalizado</span>
+                    </div>
+                  ) : appt.status === 'canceled' ? (
+                    <button
+                      onClick={() => handleAction(appt.id, 'deletar')}
+                      className="flex-1 h-8 lg:h-11 rounded-lg lg:rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 flex items-center justify-center gap-1.5 lg:gap-2 active:scale-95 transition-all hover:bg-red-500/20"
+                    >
+                      <span className="material-symbols-outlined text-xs lg:text-base">delete</span>
+                      <span className="text-[8px] lg:text-[11px] font-black uppercase tracking-widest text-center truncate">Expurgar</span>
+                    </button>
+                  ) : (
+                    <div className="flex-1 flex gap-1.5 lg:gap-2">
+                      <button
+                        onClick={() => handleCloseAppointment(appt.id)}
+                        className="flex-1 h-8 lg:h-11 gold-gradient text-background-dark rounded-lg lg:rounded-xl flex items-center justify-center gap-1.5 lg:gap-2 font-black uppercase tracking-widest text-[8px] lg:text-[11px] shadow-gold-sm active:scale-95 transition-all hover:brightness-110"
+                      >
+                        <span className="material-symbols-outlined text-xs lg:text-base font-black">lock_open</span>
+                        <span className="truncate hidden lg:inline">Fechar Comanda</span>
+                        <span className="truncate lg:hidden">Fechar</span>
+                      </button>
+                      <button
+                        onClick={() => handleAction(appt.id, 'remarcar')}
+                        className="size-8 lg:size-11 rounded-lg lg:rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-400 active:scale-95 transition-all hover:text-white"
+                        title="Remarcar"
+                      >
+                        <span className="material-symbols-outlined text-[14px] lg:text-[20px]">edit_calendar</span>
+                      </button>
+                      <button
+                        onClick={() => handleAction(appt.id, 'cancelar')}
+                        className="size-8 lg:size-11 rounded-lg lg:rounded-xl bg-red-500/5 border border-red-500/10 flex items-center justify-center text-red-500 active:scale-95 transition-all hover:bg-red-500/10"
+                        title="Cancelar"
+                      >
+                        <span className="material-symbols-outlined text-[14px] lg:text-[20px]">block</span>
+                      </button>
+                    </div>
+                  )}
                 </div>
-              )}
+              </div>
             </div>
           ))}
         </div>
@@ -479,79 +468,77 @@ const AdminBookings: React.FC<AdminBookingsProps> = ({ appointments, role, salon
 
       {/* Modal de Remarcação Refinado */}
       {showRescheduleModal && selectedAppt && (
-        <div className="fixed inset-0 z-[120] bg-background-dark/95 backdrop-blur-3xl animate-fade-in flex flex-col items-center overflow-hidden">
-          <div className="flex-1 flex flex-col max-w-full max-w-[600px] w-full h-full relative">
-            <header className="px-10 sm:px-10 lg:px-10 pt-16 flex items-center justify-between shrink-0">
+        <div className="fixed inset-0 z-[120] bg-background-dark/95 backdrop-blur-3xl animate-fade-in flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8">
+          <div className="flex flex-col w-full max-w-md md:max-w-2xl lg:max-w-4xl bg-surface-dark border border-white/10 rounded-[32px] md:rounded-[48px] shadow-2xl overflow-hidden max-h-full">
+            <header className="px-6 py-6 md:px-10 md:py-8 flex items-center justify-between shrink-0 border-b border-white/5 bg-background-dark/50">
               <div>
-                <h2 className="text-2xl lg:text-2xl lg:text-3xl lg:text-3xl font-display font-black text-white italic tracking-tighter uppercase">Remarcar Fluxo</h2>
-                <p className="text-[10px] text-primary font-black uppercase tracking-[0.4em] mt-2 leading-none">{selectedAppt.clientName}</p>
+                <h2 className="text-xl md:text-3xl font-display font-black text-white italic tracking-tighter uppercase">Remarcar Fluxo</h2>
+                <p className="text-[9px] md:text-[10px] text-primary font-black uppercase tracking-[0.3em] mt-1 md:mt-2 leading-none">{selectedAppt.clientName}</p>
               </div>
-              <button onClick={() => setShowRescheduleModal(false)} className="size-10 sm:size-12 lg:size-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-500 hover:text-white transition-all">
+              <button onClick={() => setShowRescheduleModal(false)} className="size-10 md:size-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-500 hover:text-white transition-all active:scale-95">
                 <span className="material-symbols-outlined font-black">close</span>
               </button>
             </header>
 
-            <div className="flex-1 overflow-y-auto p-10 sm:p-10 lg:p-10 space-y-12 no-scrollbar min-h-0">
-              <div className="space-y-10">
-                {/* Calendário Horizontal Elite */}
-                <div>
-                  <p className="text-[10px] font-black text-primary uppercase tracking-[0.4em] mb-6 text-center">Calendário de Disponibilidade</p>
-                  <div className="flex gap-4 lg:gap-4 overflow-x-auto no-scrollbar pb-4 select-none">
-                    {availableDates.map(d => (
+            <div className="flex-1 overflow-y-auto p-6 md:p-10 space-y-8 md:space-y-12 no-scrollbar">
+              {/* Calendário Horizontal Elite */}
+              <div>
+                <p className="text-[9px] md:text-[10px] font-black text-primary uppercase tracking-[0.4em] mb-4 md:mb-6 text-center">Calendário de Disponibilidade</p>
+                <div className="flex gap-3 md:gap-4 overflow-x-auto no-scrollbar pb-4 select-none px-1">
+                  {availableDates.map(d => (
+                    <button
+                      key={d.value}
+                      onClick={() => {
+                        setNewDate(d.value);
+                        setNewTime('');
+                      }}
+                      className={`shrink-0 flex flex-col items-center justify-center size-20 md:size-24 rounded-2xl md:rounded-[32px] border transition-all duration-300 ${newDate === d.value
+                        ? 'gold-gradient text-background-dark border-transparent shadow-gold scale-105 z-10'
+                        : 'bg-surface-dark/40 border-white/10 text-slate-500 hover:border-white/30'}`}
+                    >
+                      <span className="text-[8px] md:text-[9px] font-black uppercase tracking-tighter mb-0.5 md:mb-1">{d.weekday}</span>
+                      <span className="text-lg md:text-2xl font-black italic font-display leading-tight">{d.display.split('/')[0]}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Horários Grid Luxe */}
+              <div className="bg-primary/5 border border-primary/20 rounded-3xl md:rounded-[48px] p-6 md:p-10 space-y-6 md:space-y-8">
+                <p className="text-[9px] md:text-[10px] font-black text-primary uppercase tracking-[0.4em] text-center">Slots Magnéticos</p>
+                {isLoadingSlots ? (
+                  <div className="flex justify-center py-8 md:py-12">
+                    <div className="size-8 md:size-10 border-2 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+                  </div>
+                ) : availableSlots.length > 0 ? (
+                  <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
+                    {availableSlots.map(slot => (
                       <button
-                        key={d.value}
-                        onClick={() => {
-                          setNewDate(d.value);
-                          setNewTime('');
-                        }}
-                        className={`shrink-0 flex flex-col items-center justify-center size-18 sm:size-20 lg:size-24 rounded-2xl sm:rounded-3xl lg:rounded-[32px] border transition-all duration-500 ${newDate === d.value
-                          ? 'gold-gradient text-background-dark border-transparent shadow-gold scale-110 z-10'
-                          : 'bg-surface-dark/40 border-white/10 text-slate-500 hover:border-white/30'}`}
+                        key={slot}
+                        onClick={() => setNewTime(slot)}
+                        className={`py-3 md:py-4 rounded-xl md:rounded-2xl border text-[11px] md:text-[13px] font-black font-display italic transition-all duration-200 ${newTime === slot
+                          ? 'bg-primary text-background-dark border-primary shadow-gold-sm scale-105'
+                          : 'bg-background-dark/60 border-white/5 text-slate-500 hover:border-white/20 hover:text-white'}`}
                       >
-                        <span className="text-[9px] font-black uppercase tracking-tighter mb-1">{d.weekday}</span>
-                        <span className="text-xl font-black italic font-display leading-tight">{d.display.split('/')[0]}</span>
+                        {slot}
                       </button>
                     ))}
                   </div>
-                </div>
-
-                {/* Horários Grid Luxe */}
-                <div className="bg-primary/5 border border-primary/20 rounded-2xl sm:rounded-3xl lg:rounded-[48px] p-8 sm:p-8 lg:p-8 lg:p-10 sm:p-10 lg:p-10 space-y-8">
-                  <p className="text-[10px] font-black text-primary uppercase tracking-[0.4em] text-center">Slots Magnéticos</p>
-                  {isLoadingSlots ? (
-                    <div className="flex justify-center py-12 sm:py-12 lg:py-12">
-                      <div className="size-10 sm:size-12 lg:size-10 border-2 border-primary/20 border-t-primary rounded-full animate-spin"></div>
-                    </div>
-                  ) : availableSlots.length > 0 ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 sm:grid-cols-1 sm:grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-4">
-                      {availableSlots.map(slot => (
-                        <button
-                          key={slot}
-                          onClick={() => setNewTime(slot)}
-                          className={`py-5 sm:py-5 lg:py-5 rounded-2xl border text-[13px] font-black font-display italic transition-all duration-300 ${newTime === slot
-                            ? 'bg-primary text-background-dark border-primary shadow-gold-sm'
-                            : 'bg-background-dark/60 border-white/5 text-slate-500 hover:border-white/20'}`}
-                        >
-                          {slot}
-                        </button>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="py-20 sm:py-20 lg:py-20 text-center border-2 border-dashed border-white/5 rounded-2xl sm:rounded-3xl lg:rounded-[40px] bg-white/[0.02]">
-                      <span className="material-symbols-outlined text-4xl lg:text-4xl text-slate-700 mb-4">block</span>
-                      <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest">Sem brechas para esta data</p>
-                    </div>
-                  )}
-                </div>
+                ) : (
+                  <div className="py-12 md:py-20 text-center border-2 border-dashed border-white/5 rounded-3xl md:rounded-[40px] bg-white/[0.02]">
+                    <span className="material-symbols-outlined text-3xl md:text-4xl text-slate-700 mb-2 md:mb-4">block</span>
+                    <p className="text-[9px] md:text-[10px] font-black text-slate-600 uppercase tracking-widest">Sem brechas para esta data</p>
+                  </div>
+                )}
               </div>
             </div>
 
-            <div className="p-10 sm:p-10 lg:p-10 bg-gradient-to-t from-background-dark via-background-dark to-transparent">
+            <div className="p-6 md:p-10 bg-background-dark/50 border-t border-white/5 shrink-0">
               <button
                 disabled={!newDate || !newTime}
                 onClick={handleReschedule}
-                className={`w-full h-24 rounded-2xl sm:rounded-3xl lg:rounded-[32px] text-[13px] font-black uppercase tracking-[0.5em] transition-all duration-500 shadow-[0_30px_70px_rgba(0,0,0,0.5)] ${newDate && newTime
-                  ? 'gold-gradient text-background-dark active:scale-95 hover:brightness-110'
+                className={`w-full h-16 md:h-20 rounded-2xl md:rounded-[32px] text-[11px] md:text-[13px] font-black uppercase tracking-[0.3em] md:tracking-[0.5em] transition-all duration-500 shadow-xl ${newDate && newTime
+                  ? 'gold-gradient text-background-dark active:scale-95 hover:brightness-110 shadow-gold/20'
                   : 'bg-white/5 text-white/10 cursor-not-allowed opacity-50'}`}
               >
                 PROJETAR NOVA SESSÃO
@@ -563,18 +550,20 @@ const AdminBookings: React.FC<AdminBookingsProps> = ({ appointments, role, salon
 
       {/* Dialog de Confirmação Refinado */}
       {confirmDialog.show && (
-        <div className="fixed inset-0 z-[200] bg-black/95 backdrop-blur-md flex items-center justify-center p-8 sm:p-8 lg:p-8 animate-fade-in text-center">
-          <div className="bg-surface-dark border border-white/10 rounded-2xl sm:rounded-3xl lg:rounded-[48px] p-12 sm:p-14 lg:p-16 sm:p-12 sm:p-14 lg:p-16 lg:p-12 sm:p-14 lg:p-16 max-w-sm w-full shadow-3xl">
-            <div className={`size-14 sm:size-16 lg:size-20 rounded-3xl mx-auto mb-8 flex items-center justify-center animate-pulse ${confirmDialog.title.includes('Excluir') || confirmDialog.title.includes('Cancelar') ? 'bg-red-500/10 text-red-500' : 'bg-primary/10 text-primary'}`}>
-              <span className="material-symbols-outlined text-4xl lg:text-4xl">
-                {confirmDialog.title.includes('Excluir') || confirmDialog.title.includes('Cancelar') ? 'warning' : 'task_alt'}
-              </span>
-            </div>
-            <h3 className="text-2xl lg:text-2xl font-display font-black text-white italic mb-4 uppercase tracking-tighter">{confirmDialog.title}</h3>
-            <p className="text-slate-500 text-[11px] font-bold uppercase tracking-widest leading-relaxed mb-10">{confirmDialog.message}</p>
-            <div className="flex flex-col gap-4 lg:gap-4">
-              <button onClick={confirmDialog.onConfirm} className={`w-full h-16 rounded-2xl font-black uppercase tracking-[0.4em] text-[10px] shadow-2xl active:scale-95 transition-all ${confirmDialog.title.includes('Excluir') || confirmDialog.title.includes('Cancelar') ? 'bg-red-500 text-white shadow-red-500/20' : 'gold-gradient text-background-dark'}`}>Confirmar Ação</button>
-              <button onClick={() => setConfirmDialog({ show: false, title: '', message: '', onConfirm: () => { } })} className="w-full bg-white/5 border border-white/10 text-white h-16 rounded-2xl font-black uppercase tracking-[0.4em] text-[10px]">Voltar</button>
+        <div className="fixed inset-0 z-[9999] overflow-y-auto bg-black/95 backdrop-blur-md animate-fade-in">
+          <div className="flex min-h-full items-center justify-center p-4 text-center">
+            <div className="relative w-full max-w-sm bg-surface-dark border border-white/10 rounded-2xl sm:rounded-3xl lg:rounded-[48px] p-8 sm:p-10 lg:p-12 shadow-3xl animate-scale-in">
+              <div className={`size-14 sm:size-16 lg:size-20 rounded-3xl mx-auto mb-8 flex items-center justify-center animate-pulse ${confirmDialog.title.includes('Excluir') || confirmDialog.title.includes('Cancelar') ? 'bg-red-500/10 text-red-500' : 'bg-primary/10 text-primary'}`}>
+                <span className="material-symbols-outlined text-4xl lg:text-4xl">
+                  {confirmDialog.title.includes('Excluir') || confirmDialog.title.includes('Cancelar') ? 'warning' : 'task_alt'}
+                </span>
+              </div>
+              <h3 className="text-2xl lg:text-2xl font-display font-black text-white italic mb-4 uppercase tracking-tighter">{confirmDialog.title}</h3>
+              <p className="text-slate-500 text-[11px] font-bold uppercase tracking-widest leading-relaxed mb-10">{confirmDialog.message}</p>
+              <div className="flex flex-col gap-4 lg:gap-4">
+                <button onClick={confirmDialog.onConfirm} className={`w-full h-16 rounded-2xl font-black uppercase tracking-[0.4em] text-[10px] shadow-2xl active:scale-95 transition-all ${confirmDialog.title.includes('Excluir') || confirmDialog.title.includes('Cancelar') ? 'bg-red-500 text-white shadow-red-500/20' : 'gold-gradient text-background-dark'}`}>Confirmar Ação</button>
+                <button onClick={() => setConfirmDialog({ show: false, title: '', message: '', onConfirm: () => { } })} className="w-full bg-white/5 border border-white/10 text-white h-16 rounded-2xl font-black uppercase tracking-[0.4em] text-[10px]">Voltar</button>
+              </div>
             </div>
           </div>
         </div>

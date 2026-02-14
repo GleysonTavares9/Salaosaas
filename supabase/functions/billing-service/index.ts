@@ -52,7 +52,7 @@ serve(async (req) => {
 
             const payload = {
                 transaction_amount: Number(paymentData.transaction_amount),
-                description: `Pagamento para ${salon.nome}`,
+                description: paymentData.description || `Pagamento para ${salon.nome}`,
                 payment_method_id: paymentData.payment_method_id,
                 statement_descriptor: cleanSalonName, // Nome na fatura
                 payer: {
@@ -60,8 +60,11 @@ serve(async (req) => {
                     first_name: finalFirstName,
                     last_name: finalLastName
                 },
-                external_reference: `AURA-${Date.now()}` // Referência única mas legível
+                external_reference: paymentData.external_reference || `AURA-${Date.now()}`,
+                metadata: paymentData.metadata || {},
+                notification_url: `https://sycwdapzkvzvjedowfjq.supabase.co/functions/v1/payment-webhook?salon_id=${salonId}`
             };
+            if (paymentData.token) (payload as any).token = paymentData.token;
 
             console.log(`[AuraPay] Tentando pagamento para: ${salon.nome} | Token: ${cleanToken.substring(0, 15)}...`);
 

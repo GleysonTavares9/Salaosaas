@@ -174,23 +174,44 @@ const Checkout: React.FC<CheckoutProps> = ({ bookingDraft, salons, onConfirm, se
       const finalServices = [...services];
       const finalProducts = [...products];
       const finalTotal = total;
+      // 1. CRIAR O AGENDAMENTO NO BANCO PRIMEIRO
       const totalDuration = finalServices.reduce((acc: number, curr: any) => acc + (curr.duration_min || 30), 0);
 
-      // 1. Tentar criar o pedido no Mercado Pago se houver dados
+      // Determine o status inicial: Se é "paga no local" e não passou dados de pagamento, já nasce confirmado.
+      // Se está tentando pagar via MP, nasce pendente.
+      const isPayAtLocal = !mpObject && (activeSalon?.paga_no_local || !isMpEnabled);
+      const initialStatus = isPayAtLocal ? 'confirmed' : 'pending';
+
+      const newAppt = await api.appointments.create({
+        salon_id: bookingDraft.salonId || '',
+        client_id: userId,
+        professional_id: bookingDraft.professionalId || null,
+        service_names: finalServices.length > 0 ? finalServices.map((s: any) => s.name).join(', ') : 'Shopping Boutique',
+        valor: Number(finalTotal.toFixed(2)),
+        date: bookingDraft.date || new Date().toISOString().split('T')[0],
+        time: bookingDraft.time || '10:00:00',
+        duration_min: totalDuration,
+        status: initialStatus,
+        booked_by_ai: isFromAI
+      });
+
+      // 2. Tentar criar o pedido no Mercado Pago se houver dados
       let pixData = null;
       if (mpObject && activeSalon) {
         try {
           if (!mpObject.payer) mpObject.payer = {};
           if (!mpObject.payer.email) mpObject.payer.email = userEmail;
 
-          const mpResponse = await api.payments.createOrder(activeSalon, mpObject);
-          // Normaliza a resposta (pode vir aninhada em response ou data dependendo do wrapper)
-          const actualResponse = mpResponse.response || mpResponse.data || mpResponse;
+          // Adiciona metadados cruciais para o Webhook e Rastreabilidade
+          mpObject.external_reference = newAppt.id;
+          if (!mpObject.metadata) mpObject.metadata = {};
+          mpObject.metadata.appointment_id = newAppt.id;
+          mpObject.metadata.salon_id = activeSalon.id;
 
-          // Tenta encontrar point_of_interaction em varios niveis
+          const mpResponse = await api.payments.createOrder(activeSalon, mpObject);
+          const actualResponse = mpResponse.response || mpResponse.data || mpResponse;
           const poi = actualResponse.point_of_interaction || mpResponse.point_of_interaction;
 
-          // Captura dados do PIX se existirem
           if (poi && poi.transaction_data) {
             const tData = poi.transaction_data;
             pixData = {
@@ -200,15 +221,18 @@ const Checkout: React.FC<CheckoutProps> = ({ bookingDraft, salons, onConfirm, se
               id: actualResponse.id || mpResponse.id
             };
           } else if (actualResponse.id) {
-            // Fallback se tiver ID mas não tiver QR code explícito agora
-            pixData = {
-              id: actualResponse.id,
-              copyPaste: '',
-              qrCodeBase64: ''
-            };
+            pixData = { id: actualResponse.id, copyPaste: '', qrCodeBase64: '' };
+          }
+
+          // Se for cartão e já aprovou (status approved), confirma o appt na hora
+          if (actualResponse.status === 'approved') {
+            await api.appointments.updateStatus(newAppt.id, 'confirmed');
+            newAppt.status = 'confirmed';
           }
         } catch (payErr: any) {
           console.error("Erro MP:", payErr);
+          // Se falhou o pagamento, deletamos o agendamento pendente para não sujar a agenda
+          try { await api.appointments.delete(newAppt.id); } catch (e) { }
           showToast(payErr.message || "Erro no processamento do pagamento", 'error');
           setIsProcessing(false);
           return;
@@ -217,6 +241,7 @@ const Checkout: React.FC<CheckoutProps> = ({ bookingDraft, salons, onConfirm, se
 
       // Snapshot para a tela de sucesso/Pix
       const orderSnapshot = {
+        appointmentId: newAppt.id, // <--- ADICIONADO ID DO AGENDAMENTO
         salonName: bookingDraft.salonName || salonInfo?.nome,
         endereco: salonInfo?.endereco,
         services: finalServices,
@@ -230,21 +255,7 @@ const Checkout: React.FC<CheckoutProps> = ({ bookingDraft, salons, onConfirm, se
       };
       setLastOrder(orderSnapshot);
 
-      // 2. CRIAR O AGENDAMENTO NO BANCO (Sempre cria, o status muda se for PIX)
-      const newAppt = await api.appointments.create({
-        salon_id: bookingDraft.salonId || '',
-        client_id: userId,
-        professional_id: bookingDraft.professionalId || null,
-        service_names: finalServices.length > 0 ? finalServices.map((s: any) => s.name).join(', ') : 'Shopping Boutique',
-        valor: Number(finalTotal.toFixed(2)),
-        date: bookingDraft.date || new Date().toISOString().split('T')[0],
-        time: bookingDraft.time || '10:00:00',
-        duration_min: totalDuration,
-        status: isPixMethod ? 'pending' : 'confirmed', // Pendente se for PIX
-        booked_by_ai: isFromAI
-      });
-
-      // Se não for PIX (ex: Cartão aprovado na hora), finaliza a UI do bot
+      // Se não for PIX (ex: Cartão aprovado ou local), finaliza a UI do bot
       if (!isPixMethod) {
         onConfirm(newAppt);
       }
